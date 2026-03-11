@@ -1,0 +1,28 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"                     
+                    xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+                    xmlns:dxwui="http://schemas.devexpress.com/winfx/2008/xaml/windowsui" 
+                    xmlns:ext="http://schemas.abtsoftware.co.uk/scichart/exampleExternals">
+    <SolidColorBrush x:Key="Main.Background" Color="#0E1012"/>
+    <SolidColorBrush x:Key="Sub.Background" Color="#0E1012"/>
+    
+    <SolidColorBrush x:Key="Main.Panel.Background" Color="#15181C"/>
+    <SolidColorBrush x:Key="Sub.Panel.Background" Color="#15181C"/>
+    
+    <SolidColorBrush x:Key="Main.Highlight" Color="#1E7154"/>
+    <SolidColorBrush x:Key="Sub.Highlight" Color="#1E7154"/>
+    
+    <Color x:Key="Main.Label.Highlight">#1E7154</Color>
+    <Color x:Key="Sub.Label.Highlight">#1E7154</Color>
+    
+    <SolidColorBrush x:Key="Main.MouseOver" Color="#7D868C"/>
+    <SolidColorBrush x:Key="Sub.MouseOver" Color="#7D868C"/>
+
+    <Style TargetType="dxwui:HamburgerMenuItemSeparator" x:Key="SeparatorStyle">
+        <Setter Property="Placement" Value="Bottom"/>
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="Opacity" Value="0.2"/>
+    </Style>
+</ResourceDictionary>

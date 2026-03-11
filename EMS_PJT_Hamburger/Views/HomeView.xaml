@@ -1,0 +1,1081 @@
+﻿<UserControl x:Class="EMS_PJT_Hamburger.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EMS_PJT_Hamburger.Views"
+             xmlns:ViewModels="clr-namespace:EMS_PJT_Hamburger.ViewModels"
+             xmlns:Managers="clr-namespace:EMS_PJT_Hamburger.Models.Managers"
+             mc:Ignorable="d" d:DesignHeight="704" d:DesignWidth="1225" Background="Transparent" FontFamily="/EMS_PJT;component/Fonts/#Noto Sans KR">
+    <UserControl.Resources>
+        <Style TargetType="Border" x:Key="ChargeStoryBorderStyle">
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Width" Value="220"/>
+            <Setter Property="Height" Value="170"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="Red"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush>
+                        <GradientStop Color="#0E1012" Offset="0"/>
+                        <GradientStop Color="#FF2C3D4D" Offset="0.5"/>
+                        <GradientStop Color="#0E1012" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard x:Name="BlinkStoryboard">
+                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                <ColorAnimation Storyboard.TargetProperty="BorderBrush.Color"
+                                                        From="GreenYellow"
+                                                        To="GreenYellow"
+                                                        Duration="0:0:0"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <StopStoryboard BeginStoryboardName="BlinkStoryboard"/>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="Border" x:Key="DischargeStoryBorderStyle">
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Width" Value="220"/>
+            <Setter Property="Height" Value="170"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="Red"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush>
+                        <GradientStop Color="#0E1012" Offset="0"/>
+                        <GradientStop Color="#FF2C3D4D" Offset="0.5"/>
+                        <GradientStop Color="#0E1012" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard x:Name="BlinkStoryboard">
+                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                <ColorAnimation Storyboard.TargetProperty="BorderBrush.Color"
+                                                        From="Orange"
+                                                        To="Orange"
+                                                        Duration="0:0:0">
+                                </ColorAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <StopStoryboard BeginStoryboardName="BlinkStoryboard"/>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="Border" x:Key="DefaultBorderStyle">
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Width" Value="160"/>
+            <Setter Property="Height" Value="120"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Main.MouseOver}"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush>
+                        <GradientStop Color="#0E1012" Offset="0"/>
+                        <GradientStop Color="#FF151D25" Offset="0.5"/>
+                        <GradientStop Color="#0E1012" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Border" x:Key="ContentBorderStyle">
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Width" Value="50"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#FFB0FCFC"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="2" ShadowDepth="0" Direction="0" Color="Cyan" Opacity="1"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="DefaultTextBlockStyle">
+            <Setter Property="Width" Value="120"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextDecorations" Value="Underline"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <Style TargetType="Image" x:Key="DefaultImageStyle">
+            <Setter Property="Width" Value="60"/>
+            <Setter Property="Height" Value="60"/>
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
+        </Style>
+
+        <Style TargetType="Path" x:Key="ChargingPathStyle">
+            <Setter Property="StrokeDashOffset" Value="0"/>
+            <Setter Property="StrokeThickness" Value="3"/>
+            <Setter Property="StrokeLineJoin" Value="Round"/>
+            <Setter Property="StrokeStartLineCap" Value="Round"/>
+            <Setter Property="StrokeEndLineCap" Value="Round"/>
+            <Setter Property="Stroke" Value="#FFDEFBB2"/>
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="Fill" Value="Transparent"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="10" 
+                                      ShadowDepth="0" 
+                                      Direction="0" 
+                                      Color="GreenYellow" 
+                                      Opacity="1"
+                                      RenderingBias="Performance"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Path" x:Key="DisChargingPathStyle">
+            <Setter Property="StrokeDashOffset" Value="0"/>
+            <Setter Property="StrokeThickness" Value="3"/>
+            <Setter Property="StrokeLineJoin" Value="Round"/>
+            <Setter Property="StrokeStartLineCap" Value="Round"/>
+            <Setter Property="StrokeEndLineCap" Value="Round"/>
+            <Setter Property="Stroke" Value="#FFFDE2B0"/>
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="Fill" Value="Transparent"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="10" 
+                                      ShadowDepth="0" 
+                                      Direction="0" 
+                                      Color="Orange" 
+                                      Opacity="1"
+                                      RenderingBias="Performance"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Label" x:Key="ConnLableStyle">
+            <Setter Property="Width" Value="45"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Foreground" Value="#87FFFF"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Top"/>
+            <Setter Property="BorderBrush" Value="#87FFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="2" ShadowDepth="0" Direction="0" Color="Cyan" Opacity="1"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Label" x:Key="InfoLableStyle">
+            <Setter Property="Width" Value="40"/>
+            <Setter Property="Height" Value="18"/>
+            <Setter Property="Padding" Value="3,0,0,0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="VerticalContentAlignment" Value="Top"/>
+            <Setter Property="BorderBrush" Value="#FFB0FCFC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style TargetType="Label" x:Key="HeaderLableStyle">
+            <Setter Property="Padding" Value="0,3,0,0"/>
+            <Setter Property="Margin" Value="0,5,0,0"/>
+            <Setter Property="Foreground" Value="#FFB0FCFC"/>
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="Image" x:Key="HeaderImageStyle">
+            <Setter Property="Margin" Value="9,5,9,0"/>
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="ContentTextBlockStyle">
+            <Setter Property="Margin" Value="0,-3,0,0"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+
+    </UserControl.Resources>
+
+    <UserControl.DataContext>
+        <ViewModels:HomeViewModel/>
+    </UserControl.DataContext>
+
+    <Viewbox Stretch="Uniform">
+        <Canvas Height="610" Width="1225" Margin="10,0" Background="{DynamicResource Main.Background}">
+            <!--#region 충전 Path -->
+            <Path x:Name="Charge_PCS"
+                  Managers:AnimationManager.IsRunning="{Binding IsChargingPCS1}"
+                  Managers:AnimationManager.To="-15"
+                  Managers:AnimationManager.From="0"
+                  Managers:AnimationManager.Speed="1.2"
+                  Managers:AnimationManager.StartDelaySec="1"
+                  Visibility="Visible"
+                  Style="{StaticResource ChargingPathStyle}">
+                <Path.Data>
+                    <PathGeometry>
+                        <PathFigure StartPoint="172, 180" IsClosed="False">
+                            <LineSegment Point="172,310"/>
+                            <LineSegment Point="370,310"/>
+                            <LineSegment Point="370,100"/>
+                            <LineSegment Point="400,100"/>
+                        </PathFigure>
+                    </PathGeometry>
+                </Path.Data>
+            </Path>
+
+            <Path x:Name="Charge_BMS"
+                  Managers:AnimationManager.IsRunning="{Binding IsChargingBMS}"
+                  Managers:AnimationManager.To="-15"
+                  Managers:AnimationManager.From="0"
+                  Managers:AnimationManager.Speed="1.2"
+                  Managers:AnimationManager.StartDelaySec="1"
+                  Visibility="Visible"
+                  Style="{StaticResource ChargingPathStyle}">
+                <Path.Data>
+                    <PathGeometry>
+                        <PathFigure StartPoint="501, 180" IsClosed="False">
+                            <LineSegment Point="501,230"/>
+                        </PathFigure>
+                    </PathGeometry>
+                </Path.Data>
+            </Path>
+            <!--#endregion-->
+
+            <!--#region 방전 Path -->
+            <Path x:Name="Discharge_PCS"
+                  Managers:AnimationManager.IsRunning="{Binding IsDischargingPCS2}"
+                  Managers:AnimationManager.To="-15"
+                  Managers:AnimationManager.From="0"
+                  Managers:AnimationManager.Speed="1.2"
+                  Managers:AnimationManager.StartDelaySec="1"
+                  Visibility="Visible"
+                  Style="{StaticResource DisChargingPathStyle}">
+                <Path.Data>
+                    <PathGeometry>
+                        <PathFigure StartPoint="501, 380" IsClosed="False">
+                            <LineSegment Point="501,430"/>
+                        </PathFigure>
+                    </PathGeometry>
+                </Path.Data>
+            </Path>
+
+            <Path x:Name="Discharge_Transformer"
+                  Managers:AnimationManager.IsRunning="{Binding IsDischargingTransformer}"
+                  Managers:AnimationManager.To="-15"
+                  Managers:AnimationManager.From="0"
+                  Managers:AnimationManager.Speed="1.2"
+                  Managers:AnimationManager.StartDelaySec="1"
+                  Visibility="Visible"
+                  Style="{StaticResource DisChargingPathStyle}">
+                <Path.Data>
+                    <PathGeometry>
+                        <PathFigure StartPoint="600, 500" IsClosed="False">
+                            <LineSegment Point="695,500"/>
+                            <LineSegment Point="695,345"/>
+                        </PathFigure>
+                    </PathGeometry>
+                </Path.Data>
+            </Path>
+
+            <Path x:Name="Discharge_OnGrid"
+                      Style="{StaticResource DisChargingPathStyle}">
+                <Path.Data>
+                    <PathGeometry>
+                        <PathFigure StartPoint="710,270" IsClosed="False">
+                            <LineSegment Point="710,100"/>
+                            <LineSegment Point="920,100"/>
+                        </PathFigure>
+                    </PathGeometry>
+                </Path.Data>
+            </Path>
+
+            <Path x:Name="Discharge_OffGrid"
+                  Managers:AnimationManager.IsRunning="{Binding IsDischargingOffGrid}"
+                  Managers:AnimationManager.To="-15"
+                  Managers:AnimationManager.From="0"
+                  Managers:AnimationManager.Speed="1.2"
+                  Managers:AnimationManager.StartDelaySec="1"
+                  Visibility="Visible"
+                  Style="{StaticResource DisChargingPathStyle}">
+                <Path.Data>
+                    <PathGeometry>
+                        <PathFigure StartPoint="730,310" IsClosed="False">
+                            <LineSegment Point="920,310"/>
+                        </PathFigure>
+                    </PathGeometry>
+                </Path.Data>
+            </Path>
+
+            <Path x:Name="Discharge_Vihicle"
+                  Managers:AnimationManager.IsRunning="{Binding IsDischargingVihicle}"
+                  Managers:AnimationManager.To="-15"
+                  Managers:AnimationManager.From="0"
+                  Managers:AnimationManager.Speed="1.2"
+                  Managers:AnimationManager.StartDelaySec="1"
+                  Visibility="Visible"
+                  Style="{StaticResource DisChargingPathStyle}">
+                <Path.Data>
+                    <PathGeometry>
+                        <PathFigure StartPoint="710,345" IsClosed="False">
+                            <LineSegment Point="710,500"/>
+                            <LineSegment Point="920,500"/>
+                        </PathFigure>
+                    </PathGeometry>
+                </Path.Data>
+            </Path>
+            <!--#endregion-->
+
+            <!-- 자연 에너지 -->
+
+            <Border Canvas.Left="131" Canvas.Top="256"
+                    Style="{StaticResource DefaultBorderStyle}" Height="98" Width="82">
+                <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <TextBlock Text="PV Inverter"
+                               Canvas.Left="4"
+                               Style="{StaticResource DefaultTextBlockStyle}" FontSize="12" Width="70">
+
+                    </TextBlock>
+
+                    <Label Canvas.Left="17" Canvas.Top="68"
+                           Content="Enable"
+                           Style="{StaticResource ConnLableStyle}" Width="44"/>
+
+                    <Image Source="/EMS_PJT_Hamburger;component/Assets/인버터02.png" 
+                           Canvas.Left="14" Canvas.Top="18"
+                           Style="{StaticResource DefaultImageStyle}" Width="50" Height="50" Stretch="Fill"/>
+
+                </Canvas>
+            </Border>
+
+            <Border Canvas.Left="263" Canvas.Top="256"
+                    Style="{StaticResource DefaultBorderStyle}" Height="98" Width="82">
+                <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <TextBlock Text="Transformer"
+                               Canvas.Left="4"
+                               Style="{StaticResource DefaultTextBlockStyle}" FontSize="12" Width="70">
+
+                    </TextBlock>
+
+                    <Label Canvas.Left="17" Canvas.Top="68"
+                           Content="Enable"
+                           Style="{StaticResource ConnLableStyle}" Width="44"/>
+
+                    <Image Source="/EMS_PJT_Hamburger;component/Assets/Transformer.png" 
+                           Canvas.Left="14" Canvas.Top="18"
+                           Style="{StaticResource DefaultImageStyle}" Width="50" Height="50" Stretch="Fill"/>
+
+                </Canvas>
+            </Border>
+
+            <Border Canvas.Left="659" Canvas.Top="256"
+                    Style="{StaticResource DefaultBorderStyle}" Height="98" Width="82">
+                <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <TextBlock Text="Transformer"
+                               Canvas.Left="4"
+                               Style="{StaticResource DefaultTextBlockStyle}" FontSize="12" Width="70">
+
+                    </TextBlock>
+
+                    <Label Canvas.Left="17" Canvas.Top="68"
+                           Content="Enable"
+                           Style="{StaticResource ConnLableStyle}" Width="44"/>
+
+                    <Image Source="/EMS_PJT_Hamburger;component/Assets/Transformer.png" 
+                           Canvas.Left="14" Canvas.Top="18"
+                           Style="{StaticResource DefaultImageStyle}" Width="50" Height="50" Stretch="Fill"/>
+
+                </Canvas>
+            </Border>
+
+
+
+            <!--<Setter Property="Width" Value="160"/>
+            <Setter Property="Height" Value="120"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="BorderThickness" Value="2"/>-->
+
+
+            <!-- Charge -->
+            <Border x:Name="ENERGY"
+                    Canvas.Left="62"
+                    Canvas.Top="20"
+                    Style="{StaticResource ChargeStoryBorderStyle}"
+                    Tag="{Binding IsChargingEnergy}">
+                <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <TextBlock Text="ENERGY"
+                               Canvas.Left="4"
+                               Style="{StaticResource DefaultTextBlockStyle}">
+                    </TextBlock>
+
+                    <Label Canvas.Left="167" Canvas.Top="4"
+                           Content="Enable"
+                           Style="{StaticResource ConnLableStyle}"/>
+
+                    <Label Canvas.Left="172" Canvas.Top="28"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Va"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="GreenYellow"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Label Canvas.Left="172" Canvas.Top="47"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Vb"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="GreenYellow"/>
+                        </StackPanel>
+
+                    </Label>
+
+                    <Label Canvas.Left="172" Canvas.Top="66"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Vc"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="GreenYellow"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Image Source="/EMS_PJT_Hamburger;component/Assets/태양열패널03.png" 
+                           Canvas.Left="47" Canvas.Top="29"
+                           Style="{StaticResource DefaultImageStyle}" Width="122" Height="76" Stretch="Fill"/>
+
+                    <Border Canvas.Top="112" Canvas.Left="4"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="SOC" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="24"/>
+                                <Run Text="kW" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="57" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="SOH" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="61"/>
+                                <Run Text="kW" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="109" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Capacitor neon.png" 
+                                   Height="25" 
+                                   Width="25"
+                                   Style="{StaticResource HeaderImageStyle}"/>
+                            <TextBlock Text="Warring"
+                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="162" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Warring neon.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <TextBlock Text="Warring" 
+                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
+
+                </Canvas>
+            </Border>
+
+            <Border x:Name="PCS1"
+                    Canvas.Left="391" 
+                    Canvas.Top="20"                   
+                    Style="{StaticResource ChargeStoryBorderStyle}"
+                    Tag="{Binding IsChargingPCS1}">
+                <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <TextBlock Text="PCS 01" Padding="0,0,0,0"
+                               Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Left="4">
+                    </TextBlock>
+
+                    <Label Canvas.Left="167" Canvas.Top="4"
+                           Content="Enable"
+                           Style="{StaticResource ConnLableStyle}"/>
+
+                    <Label Canvas.Left="172" Canvas.Top="28"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <TextBlock Text="역률"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="{Binding Charge_Status_BMS}"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Label Canvas.Left="172" Canvas.Top="47"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <TextBlock Text="유효"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="{Binding Charge_Status_BMS}"/>
+                        </StackPanel>
+
+                    </Label>
+
+                    <Label Canvas.Left="172" Canvas.Top="66"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <TextBlock Text="무효"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="{Binding Charge_Status_BMS}"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Image Source="/EMS_PJT_Hamburger;component/Assets/PCS.png" 
+                           Canvas.Left="46" Canvas.Top="29"
+                           Style="{StaticResource DefaultImageStyle}" Width="125" Height="76" Stretch="Fill"/>
+
+                    <Border Canvas.Top="112" Canvas.Left="4"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="Input" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="24"/>
+                                <Run Text="V"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="57" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="Curr." 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="61"/>
+                                <Run Text="A"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="109" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="Freq." 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="100"/>
+                                <Run Text="Hz"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="162" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Warring neon.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <TextBlock Text="Warring" 
+                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
+
+                </Canvas>
+            </Border>
+
+            <Border x:Name="BMS"
+                    Canvas.Left="391"
+                    Canvas.Top="220"
+                    Style="{StaticResource ChargeStoryBorderStyle}" 
+                    Tag="{Binding IsChargingBMS}">
+                <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <TextBlock Text="BMS(ESS)" Canvas.Left="4"
+                               Style="{StaticResource DefaultTextBlockStyle}" Width="120">
+                    </TextBlock>
+
+                    <Label Canvas.Left="167" Canvas.Top="4"
+                           Content="Enable"
+                           Style="{StaticResource ConnLableStyle}"/>
+
+                    <Label Canvas.Left="172" Canvas.Top="28"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <TextBlock Text="충전"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="{Binding Charge_Status_BMS}"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Label Canvas.Left="172" Canvas.Top="47"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <TextBlock Text="방전"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="{Binding Discharge_Status_BMS}"/>
+                        </StackPanel>
+
+                    </Label>
+
+                    <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS01.png" 
+                           Canvas.Left="54" Canvas.Top="29"
+                           Style="{StaticResource DefaultImageStyle}" Width="110" Height="76" Stretch="Fill"/>
+
+                    <Border Canvas.Top="112" Canvas.Left="4"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="SoC" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="24"/>
+                                <Run Text="kW" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="57" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="SoH" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="61"/>
+                                <Run Text="kW" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="109" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Icon_64x64.png"
+                                   Height="25" 
+                                   Width="25"
+                                   Style="{StaticResource HeaderImageStyle}"/>
+                            <TextBlock Text="Cell"
+                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="162" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Warring neon.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <TextBlock Text="Warring" 
+                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
+
+                </Canvas>
+            </Border>
+
+
+            <!-- Discharge -->
+            <Border x:Name="PCS2"
+                    Canvas.Left="391"
+                    Canvas.Bottom="20"
+                    Style="{StaticResource DischargeStoryBorderStyle}" 
+                    Tag="{Binding IsDischargingPCS2}" Canvas.Top="420">
+                <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <TextBlock Text="PCS 01" Padding="0,0,0,0"
+                               Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Left="4">
+                    </TextBlock>
+
+                    <Label Canvas.Left="167" Canvas.Top="4"
+                           Content="Enable"
+                           Style="{StaticResource ConnLableStyle}"/>
+
+                    <Label Canvas.Left="172" Canvas.Top="28"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <TextBlock Text="역률"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="GreenYellow"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Label Canvas.Left="172" Canvas.Top="47"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <TextBlock Text="유효"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="GreenYellow"/>
+                        </StackPanel>
+
+                    </Label>
+
+                    <Label Canvas.Left="172" Canvas.Top="66"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <TextBlock Text="무효"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="GreenYellow"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Image Source="/EMS_PJT_Hamburger;component/Assets/PCS.png" 
+                           Canvas.Left="46" Canvas.Top="29"
+                           Style="{StaticResource DefaultImageStyle}" Width="126" Height="76" Stretch="Fill"/>
+
+                    <Border Canvas.Top="112" Canvas.Left="4"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="Output" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="24"/>
+                                <Run Text="kW" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="57" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="SOH" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="61"/>
+                                <Run Text="kW" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="109" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="Freq." 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="100"/>
+                                <Run Text="Hz"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="162" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Warring neon.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <TextBlock Text="Warring" 
+                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
+
+                </Canvas>
+            </Border>
+
+            <Border x:Name="ONGrid"
+                    Canvas.Left="902"
+                    Canvas.Top="20"
+                    Style="{StaticResource DischargeStoryBorderStyle}">
+                <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <TextBlock Text="ON Grid" Padding="0,0,0,0"
+                               Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Left="4">
+                    </TextBlock>
+
+                    <Label Canvas.Left="167" Canvas.Top="4"
+                           Content="Enable"
+                           Style="{StaticResource ConnLableStyle}"/>
+
+                    <Label Canvas.Left="172" Canvas.Top="28"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Va"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Label Canvas.Left="172" Canvas.Top="47"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Vb"/>
+                        </StackPanel>
+
+                    </Label>
+
+                    <Label Canvas.Left="172" Canvas.Top="66"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Vc"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Image  
+                           Canvas.Left="54" Canvas.Top="29"
+                           Style="{StaticResource DefaultImageStyle}" Width="110" Height="76" Stretch="Fill"/>
+
+                    <Border Canvas.Top="112" Canvas.Left="4"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="SOC" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="24"/>
+                                <Run Text="kW" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="57" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="SOH" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="61"/>
+                                <Run Text="kW" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="109" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Capacitor neon.png" 
+                                   Height="25" 
+                                   Width="25"
+                                   Style="{StaticResource HeaderImageStyle}"/>
+                            <TextBlock Text="Warring"
+                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="162" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Warring neon.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <TextBlock Text="Warring" 
+                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
+
+                </Canvas>
+            </Border>
+
+            <Border x:Name="OFFGrid"
+                    Canvas.Left="902" 
+                    Canvas.Top="220"
+                    Style="{StaticResource DischargeStoryBorderStyle}"
+                    Tag="{Binding IsDischargingOffGrid}">
+                <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <TextBlock Text="OFF Grid" Canvas.Left="4"
+                               Style="{StaticResource DefaultTextBlockStyle}" Width="120">
+                    </TextBlock>
+
+                    <Label Canvas.Left="167" Canvas.Top="4"
+                           Content="Enable"
+                           Style="{StaticResource ConnLableStyle}"/>
+
+                    <Label Canvas.Left="172" Canvas.Top="28"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Va"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Label Canvas.Left="172" Canvas.Top="47"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Vb"/>
+                        </StackPanel>
+
+                    </Label>
+
+                    <Label Canvas.Left="172" Canvas.Top="66"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Vc"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Image 
+                           Canvas.Left="51"
+                           Style="{StaticResource DefaultImageStyle}" Width="114" Height="108" Stretch="Fill" Source="/EMS_PJT_Hamburger;component/Assets/Home/OFF Grid.png" Canvas.Top="10"/>
+
+                    <Border Canvas.Top="112" Canvas.Left="4"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="SOC" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="24"/>
+                                <Run Text="kW" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="57" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="SOH" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="61"/>
+                                <Run Text="kW" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="109" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Capacitor neon.png" 
+                                   Height="25" 
+                                   Width="25"
+                                   Style="{StaticResource HeaderImageStyle}"/>
+                            <TextBlock Text="Warring"
+                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="162" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Warring neon.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <TextBlock Text="Warring" 
+                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
+
+                </Canvas>
+            </Border>
+
+            <Border Canvas.Left="741" Canvas.Top="435" Height="140" Width="130"
+                    Style="{StaticResource DischargeStoryBorderStyle}" 
+                    Tag="{Binding IsDischargingVihicle}">
+                <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <TextBlock Text="EV Charger"
+                               Canvas.Left="4"
+                               Style="{StaticResource DefaultTextBlockStyle}" FontSize="12">
+
+                    </TextBlock>
+
+                    <Label Canvas.Left="87" Canvas.Top="8"
+                           Style="{StaticResource InfoLableStyle}" Width="35">
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <TextBlock Text="전압"/>
+                            <Ellipse Width="5" Height="5" Margin="1,1,0,0" Fill="GreenYellow"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Label Canvas.Left="87" Canvas.Top="27"
+                           Style="{StaticResource InfoLableStyle}" Width="35">
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <TextBlock Text="전류"/>
+                            <Ellipse Width="5" Height="5" Margin="1,1,0,0" Fill="GreenYellow"/>
+                        </StackPanel>
+
+                    </Label>
+
+                    <Label Canvas.Left="87" Canvas.Top="46"
+                           Style="{StaticResource InfoLableStyle}" Width="35">
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <TextBlock Text="전력"/>
+                            <Ellipse Width="5" Height="5" Margin="1,1,0,0" Fill="GreenYellow"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Label Canvas.Left="42" Canvas.Top="106"
+                           Content="Enable"
+                           Style="{StaticResource ConnLableStyle}" Width="44"/>
+
+                    <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/충전기.png" 
+                           Canvas.Left="29" Canvas.Top="9"
+                           Style="{StaticResource DefaultImageStyle}" Width="70" Height="96" Stretch="Fill"/>
+
+                </Canvas>
+            </Border>
+            <Border x:Name="VIHICLE"
+                    Canvas.Left="902" 
+                    Canvas.Bottom="20"
+                    Style="{StaticResource DischargeStoryBorderStyle}"
+                    Tag="{Binding IsDischargingVihicle}" Canvas.Top="420">
+                <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <TextBlock Text="VIHICLE" Padding="0,0,0,0"
+                               Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Left="4">
+                    </TextBlock>
+
+                    <Label Canvas.Left="167" Canvas.Top="4"
+                           Content="Enable"
+                           Style="{StaticResource ConnLableStyle}"/>
+
+                    <Label Canvas.Left="172" Canvas.Top="28"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Va"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Label Canvas.Left="172" Canvas.Top="47"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Vb"/>
+                        </StackPanel>
+
+                    </Label>
+
+                    <Label Canvas.Left="172" Canvas.Top="66"
+                           Style="{StaticResource InfoLableStyle}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Vc"/>
+                        </StackPanel>
+                    </Label>
+
+                    <Image Source="/EMS_PJT_Hamburger;component/Assets/ESS(자동차).png" 
+                           Canvas.Left="46" Canvas.Top="29"
+                           Style="{StaticResource DefaultImageStyle}" Width="118" Height="76"/>
+
+                    <Border Canvas.Top="112" Canvas.Left="4"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="SOC" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="24"/>
+                                <Run Text="kW" />
+                            </TextBlock>
+                        </StackPanel> 
+                    </Border>
+                    <Border Canvas.Left="57" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Label Content="SOH" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="61"/>
+                                <Run Text="kW" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="109" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Capacitor neon.png" 
+                                   Height="25" 
+                                   Width="25"
+                                   Style="{StaticResource HeaderImageStyle}"/>
+                            <TextBlock Text="Warring"
+                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Canvas.Left="162" Canvas.Top="112"
+                            Style="{StaticResource ContentBorderStyle}">
+                        <StackPanel Orientation="Vertical">
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Warring neon.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <TextBlock Text="Warring" 
+                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                        </StackPanel>
+                    </Border>
+
+                </Canvas>
+            </Border>
+
+        </Canvas>
+    </Viewbox>
+</UserControl>

@@ -1,0 +1,589 @@
+﻿<UserControl x:Class="EMS_PJT_Hamburger.Views.BMSView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:EMS_PJT_Hamburger.Views"
+             xmlns:ViewModels="clr-namespace:EMS_PJT_Hamburger.ViewModels"
+             xmlns:Views="clr-namespace:EMS_PJT_Hamburger.Views"
+             xmlns:Managers="clr-namespace:EMS_PJT_Hamburger.Models.Managers" 
+             xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core" 
+             xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors" 
+             xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm" xmlns:dxdo="http://schemas.devexpress.com/winfx/2008/xaml/docking"
+             mc:Ignorable="d" d:DesignHeight="704" d:DesignWidth="964"  Background="Transparent" FontFamily="/EMS_PJT;component/Fonts/#Noto Sans KR">
+    <UserControl.Resources>
+        <Managers:ReadyConverter x:Key="ReadyConverter"/>
+        <Managers:OpenConverter x:Key="OpenConverter"/>
+        <Managers:BoxToBrushConverter x:Key="BoxToBrushConverter"/>
+        <Managers:ValueToBrushConverter x:Key="ValueToBrushConverter"/>
+        <Managers:ValueChangeToBrushConverter x:Key="ValueChangeToBrushConverter"/>
+        <Managers:RelayConverter x:Key="RelayConverter"/>
+
+        <Style TargetType="{x:Type Label}" x:Key="HeadLableStyle">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontFamily" Value="/EMS_PJT;component/Fonts/#Noto Sans KR"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="{x:Type Label}" x:Key="HeatmapLableStyle">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="{x:Type TextBlock}" x:Key="HeadTextBlockStyle">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="TextDecorations" Value="Underline"/>
+            <Setter Property="FontFamily" Value="/EMS_PJT;component/Fonts/#Noto Sans KR"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+        </Style>
+
+        <Style TargetType="{x:Type Border}" x:Key="MainBorderStyle">
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="#FFF3F3F3"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <Style TargetType="{x:Type TextBlock}" x:Key="MonitorHeaderTextBlock">
+            <Setter Property="FontFamily" Value="/EMS_PJT;component/Fonts/#Noto Sans KR"/>
+            <Setter Property="Foreground" Value="#FFA5A5A5"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="Margin" Value="0"/>
+        </Style>
+
+        <Style TargetType="{x:Type TextBlock}" x:Key="MonitorTextBlock">
+            <Setter Property="FontFamily" Value="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St"/>
+            <Setter Property="Foreground" Value="Gray"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="Margin" Value="0,-3,0,0"/>
+        </Style>
+
+        <Style TargetType="{x:Type Image}" x:Key="ImageStyle">
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="Height" Value="14"/>
+            <Setter Property="Margin" Value="14,0,0,0"/>
+            <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
+        </Style>
+
+        <Style TargetType="{x:Type Grid}" x:Key="MonitoringGrid">
+            <Setter Property="Width" Value="235"/>
+            <Setter Property="Height" Value="140"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <ImageBrush ImageSource="/EMS_PJT_Hamburger;component/Assets/BMS/BMS_Monitoring.png"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <UserControl.DataContext>
+        <ViewModels:BMSViewModel/>
+    </UserControl.DataContext>
+
+    <Viewbox>
+        <dxdo:DockLayoutManager Height="704" Width="964">
+            <dxdo:LayoutGroup Orientation="Vertical" >
+                <dxdo:LayoutPanel Background="{DynamicResource Main.Background}" ShowCaption="False">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0"/>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="0"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="0"/>
+                            <RowDefinition Height="110"/>
+                            <RowDefinition Height="110"/>
+                            <RowDefinition/>
+                            <RowDefinition Height="0"/>
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Column="1" Grid.Row="1" Background="Transparent">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height=".6*"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border Grid.ColumnSpan="8" Grid.RowSpan="3" 
+                                    Style="{StaticResource MainBorderStyle}">
+                            </Border>
+
+                            <TextBlock Grid.ColumnSpan="8" 
+                                       Grid.Row="0"
+                                       Margin="20,10,0,0" 
+                                       Text="BMS Main Status"
+                                       Style="{StaticResource HeadTextBlockStyle}"/>
+                            <Label Grid.Column="0" Grid.Row="1" 
+                                   Content="Relay"
+                                   Style="{StaticResource HeadLableStyle}" Margin="0"/>
+                            <Label Grid.Column="1" Grid.Row="1" 
+                                   Content="Total Curr."
+                                   Style="{StaticResource HeadLableStyle}"/>
+                            <Label Grid.Column="2" Grid.Row="1" 
+                                   Content="Total Volt."
+                                   Style="{StaticResource HeadLableStyle}"/>
+                            <Label Grid.Column="3" Grid.Row="1" 
+                                   Content="State"
+                                   Style="{StaticResource HeadLableStyle}"/>
+                            <Label Grid.Column="4" Grid.Row="1" 
+                                   Content="SOC"
+                                   Style="{StaticResource HeadLableStyle}"/>
+
+                            <Label Grid.Column="0" Grid.Row="2"                      
+                                   Style="{StaticResource HeadLableStyle}" Background="{x:Null}">
+                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                        <Run Text="{Binding StatusMsg01.Ready, Converter={StaticResource OpenConverter}}" 
+                             Foreground="{Binding StatusMsg01.Ready, Converter={StaticResource ValueToBrushConverter}}"/>
+                                </TextBlock>
+                            </Label>
+                            <Label Grid.Column="1" Grid.Row="2" Background="{x:Null}"
+                                   Style="{StaticResource HeadLableStyle}">
+                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="{Binding StatusMsg01.TotalCurrent, StringFormat=F2}" Foreground="Lime"/>
+                                    <Run Text="A" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                </TextBlock>
+                            </Label>
+                            <Label Grid.Column="2" Grid.Row="2" Background="{x:Null}"
+                                   Style="{StaticResource HeadLableStyle}">
+                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="{Binding StatusMsg01.TotalVoltage, StringFormat=F2}" Foreground="Lime"/>
+                                    <Run Text="V" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                </TextBlock>
+                            </Label>
+                            <Label Grid.Column="3" Grid.Row="2" Background="{x:Null}"
+                                   Style="{StaticResource HeadLableStyle}">
+                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="{Binding StatusMsg01.MbmsState, StringFormat=0x{0:X2}}" Foreground="Lime"/>
+                                </TextBlock>
+                            </Label>
+                            <Label Grid.Column="4" Grid.Row="2" Background="Transparent"
+                                   Style="{StaticResource HeadLableStyle}">
+                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="{Binding StatusMsg01.DispSOC}" Foreground="Lime"/>
+                                    <Run Text="%" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                </TextBlock>
+                            </Label>
+                        </Grid>
+
+                        <Grid Grid.Column="2" Grid.Row="1" Background="Transparent">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height=".6*"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border Grid.ColumnSpan="8" Grid.RowSpan="3" 
+                                    Style="{StaticResource MainBorderStyle}">
+                            </Border>
+
+                            <TextBlock Grid.ColumnSpan="8" 
+                                       Grid.Row="0"
+                                       Text="Alarm"
+                                       Style="{StaticResource HeadTextBlockStyle}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" 
+                                       TextDecorations="Underline"/>
+
+                            <dx:SimpleButton Grid.Row="1" Grid.RowSpan="2" Width="50" Height="50"
+                                             CornerRadius="5"
+                                             BorderBrush="Transparent"
+                                             FontSize="24" FontWeight="Bold" Padding="0" 
+                                             Content="{Binding Alarms}" 
+                                             IsEnabled="{Binding AlarmWindowOpen}"
+                                             Command="{Binding Cmd_AlarmsPopupBtn}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <dx:SimpleButton.Background>
+                                    <ImageBrush ImageSource="/EMS_PJT_Hamburger;component/Assets/BMS/Button1.png" Stretch="UniformToFill"/>
+                                </dx:SimpleButton.Background>
+                            </dx:SimpleButton>
+
+                        </Grid>
+
+                        <Grid Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" Background="Transparent">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height=".6*"/>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border Grid.ColumnSpan="8" Grid.RowSpan="3" 
+                                    Style="{StaticResource MainBorderStyle}">
+                            </Border>
+
+                            <TextBlock Grid.ColumnSpan="8" 
+                                       Grid.Row="0"
+                                       Margin="20,10,0,0" 
+                                       Text="XPack Status"
+                                       Style="{StaticResource HeadTextBlockStyle}"/>
+
+                            <Label Grid.Column="0" Grid.Row="1" 
+                                   Content="MBMS Ready"
+                                   Style="{StaticResource HeadLableStyle}"/>
+                            <Label Grid.Column="1" Grid.Row="1" 
+                                   Content="Pack Ready Flag"
+                                   Style="{StaticResource HeadLableStyle}"/>
+                            <Label Grid.Column="2" Grid.Row="1" 
+                                   Content="Curr. Pack Cnt."
+                                   Style="{StaticResource HeadLableStyle}"/>
+                            <Label Grid.Column="3" Grid.Row="1" 
+                                   Content="Cell Min Volt. / Num."
+                                   Style="{StaticResource HeadLableStyle}"/>
+                            <Label Grid.Column="4" Grid.Row="1" 
+                                   Content="Max Temp. / Num."
+                                   Style="{StaticResource HeadLableStyle}"/>
+                            <Label Grid.Column="5" Grid.Row="1" 
+                                   Content="Min Temp. / Num."
+                                   Style="{StaticResource HeadLableStyle}"/>
+
+
+                            <Label Grid.Column="0" Grid.Row="2"                      
+                                   Style="{StaticResource HeadLableStyle}">
+                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="{Binding StatusMsg03.MbmsReady, Converter={StaticResource ReadyConverter}}" 
+                             Foreground="{Binding StatusMsg03.MbmsReady, Converter={StaticResource ValueToBrushConverter}}"/>
+                                </TextBlock>
+                            </Label>
+                            <Grid Grid.Column="1" Grid.Row="2">
+                                <ItemsControl ItemsSource="{Binding Packs}" Width="121" Height="35" VerticalAlignment="Top">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <!--8열 고정, 개수만큼 자동으로 다음 행으로 넘어감-->
+                                            <UniformGrid Columns="8"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Margin="0"
+                                                    CornerRadius="1"
+                                                    Width="5" Height="8"
+                                                    Background="{Binding IsOnline, Converter={StaticResource BoxToBrushConverter}}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                            <Label Grid.Column="2" Grid.Row="2"                      
+                                   Style="{StaticResource HeadLableStyle}">
+                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="{Binding StatusMsg03.CurrentPackCount}" Foreground="Lime"/>
+                                </TextBlock>
+                            </Label>
+                            <Label Grid.Column="3" Grid.Row="2"                      
+                                   Style="{StaticResource HeadLableStyle}">
+                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="{Binding StatusMsg04.CellMinVoltage, StringFormat={}{0:F2}}" Foreground="Lime"/>
+                                    <Run Text="V" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    <Run Text="" Foreground="White" FontSize="15" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    <Run Text="{Binding StatusMsg04.CellMinPackNumber, StringFormat=#{0:D2}}" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                </TextBlock>
+                            </Label>
+                            <Label Grid.Column="4" Grid.Row="2"                      
+                                   Style="{StaticResource HeadLableStyle}">
+                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="{Binding StatusMsg04.MaxTemperature}" Foreground="Lime"/>
+                                    <Run Text="℃" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    <Run Text=" "/>
+                                    <Run Text="{Binding StatusMsg04.MaxTemperaturePackNumber, StringFormat=#{0:D2}}" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                </TextBlock>
+                            </Label>
+                            <Label Grid.Column="5" Grid.Row="2"                      
+                                   Style="{StaticResource HeadLableStyle}">
+                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="{Binding StatusMsg04.MinTemperature}" Foreground="Lime"/>
+                                    <Run Text="℃" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    <Run Text=" "/>
+                                    <Run Text="{Binding StatusMsg04.MinTemperaturePackNumber, StringFormat=#{0:D2}}" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                </TextBlock>
+                            </Label>
+                        </Grid>
+
+                        <Grid Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="3" HorizontalAlignment="Stretch" Background="Transparent">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="30"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <ScrollViewer Grid.Row="1" Margin="10,10,0,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="140"/>
+                                        <RowDefinition Height="140"/>
+                                        <RowDefinition Height="140"/>
+                                        <RowDefinition Height="140"/>
+                                        <RowDefinition Height="140"/>
+                                    </Grid.RowDefinitions>
+
+                                    <ItemsControl ItemsSource="{Binding Packs}" Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="0" Grid.RowSpan="5">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <!-- 첨부 이미지처럼 가로로 여러개, 줄바꿈 -->
+                                                <UniformGrid Columns="4" Rows="5"/>
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <!-- 여기 스타일을 네 MonitoringGrid로 -->
+                                                <Grid Style="{StaticResource MonitoringGrid}">
+                                                    <TextBlock Text="{Binding PackNo, StringFormat=Pack #{0}}"
+                                                               Foreground="Lime"
+                                                               Margin="20,13,0,0"
+                                                               HorizontalAlignment="Left"
+                                                               VerticalAlignment="Top"
+                                                               FontWeight="Bold"
+                                                               FontSize="10"/>
+
+                                                    <!-- Online 표시: IsOnline에 따라 색 변경 -->
+                                                    <Ellipse Width="5" Height="5"
+                                                             HorizontalAlignment="Left"
+                                                             VerticalAlignment="Top"
+                                                             Margin="131,17,0,0">
+                                                        <Ellipse.Style>
+                                                            <Style TargetType="Ellipse">
+                                                                <Setter Property="Fill" Value="#FFA5A5A5"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsOnline}" Value="True">
+                                                                        <Setter Property="Fill" Value="Lime"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Ellipse.Style>
+                                                    </Ellipse>
+                                                    <Grid Margin="8,24,12,18">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="*"/>
+                                                            <RowDefinition Height="*"/>
+                                                        </Grid.RowDefinitions>
+
+                                                        <!-- Max Volt -->
+                                                        <StackPanel Grid.Column="0" Orientation="Vertical">
+                                                            <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                                <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS/volt.png"
+                                                                       Style="{StaticResource ImageStyle}"/>
+                                                                <TextBlock Text="Max Volt." FontSize="14"
+                                                                           Style="{StaticResource MonitorHeaderTextBlock}"/>
+                                                            </StackPanel>
+                                                            <TextBlock Style="{StaticResource MonitorTextBlock}">
+                                                                <Run Text="{Binding MaxCellVoltage, StringFormat=F2}" Foreground="{Binding IsOnline, Converter={StaticResource ValueChangeToBrushConverter}}"/>
+                                                                <Run Text=" V" FontSize="16"/>
+                                                            </TextBlock>
+                                                        </StackPanel>
+
+                                                        <!-- Min Volt -->
+                                                        <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Vertical">
+                                                            <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                                <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS/volt.png"
+                                                                       Style="{StaticResource ImageStyle}"/>
+                                                                <TextBlock Text="Min Volt." FontSize="14"
+                                                                           Style="{StaticResource MonitorHeaderTextBlock}"/>
+                                                            </StackPanel>
+                                                            <TextBlock Style="{StaticResource MonitorTextBlock}">
+                                                                <Run Text="{Binding MinCellVoltage, StringFormat=F2}" Foreground="{Binding IsOnline, Converter={StaticResource ValueChangeToBrushConverter}}"/>
+                                                                <Run Text=" V" FontSize="16"/>
+                                                            </TextBlock>
+                                                        </StackPanel>
+
+                                                        <!-- Max Temp -->
+                                                        <StackPanel Grid.Column="1" Orientation="Vertical">
+                                                            <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                                <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS/온도.png"
+                                                                       Style="{StaticResource ImageStyle}"/>
+                                                                <TextBlock Text="Max Temp." FontSize="14"
+                                                                           Style="{StaticResource MonitorHeaderTextBlock}"/>
+                                                            </StackPanel>
+                                                            <TextBlock Style="{StaticResource MonitorTextBlock}">
+                                                                <Run Text="{Binding MaxTemperature, StringFormat=F2}" Foreground="{Binding IsOnline, Converter={StaticResource ValueChangeToBrushConverter}}"/>
+                                                                <Run Text=" ℃" FontSize="16"/>
+                                                            </TextBlock>
+                                                        </StackPanel>
+
+                                                        <!-- Min Temp -->
+                                                        <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Vertical">
+                                                            <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                                <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS/온도.png"
+                                                                       Style="{StaticResource ImageStyle}"/>
+                                                                <TextBlock Text="Min Temp." FontSize="14"
+                                                                           Style="{StaticResource MonitorHeaderTextBlock}"/>
+                                                            </StackPanel>
+                                                            <TextBlock Style="{StaticResource MonitorTextBlock}">
+                                                                <Run Text="{Binding MinTemperature, StringFormat=F2}" Foreground="{Binding IsOnline, Converter={StaticResource ValueChangeToBrushConverter}}"/>
+                                                                <Run Text=" ℃" FontSize="16"/>
+                                                            </TextBlock>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <!--#region Pack #17 -->
+                                    <!--<Grid Grid.Column="0" Grid.Row="4"
+                              Style="{StaticResource MonitoringGrid}">
+                            <TextBlock Text="Pack #17" Foreground="White" Margin="20,13,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="10" Height="11" />
+                            <Ellipse Fill="Lime" Width="5" Height="5" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="131,17,0,0"/>
+                            <Grid Margin="8,24,12,18" >
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Vertical">
+                                    <StackPanel Orientation="Horizontal" 
+                                            Margin="0,3,0,0" >
+                                        <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS/volt.png"
+                                           Style="{StaticResource ImageStyle}"/>
+                                        <TextBlock Text="Max Volt." FontSize="14"
+                                               Style="{StaticResource MonitorHeaderTextBlock}"/>
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource MonitorTextBlock}" >
+                                    <Run Text="24.0" Foreground="White"/>
+                                    <Run Text="V" FontSize="16"/>
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Vertical">
+                                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0" >
+                                        <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS/volt.png"
+                                           Style="{StaticResource ImageStyle}"/>
+                                        <TextBlock Text="Min Volt." FontSize="14"
+                                                Style="{StaticResource MonitorHeaderTextBlock}"/>
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="22.0" Foreground="White"/>
+                                    <Run Text="V" FontSize="16"/>
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Orientation="Vertical">
+                                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0" >
+                                        <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS/온도.png" 
+                                           Style="{StaticResource ImageStyle}"/>
+                                        <TextBlock Text="Max Temp." FontSize="14"
+                                               Style="{StaticResource MonitorHeaderTextBlock}"/>
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="43.0" Foreground="White"/>
+                                    <Run Text="℃" FontSize="16"/>
+                                    </TextBlock>
+                                </StackPanel>
+
+
+
+                                <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Vertical">
+                                    <StackPanel Orientation="Horizontal" Margin="0,3,0,0" >
+                                        <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS/온도.png" 
+                                           Style="{StaticResource ImageStyle}"/>
+                                        <TextBlock Text="Min Temp." FontSize="14"
+                                                Style="{StaticResource MonitorHeaderTextBlock}"/>
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="37.0" Foreground="White"/>
+                                    <Run Text="℃" FontSize="16"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Grid>
+                        </Grid>-->
+
+                                </Grid>
+                            </ScrollViewer>
+                            <TextBlock Grid.ColumnSpan="8" 
+                                       Grid.Row="0"
+                                       Margin="20,5,0,0" 
+                                       Text="Xpack monitoring"
+                                       Style="{StaticResource HeadTextBlockStyle}"/>
+
+                               
+
+                        </Grid>
+                    </Grid>
+                </dxdo:LayoutPanel>
+            </dxdo:LayoutGroup>
+
+            <dxdo:DockLayoutManager.AutoHideGroups>
+                <dxdo:AutoHideGroup DockType="Left" 
+                                    HorizontalAlignment="Left">
+                    <dxdo:LayoutPanel x:Name="CtrlSetPanel"
+                                      Caption="Control" 
+                                      AllowClose="False" 
+                                      ShowCloseButton="False"
+                                      MinWidth="250" MaxWidth="250"
+                                      Foreground="Red" >
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="10"/>
+                                <RowDefinition Height="40"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Label Content="Relay 제어" Grid.Column="0" Grid.Row="1"
+                                   Foreground="Black"
+                                   Style="{StaticResource HeadLableStyle}"/>
+                            <dx:SimpleButton Grid.Column="1" Grid.Row="1"
+                                             Padding="0"
+                                             Margin="2,5,5,5"
+                                             ButtonKind="Toggle"
+                                             Content="{Binding RelayStatus, Converter={StaticResource RelayConverter}}" 
+                                             IsChecked="{Binding RelayStatus}"
+                                             Command="{Binding Cmd_RelayBtn}"/>
+                        </Grid>
+                    </dxdo:LayoutPanel>
+                </dxdo:AutoHideGroup>
+            </dxdo:DockLayoutManager.AutoHideGroups>
+        </dxdo:DockLayoutManager>
+    </Viewbox>
+</UserControl>
