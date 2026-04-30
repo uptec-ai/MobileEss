@@ -8,9 +8,10 @@ using System.Windows.Threading;
 
 namespace EMS_PJT_Hamburger.Models.Managers
 {
-    public class StatusManager : INotifyPropertyChanged
+    public class StatusManager : INotifyPropertyChanged, IDisposable
     {
         public event PropertyChangedEventHandler PropertyChanged = delegate { };
+        private bool _disposed;
         public PCSStatus CurrentPCS_Status { get; set; } // PCS Status
         public BMSStatus CurrentBMS_Status { get; set; } // BMS Status
         public CommStatus CurrentComm_Status { get; set; } // Common Status
@@ -91,17 +92,44 @@ namespace EMS_PJT_Hamburger.Models.Managers
 
         public void Init() // 초기 실행 함수
         {
-            dt_timer = new DispatcherTimer();
-            dt_timer.Interval = new TimeSpan(0, 0, 1);  //1초간격 동작
-            dt_timer.Tick += (s, e) =>
+            if (_disposed) return;
 
+            if (dt_timer == null)
             {
-                CurrentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            };
-            dt_timer.Start();
+                dt_timer = new DispatcherTimer();
+                dt_timer.Interval = new TimeSpan(0, 0, 1);  //1초간격 동작
+                dt_timer.Tick += DtTimer_Tick;
+            }
 
+            if (!dt_timer.IsEnabled)
+            {
+                dt_timer.Start();
+            }
+
+            PropertyChanged -= StatusManager_PropertyChanged;
             PropertyChanged += StatusManager_PropertyChanged;
         }
+
+        private void DtTimer_Tick(object sender, EventArgs e)
+        {
+            CurrentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            if (dt_timer != null)
+            {
+                dt_timer.Stop();
+                dt_timer.Tick -= DtTimer_Tick;
+                dt_timer = null;
+            }
+
+            PropertyChanged -= StatusManager_PropertyChanged;
+        }
+
         private void StatusManager_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "CurrentSystem_Status")

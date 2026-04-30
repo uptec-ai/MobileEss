@@ -1,0 +1,90 @@
+<Window x:Class="EMS_PJT_DeploymentInstaller.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="EMS Deployment Installer"
+        Height="410"
+        Width="680"
+        MinHeight="410"
+        MinWidth="680"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock FontSize="22"
+                   FontWeight="SemiBold"
+                   Text="EMS 배포 설치기" />
+
+        <TextBlock Grid.Row="1"
+                   Margin="0,14,0,8"
+                   TextWrapping="Wrap"
+                   Text="저장할 폴더를 선택한 뒤 설치를 시작하면 Release.zip, DB_EMS.sql 파일을 저장하고 필요한 환경변수를 현재 사용자 계정에 등록합니다." />
+
+        <Grid Grid.Row="2"
+              Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBox x:Name="TargetPathTextBox"
+                     Height="34"
+                     VerticalContentAlignment="Center" />
+
+            <Button x:Name="BrowseButton"
+                    Grid.Column="1"
+                    Width="110"
+                    Margin="12,0,0,0"
+                    Content="폴더 선택"
+                    Click="BrowseButton_Click" />
+        </Grid>
+
+        <Border Grid.Row="3"
+                Padding="12"
+                Background="#FFF5F5F5"
+                BorderBrush="#FFD8D8D8"
+                BorderThickness="1"
+                CornerRadius="6">
+            <StackPanel>
+                <TextBlock FontWeight="SemiBold"
+                           Text="설치 항목" />
+                <TextBlock Margin="0,6,0,0"
+                           Text="1. Release.zip 저장" />
+                <TextBlock Text="2. DB_EMS.sql 저장" />
+                <TextBlock Text="3. EMS_DB_CONN 환경변수 등록" />
+                <TextBlock Text="4. EMS_SCICHART_LICENSE_KEY 환경변수 등록" />
+            </StackPanel>
+        </Border>
+
+        <TextBox x:Name="LogTextBox"
+                 Grid.Row="4"
+                 Margin="0,12,0,12"
+                 IsReadOnly="True"
+                 VerticalScrollBarVisibility="Auto"
+                 TextWrapping="Wrap"
+                 AcceptsReturn="True" />
+
+        <StackPanel Grid.Row="5"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button x:Name="OpenFolderButton"
+                    Width="120"
+                    Height="34"
+                    Margin="0,0,12,0"
+                    IsEnabled="False"
+                    Content="폴더 열기"
+                    Click="OpenFolderButton_Click" />
+            <Button x:Name="InstallButton"
+                    Width="140"
+                    Height="34"
+                    Content="설치 시작"
+                    Click="InstallButton_Click" />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -10,7 +10,8 @@
              xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core" 
              xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors" 
              xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm" xmlns:dxdo="http://schemas.devexpress.com/winfx/2008/xaml/docking"
-             mc:Ignorable="d" d:DesignHeight="704" d:DesignWidth="964"  Background="Transparent" FontFamily="/EMS_PJT;component/Fonts/#Noto Sans KR">
+             mc:Ignorable="d" d:DesignHeight="860" d:DesignWidth="1200"  Background="Transparent" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"
+             >
     <UserControl.Resources>
         <Managers:ReadyConverter x:Key="ReadyConverter"/>
         <Managers:OpenConverter x:Key="OpenConverter"/>
@@ -23,7 +24,7 @@
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontSize" Value="16"/>
-            <Setter Property="FontFamily" Value="/EMS_PJT;component/Fonts/#Noto Sans KR"/>
+            <Setter Property="FontFamily" Value="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="VerticalAlignment" Value="Stretch"/>
@@ -49,7 +50,7 @@
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="TextDecorations" Value="Underline"/>
-            <Setter Property="FontFamily" Value="/EMS_PJT;component/Fonts/#Noto Sans KR"/>
+            <Setter Property="FontFamily" Value="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
         </Style>
@@ -63,7 +64,7 @@
         </Style>
 
         <Style TargetType="{x:Type TextBlock}" x:Key="MonitorHeaderTextBlock">
-            <Setter Property="FontFamily" Value="/EMS_PJT;component/Fonts/#Noto Sans KR"/>
+            <Setter Property="FontFamily" Value="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
             <Setter Property="Foreground" Value="#FFA5A5A5"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -100,12 +101,8 @@
         </Style>
     </UserControl.Resources>
 
-    <UserControl.DataContext>
-        <ViewModels:BMSViewModel/>
-    </UserControl.DataContext>
-
     <Viewbox>
-        <dxdo:DockLayoutManager Height="704" Width="964">
+        <dxdo:DockLayoutManager Height="860" Width="1200">
             <dxdo:LayoutGroup Orientation="Vertical" >
                 <dxdo:LayoutPanel Background="{DynamicResource Main.Background}" ShowCaption="False">
                     <Grid>
@@ -117,8 +114,8 @@
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="0"/>
-                            <RowDefinition Height="110"/>
-                            <RowDefinition Height="110"/>
+                            <RowDefinition Height="80"/>
+                            <RowDefinition Height="80"/>
                             <RowDefinition/>
                             <RowDefinition Height="0"/>
                         </Grid.RowDefinitions>
@@ -132,19 +129,13 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height=".6*"/>
+                                <RowDefinition Height="0"/>
                                 <RowDefinition Height="30"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <Border Grid.ColumnSpan="8" Grid.RowSpan="3" 
                                     Style="{StaticResource MainBorderStyle}">
                             </Border>
-
-                            <TextBlock Grid.ColumnSpan="8" 
-                                       Grid.Row="0"
-                                       Margin="20,10,0,0" 
-                                       Text="BMS Main Status"
-                                       Style="{StaticResource HeadTextBlockStyle}"/>
                             <Label Grid.Column="0" Grid.Row="1" 
                                    Content="Relay"
                                    Style="{StaticResource HeadLableStyle}" Margin="0"/>
@@ -164,7 +155,7 @@
                             <Label Grid.Column="0" Grid.Row="2"                      
                                    Style="{StaticResource HeadLableStyle}" Background="{x:Null}">
                                 <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
-                        <Run Text="{Binding StatusMsg01.Ready, Converter={StaticResource OpenConverter}}" 
+                                    <Run Text="{Binding StatusMsg01.Ready, Converter={StaticResource OpenConverter}}" 
                              Foreground="{Binding StatusMsg01.Ready, Converter={StaticResource ValueToBrushConverter}}"/>
                                 </TextBlock>
                             </Label>
@@ -218,13 +209,13 @@
                                        VerticalAlignment="Center" 
                                        TextDecorations="Underline"/>
 
-                            <dx:SimpleButton Grid.Row="1" Grid.RowSpan="2" Width="50" Height="50"
+                            <dx:SimpleButton Grid.Row="1" Grid.RowSpan="2" Width="40" Height="40"
                                              CornerRadius="5"
                                              BorderBrush="Transparent"
                                              FontSize="24" FontWeight="Bold" Padding="0" 
                                              Content="{Binding Alarms}" 
                                              IsEnabled="{Binding AlarmWindowOpen}"
-                                             Command="{Binding Cmd_AlarmsPopupBtn}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                             Command="{Binding Cmd_AlarmsPopupBtn}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,5">
                                 <dx:SimpleButton.Background>
                                     <ImageBrush ImageSource="/EMS_PJT_Hamburger;component/Assets/BMS/Button1.png" Stretch="UniformToFill"/>
                                 </dx:SimpleButton.Background>
@@ -242,19 +233,13 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height=".6*"/>
+                                <RowDefinition Height="0"/>
                                 <RowDefinition Height="30"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <Border Grid.ColumnSpan="8" Grid.RowSpan="3" 
                                     Style="{StaticResource MainBorderStyle}">
                             </Border>
-
-                            <TextBlock Grid.ColumnSpan="8" 
-                                       Grid.Row="0"
-                                       Margin="20,10,0,0" 
-                                       Text="XPack Status"
-                                       Style="{StaticResource HeadTextBlockStyle}"/>
 
                             <Label Grid.Column="0" Grid.Row="1" 
                                    Content="MBMS Ready"
@@ -544,7 +529,7 @@
                                        Text="Xpack monitoring"
                                        Style="{StaticResource HeadTextBlockStyle}"/>
 
-                               
+
 
                         </Grid>
                     </Grid>
@@ -552,14 +537,14 @@
             </dxdo:LayoutGroup>
 
             <dxdo:DockLayoutManager.AutoHideGroups>
-                <dxdo:AutoHideGroup DockType="Left" 
-                                    HorizontalAlignment="Left">
+                <dxdo:AutoHideGroup DockType="Left"
+                                    >
                     <dxdo:LayoutPanel x:Name="CtrlSetPanel"
                                       Caption="Control" 
                                       AllowClose="False" 
                                       ShowCloseButton="False"
                                       MinWidth="250" MaxWidth="250"
-                                      Foreground="Red" >
+                                      Foreground="Red">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
@@ -575,11 +560,11 @@
                                    Style="{StaticResource HeadLableStyle}"/>
                             <dx:SimpleButton Grid.Column="1" Grid.Row="1"
                                              Padding="0"
-                                             Margin="2,5,5,5"
+                                             Margin="5"
                                              ButtonKind="Toggle"
                                              Content="{Binding RelayStatus, Converter={StaticResource RelayConverter}}" 
                                              IsChecked="{Binding RelayStatus}"
-                                             Command="{Binding Cmd_RelayBtn}"/>
+                                             Command="{Binding Cmd_RelayBtn}" Width="110" HorizontalAlignment="Left"/>
                         </Grid>
                     </dxdo:LayoutPanel>
                 </dxdo:AutoHideGroup>

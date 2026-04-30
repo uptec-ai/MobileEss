@@ -6,8 +6,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm" 
     xmlns:ViewModels="clr-namespace:EMS_PJT_Hamburger.ViewModels" xmlns:s="http://schemas.abtsoftware.co.uk/scichart"
-    mc:Ignorable="d" d:DesignHeight="704" d:DesignWidth="1225" 
-    Background="Transparent" FontFamily="/EMS_PJT;component/Fonts/#Noto Sans KR">
+    mc:Ignorable="d" d:DesignHeight="860" d:DesignWidth="1200" 
+    Background="Transparent" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR">
     <UserControl.Resources>
         <Style TargetType="StackPanel" x:Key="VerticalStackpanelStyle">
             <Setter Property="Margin" Value="0,0,0,0"/>
@@ -17,180 +17,187 @@
         </Style>
 
         <Style TargetType="TextBlock" x:Key="HeadTextBlockStyle">
-            <Setter Property="Margin" Value="15"/>
-            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="15,0,15,15"/>
+            <Setter Property="FontSize" Value="14"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="TextDecorations" Value="Underline"/>
-            <Setter Property="FontFamily" Value="/EMS_PJT;component/Fonts/#Noto Sans KR"/>
+            <Setter Property="FontFamily" Value="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
         <Style TargetType="Label" x:Key="HeadLableStyle">
             <Setter Property="Margin" Value="15,0"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#FFACABAB"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FontFamily" Value="/EMS_PJT;component/Fonts/#Noto Sans KR"/>
+            <Setter Property="FontFamily" Value="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
 
         <Style TargetType="Label" x:Key="VariableLableStyle">
             <Setter Property="Margin" Value="0,0,15,0"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="18"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FontFamily" Value="/EMS_PJT;component/Fonts/#Noto Sans KR - Black"/>
+            <Setter Property="FontFamily" Value="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR - Black"/>
             <Setter Property="HorizontalAlignment" Value="Right"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
     </UserControl.Resources>
 
-    <UserControl.DataContext>
-        <ViewModels:DashBoardViewModel/>
-    </UserControl.DataContext>
-
     <Viewbox>
-
-        <Grid Height="704" Width="1225" Margin="10">
+        <Grid Height="860" Width="1200" Margin="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height=".6*"/>
+                <RowDefinition Height=".4*"/>
                 <RowDefinition Height=".9*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
             <!-- Main Status -->
-            <StackPanel Orientation="Horizontal" Grid.ColumnSpan="2">
-                <!-- Vegicle status -->
-                <Border CornerRadius="5" Margin="20,0,0,0" Background="{DynamicResource Main.Panel.Background}">
+            <Grid Grid.ColumnSpan="2" Margin="22,0,22,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Border Grid.Column="0" CornerRadius="12" Margin="0,0,0,0" Background="{DynamicResource Main.Panel.Background}">
                     <!-- Vihicle Status -->
-                    <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}">
-                        <TextBlock Text="VIHICLE STATUS" Style="{StaticResource HeadTextBlockStyle}"/>
-                        <Label>
+                    <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}" Width="Auto">
+                        <TextBlock Text="VIHICLE STATUS" Style="{StaticResource HeadTextBlockStyle}" Margin="15,10,15,15"/>
+                        <!-- 차량 Status -->
+                        <Label Content="{Binding EMSStatusManager.DashboardStatus.VihicleStatus, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}" Foreground="White" FontSize="30" FontWeight="Bold" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" Margin="10,0">
                             <Label.Effect>
-                                <DropShadowEffect BlurRadius="0" ShadowDepth="0" Opacity="1"/>
+                                <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
                             </Label.Effect>
                             <Label.Style>
                                 <Style TargetType="Label">
-                                    <Setter Property="Margin" Value="15,0,15,0"/>
+                                    <Setter Property="Margin" Value="10"/>
                                     <Setter Property="Height" Value="80"/>
                                     <Setter Property="BorderThickness" Value="0"/>
                                     <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                     <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                    <Setter Property="Background" Value="{Binding EMSStatusManager.DashboardStatus.VihicleColor, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}">
-                                    </Setter>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="{DynamicResource Main.MouseOver}"/>
-                                        </Trigger>
-                                    </Style.Triggers>
                                 </Style>
                             </Label.Style>
+                        </Label>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="1" CornerRadius="12" Margin="10,0,0,0" Background="{DynamicResource Main.Panel.Background}">
+                    <!-- PCS Power -->
+                    <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}" Width="Auto">
+                        <TextBlock Text="PCS POWER" Style="{StaticResource HeadTextBlockStyle}" Margin="15,10,15,15"/>
+
+                        <!-- PCS inv_유효전력 -->
+                        <Label Margin="15,0" Height="80" FontSize="36"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"                       
+                                   Style="{StaticResource VariableLableStyle}" >
                             <Label.Content>
-                                <TextBlock FontSize="30" FontWeight="Bold" FontFamily="/EMS_PJT;component/Fonts/#Noto Sans KR" Foreground="White">
+                                <TextBlock>
                                     <TextBlock.Effect>
                                         <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
                                     </TextBlock.Effect>
-                                <Run Text="{Binding EMSStatusManager.DashboardStatus.VihicleStatus, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}" Foreground="White"/>
+                                    <Run Text="{Binding PcsVm.InvData.Power, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Run Text="kW" Foreground="White"/>
                                 </TextBlock>
                             </Label.Content>
                         </Label>
                     </StackPanel>
                 </Border>
-                <Border CornerRadius="5" Margin="20,0,0,0" Background="{DynamicResource Main.Panel.Background}">
-                    <!-- PCS Power -->
-                    <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}">
-                        <TextBlock Text="PCS POWER" Style="{StaticResource HeadTextBlockStyle}"/>
-                        <Label Margin="15,0" Height="80" FontSize="36"
-                               HorizontalAlignment="Center" VerticalAlignment="Center"                       
+
+                <!-- SOC -->
+                <Border Grid.Column="2" CornerRadius="12" Margin="10,0,0,0" Background="{DynamicResource Main.Panel.Background}">
+                    <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}" Width="Auto">
+                        <TextBlock Text="SOC" Style="{StaticResource HeadTextBlockStyle}" Margin="15,10,15,15"/>
+                        <!-- BMS Disp_SOC -->
+                        <Label Margin="15,0" Height="80" FontSize="36" 
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Style="{StaticResource VariableLableStyle}" >
+                            <Label.Content>
+                                <TextBlock>
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
+                                    </TextBlock.Effect>
+                                    <Run Text="{Binding BmsVm.StatusMsg01.DispSOC, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Run Text="%" Foreground="White"/>
+                                </TextBlock>
+                            </Label.Content>
+                        </Label>
+                    </StackPanel>
+                </Border>
+
+                <!--Battery voltage-->
+                <Border Grid.Column="3" CornerRadius="12" Margin="10,0,0,0" Background="{DynamicResource Main.Panel.Background}">
+                    <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}" Width="Auto">
+                        <TextBlock Text="Battery Current" Style="{StaticResource HeadTextBlockStyle}" Margin="15,10,15,15"/>
+                        <Label Margin="15,0" Height="80" FontSize="36" 
+                               HorizontalAlignment="Center" VerticalAlignment="Center"
                                Style="{StaticResource VariableLableStyle}" >
                             <Label.Content>
                                 <TextBlock>
                                     <TextBlock.Effect>
                                         <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
                                     </TextBlock.Effect>
-                                <Run Text="{Binding EMSStatusManager.DashboardStatus.Power, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}" 
-                                     Foreground="#FF29BDAB"/>
-                                <Run Text="kW" Foreground="White"/>
+                                    <Run Text="{Binding BmsVm.StatusMsg01.TotalCurrent, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Run Text="kWh" Foreground="White"/>
                                 </TextBlock>
                             </Label.Content>
                         </Label>
                     </StackPanel>
                 </Border>
 
-                <Border CornerRadius="5" Margin="20,0,0,0" Background="{DynamicResource Main.Panel.Background}">
-                    <!-- SOC -->
-                    <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}">
-                        <TextBlock Text="SOC" Style="{StaticResource HeadTextBlockStyle}"/>
-                        <Label Margin="15,0" Height="80" FontSize="36" 
-                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Style="{StaticResource VariableLableStyle}" >
-                            <Label.Content>
-                                <TextBlock>
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
-                                    </TextBlock.Effect>
-                                <Run Text="{Binding EMSStatusManager.DashboardStatus.SOC, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}" 
-                                     Foreground="#FF29BDAB"/>
-                                <Run Text="%" Foreground="White"/>
-                                </TextBlock>
-                            </Label.Content>
-                        </Label>
+                <!-- Communication status -->
+                <Border Grid.Column="4" CornerRadius="12" Margin="10,0,0,0" Background="{DynamicResource Main.Panel.Background}">
+                    <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}" Margin="0" Width="Auto">
+                        <TextBlock Text="COMMUNICATION STATUS" Style="{StaticResource HeadTextBlockStyle}" Margin="15,10,15,15"/>
+                        <Border CornerRadius="6" Margin="15,0,15,5" Height="40" Background="#FF2E3134">
+                            <Label FontSize="24" 
+                                   HorizontalAlignment="Left" VerticalAlignment="Center"
+                                   Style="{StaticResource VariableLableStyle}" Margin="10,0,0,0" >
+                                <Label.Content>
+                                    <TextBlock>
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
+                                        </TextBlock.Effect>
+                                        <Run Text="  PCS  " Foreground="#FFACABAB"/>
+                                        <Run Text="{Binding PcsVm.PanelData.Status, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </TextBlock>
+                                </Label.Content>
+                            </Label>
+                        </Border>
+                        <Border CornerRadius="6" Margin="15,5" Height="40" Background="#FF2E3134">
+                            <Label FontSize="24" 
+                               HorizontalAlignment="Left" VerticalAlignment="Center"
+                               Style="{StaticResource VariableLableStyle}" Margin="10,0,0,0">
+                                <Label.Content>
+                                    <TextBlock>
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
+                                        </TextBlock.Effect>
+                                        <Run Text="  BMS  " Foreground="#FFACABAB"/>
+                                        <Run Text="{Binding BmsVm.StatusMsg01.Ready, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </TextBlock>
+                                </Label.Content>
+                            </Label>
+                        </Border>
                     </StackPanel>
                 </Border>
-                <Border CornerRadius="5" Margin="20,0,0,0" Background="{DynamicResource Main.Panel.Background}">
-                    <!--Battery voltage-->
-                    <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}">
-                        <TextBlock Text="BATTERY CAPACITOR" Style="{StaticResource HeadTextBlockStyle}"/>
-                        <Label Margin="15,0" Height="80" FontSize="36" 
-                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Style="{StaticResource VariableLableStyle}" >
-                            <Label.Content>
-                                <TextBlock>
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
-                                    </TextBlock.Effect>
-                                <Run Text="{Binding EMSStatusManager.DashboardStatus.BatteryVoltage, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}" 
-                                     Foreground="#FF29BDAB"/>
-                                <Run Text="kWh" Foreground="White"/>
-                                </TextBlock>
-                            </Label.Content>
-                        </Label>
-                    </StackPanel>
-                </Border>
-                <Border CornerRadius="5" Margin="20,0,0,0" Background="{DynamicResource Main.Panel.Background}">
-                    <!-- Communication status -->
-                    <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}">
-                        <TextBlock Text="COMMUNICATION STATUS" Style="{StaticResource HeadTextBlockStyle}"/>
-                        <Label Margin="15,0" Height="80" FontSize="36" 
-                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                       Style="{StaticResource VariableLableStyle}" >
-                            <Label.Content>
-                                <TextBlock>
-                                    <TextBlock.Effect>
-                                        <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
-                                    </TextBlock.Effect>
-                                <Run Text="{Binding EMSStatusManager.DashboardStatus.CommunicationStatus, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}" 
-                                     Foreground="#FF29BDAB"/>
-                                </TextBlock>
-                            </Label.Content>
-                        </Label>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
+            </Grid>
+            <!-- Vegicle status -->
 
             <!-- PCS infomation-->
-            <Border Grid.Column="0" Grid.Row="1" Margin="22,15,10,0" CornerRadius="5" Background="{DynamicResource Main.Panel.Background}">
+            <Border Grid.Column="0" Grid.Row="1" Margin="22,15,10,0" CornerRadius="12" Background="{DynamicResource Main.Panel.Background}">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="44*"/>
+                        <ColumnDefinition Width="39*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -200,33 +207,41 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Label Grid.Column="0" Grid.Row="0" Content="PCS INFORMATION" FontSize="15" Style="{StaticResource HeadLableStyle}">
-                        <Label.Effect>
-                            <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="1" Opacity="1"/>
-                        </Label.Effect>
-                    </Label>
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="PCS INFORMATION" Style="{StaticResource HeadTextBlockStyle}"/>
 
-                    <Label Grid.Column="0" Grid.Row="1" Content="Operation Mode" FontWeight="Light" 
-                   Style="{StaticResource HeadLableStyle}"/>
+                    <!--Run/Stop + Charge/Discharge-->
+                    <Grid Grid.Column="0" Grid.Row="1" >
+                        <Label Content="Operation Mode" Width="150" FontWeight="Light" Style="{StaticResource HeadLableStyle}"/>
+                        <!-- INV 유효전력 -->
+                        <Label Style="{StaticResource VariableLableStyle}">
+                            <Label.Content>
+                                <TextBlock>
+                                    <Run Text="{Binding PcsVm.PanelData.Status, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                                </TextBlock>
+                            </Label.Content>
+                        </Label>
+                    </Grid>
 
 
                     <Grid Grid.Column="0" Grid.Row="2" >
                         <Label Content="Power" Width="150" FontWeight="Light" Style="{StaticResource HeadLableStyle}"/>
+                        <!-- INV 유효전력 -->
                         <Label Style="{StaticResource VariableLableStyle}">
                             <Label.Content>
                                 <TextBlock>
-                            <Run Text="{Binding EMSStatusManager.PcsStatus.PresentPower, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
-                            <Run Text="kW"/>
+                                    <Run Text="{Binding PcsVm.InvData.Power, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Run Text="kW"/>
                                 </TextBlock>
                             </Label.Content>
                         </Label>
                     </Grid>
                     <Grid Grid.Column="0" Grid.Row="3" >
-                        <Label Content="DC Voltage" Width="150" FontWeight="Light" Style="{StaticResource HeadLableStyle}"/>
+                        <Label Content="Voltage" Width="150" FontWeight="Light" Style="{StaticResource HeadLableStyle}"/>
+                        <!-- 3상 선간전압 평균 -->
                         <Label Style="{StaticResource VariableLableStyle}">
                             <Label.Content>
                                 <TextBlock>
-                            <Run Text="{Binding EMSStatusManager.PcsStatus.PresentDCVoltage, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Run Text="{Binding PcsVm.InvData.VoltAverage, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
                             <Run Text="V"/>
                                 </TextBlock>
                             </Label.Content>
@@ -234,6 +249,7 @@
                     </Grid>
                     <Grid Grid.Column="0" Grid.Row="4" >
                         <Label Content="Error Code" Width="150" FontWeight="Light" Style="{StaticResource HeadLableStyle}"/>
+                        <!-- PCS Error code -->
                         <Label Style="{StaticResource VariableLableStyle}">
                             <Label.Content>
                                 <TextBlock>
@@ -245,6 +261,7 @@
 
                     <Grid Grid.Column="1" Grid.Row="1">
                         <Label Content="Set Power" Width="150" FontWeight="Light" Style="{StaticResource HeadLableStyle}"/>
+                        <!-- battery max charge power -->
                         <Label Style="{StaticResource VariableLableStyle}">
                             <Label.Content>
                                 <TextBlock>
@@ -256,10 +273,11 @@
                     </Grid>
                     <Grid Grid.Column="1" Grid.Row="2">
                         <Label Content="Current" Width="150" FontWeight="Light" Style="{StaticResource HeadLableStyle}"/>
+                        <!-- 3상 전류 평균 -->
                         <Label Style="{StaticResource VariableLableStyle}">
                             <Label.Content>
                                 <TextBlock>
-                            <Run Text="{Binding EMSStatusManager.PcsStatus.PresentCurrent, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Run Text="{Binding PcsVm.InvData.CurrAverage, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
                             <Run Text="A"/>
                                 </TextBlock>
                             </Label.Content>
@@ -270,7 +288,7 @@
                         <Label Style="{StaticResource VariableLableStyle}">
                             <Label.Content>
                                 <TextBlock>
-                            <Run Text="{Binding EMSStatusManager.PcsStatus.Temperature, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Run Text="{Binding PcsVm.InvItems[1].Value, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
                             <Run Text="℃"/>
                                 </TextBlock>
                             </Label.Content>
@@ -281,11 +299,11 @@
             </Border>
 
             <!-- System & Communication status-->
-            <Border Grid.Column="0" Grid.Row="2" Margin="22,15,10,0" CornerRadius="5" Background="{DynamicResource Main.Panel.Background}">
+            <Border Grid.Column="0" Grid.Row="2" Margin="22,15,10,0" CornerRadius="12" Background="{DynamicResource Main.Panel.Background}">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width=".55*"/>
+                        <ColumnDefinition Width="44*"/>
+                        <ColumnDefinition Width="39*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -296,27 +314,23 @@
                         <RowDefinition Height=".5*"/>
                     </Grid.RowDefinitions>
 
-                    <Label Grid.ColumnSpan="2" Grid.Row="0" Content="SYSTEM &amp; COMMUNICATION STATUS" FontSize="15" Style="{StaticResource HeadLableStyle}">
-                        <Label.Effect>
-                            <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="1" Opacity="1"/>
-                        </Label.Effect>
-                    </Label>
-                    <Label Grid.Column="1" Grid.Row="0" Content="BMS INFORMATION" FontWeight="Bold" Style="{StaticResource HeadLableStyle}"/>
+                    <TextBlock Grid.Row="0" Text="SYSTEM &amp; COMMUNICATION STATUS" Style="{StaticResource HeadTextBlockStyle}"/>
+                    <TextBlock Grid.Column="1" Grid.Row="0" Text="BMS INFORMATION" Style="{StaticResource HeadTextBlockStyle}"/>
 
                     <Label Grid.Column="0" Grid.Row="1" Content="IPC State"
-                   FontWeight="Light" HorizontalAlignment="Left" VerticalAlignment="Center"
-                   Style="{StaticResource HeadLableStyle}"/>
+                           FontWeight="Light" HorizontalAlignment="Left" VerticalAlignment="Center"
+                           Style="{StaticResource HeadLableStyle}" Height="30" Margin="15,13,0,14" Width="200"/>
 
                     <Label Grid.Column="0" Grid.Row="2" Content="Communication Status" 
-                   FontWeight="Light" HorizontalAlignment="Left" VerticalAlignment="Center"
-                   Style="{StaticResource HeadLableStyle}"/>
+                           FontWeight="Light" HorizontalAlignment="Left" VerticalAlignment="Center"
+                           Style="{StaticResource HeadLableStyle}" Height="30" Margin="15,13,0,13" Width="200"/>
 
                     <Label Grid.Column="0" Grid.Row="3" Content="GPS Signal" 
-                   FontWeight="Light" HorizontalAlignment="Left" VerticalAlignment="Center"
-                   Style="{StaticResource HeadLableStyle}"/>
+                           FontWeight="Light" HorizontalAlignment="Left" VerticalAlignment="Center"
+                           Style="{StaticResource HeadLableStyle}" Height="30" Margin="15,14,0,13" Width="200"/>
 
                     <Grid Grid.Column="1" Grid.Row="1">
-                        <Label Content="State of Charge" Width="95" FontWeight="Light" 
+                        <Label Content="State of Charge" Width="150" FontWeight="Light" 
                        HorizontalAlignment="Left" VerticalAlignment="Center"
                        Style="{StaticResource HeadLableStyle}"/>
                         <Label HorizontalAlignment="Right" Margin="0,0,15,0" Style="{StaticResource VariableLableStyle}">
@@ -329,10 +343,8 @@
                         </Label>
                     </Grid>
 
-
-
                     <Grid Grid.Column="1" Grid.Row="2" >
-                        <Label Content="State of Health" Width="95" FontWeight="Light" 
+                        <Label Content="State of Health" Width="150" FontWeight="Light" 
                        HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,8"
                        Style="{StaticResource HeadLableStyle}"/>
                         <Label HorizontalAlignment="Right" Margin="0,0,15,0" Style="{StaticResource VariableLableStyle}">
@@ -375,7 +387,7 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Border Grid.Row="0" VerticalAlignment="Stretch" CornerRadius="5" Background="{DynamicResource Main.Panel.Background}">
+                <Border Grid.Row="0" VerticalAlignment="Stretch" CornerRadius="12" Background="{DynamicResource Main.Panel.Background}">
                     <!-- Chart -->
                     <Grid >
                         <Grid.RowDefinitions>
@@ -385,11 +397,7 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <Label Grid.Row="0" Content="ESS STATUS &amp; REAL-TIME CHART" FontSize="15" Style="{StaticResource HeadLableStyle}">
-                            <Label.Effect>
-                                <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="1" Opacity="1"/>
-                            </Label.Effect>
-                        </Label>
+                        <TextBlock Grid.Row="0" Text="ESS STATUS &amp; REAL-TIME CHART" Style="{StaticResource HeadTextBlockStyle}"/>
 
                         <s:SciChartSurface Grid.Row="1" Margin="15,0">
                             <!--  Declare RenderableSeries  -->
@@ -431,7 +439,7 @@
                             <Label Margin="0,0,15,0" Style="{StaticResource VariableLableStyle}">
                                 <Label.Content>
                                     <TextBlock>
-                            <Run Text="{Binding EMSStatusManager.EssStatus.CumulativeCharge, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Run Text="{Binding PcsVm.InvData.D_ImportEnergy, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
                             <Run Text="kWh"/>
                                     </TextBlock>
                                 </Label.Content>
@@ -444,7 +452,7 @@
                             <Label Margin="0,0,15,0" Style="{StaticResource VariableLableStyle}">
                                 <Label.Content>
                                     <TextBlock>
-                            <Run Text="{Binding EMSStatusManager.EssStatus.CumulativeDischarge, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Run Text="{Binding PcsVm.InvData.D_ExportEnergy, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
                             <Run Text="kWh"/>
                                     </TextBlock>
                                 </Label.Content>
@@ -453,7 +461,7 @@
                     </Grid>
                 </Border>
 
-                <Border Grid.Row="1" VerticalAlignment="Stretch" Margin="0,15,0,0" CornerRadius="5" Background="{DynamicResource Main.Panel.Background}">
+                <Border Grid.Row="1" VerticalAlignment="Stretch" Margin="0,15,0,0" CornerRadius="12" Background="{DynamicResource Main.Panel.Background}">
                     <!-- ESS Status -->
                     <Grid>
                         <Grid.RowDefinitions>
@@ -461,11 +469,7 @@
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <Label Grid.Row="0" Content="ESS STATUS" FontSize="15" Style="{StaticResource HeadLableStyle}">
-                            <Label.Effect>
-                                <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="1" Opacity="1"/>
-                            </Label.Effect>
-                        </Label>
+                        <TextBlock Grid.Row="0" Text="ESS STATUS" Style="{StaticResource HeadTextBlockStyle}"/>
 
                         <Grid Grid.Row="1">
                             <Label Content="Cumulative Charge Energy" FontWeight="Light" 

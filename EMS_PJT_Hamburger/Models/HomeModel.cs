@@ -15,20 +15,24 @@ namespace EMS_PJT_Hamburger.Models
         // 
         public CancellationTokenSource _loopCts;
         public bool _isLoopRunning;
-        public bool Flag { get; set; }
-        public Brush Charge_Status_BMS { get; set; }        // BMS(ESS) enable charge
-        public Brush Discharge_Status_BMS { get; set; }     // BMS(ESS) enable discharge 
+        public Brush ChargeBorderBrush { get; set; } = Brushes.Gray;         // ems status is charging. (t:greenyellow, f:gray)
+        public Brush DischargeBorderBrush { get; set; } = Brushes.Gray;      // ems status is discharging. (t:orange, f:gray) 
+        public Brush ChargeOffGrid { get; set; } = Brushes.Gray;      // ems status is discharging. (t:orange, f:gray) 
+        public Brush ChargeVihicle { get; set; } = Brushes.Gray;      // ems status is discharging. (t:orange, f:gray) 
+        public Brush PcsBorderBrush { get; set; } = Brushes.Gray;
+        public Brush BmsBorderBrush { get; set; } = Brushes.Gray;
 
         /// <summary>
         /// UI flag
         /// </summary>
-        public bool IsChargingEnergy { get; set; }          // using ENERGY border
-        public bool IsChargingPCS1 { get; set; }            // using PCS01 border
-        public bool IsChargingBMS { get; set; }             // using BMS(ESS) border
-        public bool IsDischargingPCS2 { get; set; }         // using PCS01 border
-        public bool IsDischargingTransformer { get; set; }  // using PCS01 to Transformer path 
-        public bool IsDischargingOffGrid { get; set; }      // using Transformer to Off grid path
-        public bool IsDischargingVihicle { get; set; }      // using Transformer to vihicle path
+        public int emsMode { get; set; } = 0;
+        public bool _isCharging { get; set; }               // Charge Status
+        public bool _isDischarging { get; set; }            // Discharge Status
+        public bool IsChargingOffGrid { get; set; }      // using Transformer to Off grid path
+        public bool IsChargingVihicle { get; set; }      // using Transformer to vihicle path
+
+        public string ConnectPCS { get; set; } = "Disable";
+        public string ConnectBMS { get; set; } = "Disable";
 
 
         public event PropertyChangedEventHandler PropertyChanged = delegate { };

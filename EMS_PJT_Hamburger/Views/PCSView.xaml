@@ -6,8 +6,8 @@
              xmlns:ViewModels="clr-namespace:EMS_PJT_Hamburger.ViewModels"
              xmlns:System="clr-namespace:System;assembly=mscorlib" 
              xmlns:local="clr-namespace:EMS_PJT_Hamburger.Views" xmlns:dxwui="http://schemas.devexpress.com/winfx/2008/xaml/windowsui"
-             xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors" xmlns:s="http://schemas.abtsoftware.co.uk/scichart" xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core" xmlns:dxdo="http://schemas.devexpress.com/winfx/2008/xaml/docking" x:Class="EMS_PJT_Hamburger.Views.PCSView"
-             mc:Ignorable="d" d:DesignHeight="704" d:DesignWidth="964"  Background="Transparent" FontFamily="/EMS_PJT;component/Fonts/#Noto Sans KR">
+             xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors" xmlns:s="http://schemas.abtsoftware.co.uk/scichart" xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core" xmlns:dxdo="http://schemas.devexpress.com/winfx/2008/xaml/docking" xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm" x:Class="EMS_PJT_Hamburger.Views.PCSView"
+             mc:Ignorable="d" d:DesignHeight="860" d:DesignWidth="1200"  Background="Transparent" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR">
     <UserControl.Resources>
         <Style TargetType="{x:Type Label}" x:Key="HeadLableStyle">
             <Setter Property="Padding" Value="0"/>
@@ -27,7 +27,7 @@
             <Setter Property="BorderThickness" Value="0,0,1,1"/>
             <Setter Property="Margin" Value="5"/>
         </Style>
-        
+
         <Style TargetType="{x:Type TextBlock}" x:Key="HeadTextBlock">
             <Setter Property="FontFamily" Value="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
             <Setter Property="Foreground" Value="AliceBlue"/>
@@ -35,6 +35,16 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Margin" Value="0,0,0,0"/>
+        </Style>
+
+        <Style TargetType="{x:Type Label}" x:Key="MonitorLabel">
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontFamily" Value="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Stretch"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="Margin" Value="20,-3,5,0"/>
         </Style>
 
         <Style TargetType="{x:Type TextBlock}" x:Key="MonitorTextBlock">
@@ -49,31 +59,158 @@
 
         <Style TargetType="{x:Type Border}" x:Key="BorderCardStyle">
             <Setter Property="Margin" Value="5"/>
-            <Setter Property="CornerRadius" Value="8"/>
             <Setter Property="BorderBrush" Value="#FFF3F3F3"/>
-            <Setter Property="BorderThickness" Value="0,0,1,1"/>
-            <Setter Property="Background">
-                <Setter.Value>
-                    <LinearGradientBrush>
-                        <GradientStop Color="#0E1012" Offset="0"/>
-                        <GradientStop Color="#FF2C3D4D" Offset="0.5"/>
-                        <GradientStop Color="#0E1012" Offset="1"/>
-                    </LinearGradientBrush>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="BorderThickness" Value="0,0,1,0"/>
             <Setter Property="Padding" Value="10"/>
         </Style>
     </UserControl.Resources>
 
-    <UserControl.DataContext>
+    <!--<UserControl.DataContext>
         <ViewModels:PcsViewModel/>
-    </UserControl.DataContext>
+    </UserControl.DataContext>-->
 
     <Viewbox>
-        <dxdo:DockLayoutManager Height="704" Width="964">
+        <dxdo:DockLayoutManager Height="860" Width="1200">
+
+            <dxdo:DockLayoutManager.AutoHideGroups>
+                <dxdo:AutoHideGroup DockType="Left" 
+                                    HorizontalAlignment="Left">
+                    <dxdo:LayoutPanel x:Name="CtrlSetPanel"
+                                      Caption="Control" 
+                                      AllowClose="False" 
+                                      ShowCloseButton="False"
+                                      MinWidth="250" MaxWidth="250"
+                                      Foreground="Red" >
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <Grid Margin="5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="105"/>
+                                    <ColumnDefinition Width="85"/>
+                                    <ColumnDefinition Width="45"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="34"/>
+                                    <RowDefinition Height="40"/>
+                                    <RowDefinition Height="40"/>
+                                    <RowDefinition Height="40"/>
+                                    <RowDefinition Height="40"/>
+                                </Grid.RowDefinitions>
+
+                                <Label Content="기동모드" Grid.Row="0" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" Margin="2,4"
+                                          SelectedValue="{Binding ControlOperationMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          SelectedValuePath="Tag">
+                                    <ComboBoxItem Content="7: PMS 원격" Tag="7"/>
+                                    <ComboBoxItem Content="1: 원격" Tag="1"/>
+                                    <ComboBoxItem Content="0: 로컬" Tag="0"/>
+                                </ComboBox>
+
+                                <Label Content="충방전 모드" Grid.Row="1" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" Margin="2,4"
+                                          SelectedValue="{Binding ControlChargeMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          SelectedValuePath="Tag">
+                                    <ComboBoxItem Content="0: CC+CV" Tag="0"/>
+                                    <ComboBoxItem Content="1: CP" Tag="1"/>
+                                </ComboBox>
+
+                                <Label Content="충전 전력(%)" Grid.Row="2" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="1" Grid.Row="2" Margin="2,4" EditValue="{Binding ControlMaxChargePowerPercent, Mode=TwoWay, StringFormat=\{0:F2\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="%" Grid.Column="2" Grid.Row="2" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <Label Content="방전 전력(%)" Grid.Row="3" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="1" Grid.Row="3" Margin="2,4" EditValue="{Binding ControlMaxDischargePowerPercent, Mode=TwoWay, StringFormat=\{0:F2\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="%" Grid.Column="2" Grid.Row="3" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <Label Content="최대 충전전력" Grid.Row="4" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="1" Grid.Row="4" Margin="2,4" EditValue="{Binding ControlMaxChargePowerW, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="W" Grid.Column="2" Grid.Row="4" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <Label Content="최대 방전전력" Grid.Row="5" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="1" Grid.Row="5" Margin="2,4" EditValue="{Binding ControlMaxDischargePowerW, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="W" Grid.Column="2" Grid.Row="5" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <Label Content="최대충전 SOC" Grid.Row="6" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="1" Grid.Row="6" Margin="2,4" EditValue="{Binding ControlMaxChargeSoc, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="%" Grid.Column="2" Grid.Row="6" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <Label Content="최소방전 SOC" Grid.Row="7" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="1" Grid.Row="7" Margin="2,4" EditValue="{Binding ControlMinDischargeSoc, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="%" Grid.Column="2" Grid.Row="7" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <Label Content="최대 충전전압" Grid.Row="8" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="1" Grid.Row="8" Margin="2,4" EditValue="{Binding ControlMaxChargeVoltage, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="V" Grid.Column="2" Grid.Row="8" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <Label Content="최대 방전전압" Grid.Row="9" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="1" Grid.Row="9" Margin="2,4" EditValue="{Binding ControlMaxDischargeVoltage, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="V" Grid.Column="2" Grid.Row="9" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <Label Content="최대 충전전류" Grid.Row="10" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="1" Grid.Row="10" Margin="2,4" EditValue="{Binding ControlMaxChargeCurrent, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="A" Grid.Column="2" Grid.Row="10" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <Label Content="최대 방전전류" Grid.Row="11" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="1" Grid.Row="11" Margin="2,4" EditValue="{Binding ControlMaxDischargeCurrent, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="A" Grid.Column="2" Grid.Row="11" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <Label Content="Grid 수전제한" Grid.Row="12" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="1" Grid.Row="12" Margin="2,4" EditValue="{Binding ControlGridMaxImportPowerW, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="W" Grid.Column="2" Grid.Row="12" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <Label Content="Grid 송전제한" Grid.Row="13" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="1" Grid.Row="13" Margin="2,4" EditValue="{Binding ControlGridMaxExportPowerW, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="W" Grid.Column="2" Grid.Row="13" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <dx:SimpleButton Grid.Row="15" Grid.Column="0" Grid.ColumnSpan="3" Margin="2,4"
+                                                 Content="충전 시작" Command="{Binding Cmd_StartCharge}"/>
+                                <dx:SimpleButton Grid.Row="16" Grid.Column="0" Grid.ColumnSpan="3" Margin="2,4"
+                                                 Content="방전 시작" Command="{Binding Cmd_StartDischarge}"/>
+                                <StackPanel Grid.Row="17" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal">
+                                    <dx:SimpleButton Width="115" Margin="2,4" Content="정지" Command="{Binding Cmd_StopPcs}"/>
+                                    <dx:SimpleButton Width="115" Margin="2,4" Content="Reset" Command="{Binding Cmd_FaultReset}"/>
+                                </StackPanel>
+                                <dx:SimpleButton Grid.Row="18" Grid.Column="0" Grid.ColumnSpan="3" Margin="2,4" Content="Emergency Stop" Command="{Binding Cmd_EmergencyStop}">
+                                    <dx:SimpleButton.Style>
+                                        <Style TargetType="{x:Type dx:SimpleButton}">
+                                            <Setter Property="Background" Value="#FFB94242"/>
+                                            <Setter Property="BorderBrush" Value="#D94A4A"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#A83232"/>
+                                                    <Setter Property="BorderBrush" Value="#FF7777"/>
+                                                </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter Property="Background" Value="#5F1515"/>
+                                                    <Setter Property="BorderBrush" Value="#C93B3B"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </dx:SimpleButton.Style>
+                                </dx:SimpleButton>
+                            </Grid>
+                        </ScrollViewer>
+                    </dxdo:LayoutPanel>
+                </dxdo:AutoHideGroup>
+            </dxdo:DockLayoutManager.AutoHideGroups>
             <dxdo:LayoutGroup Orientation="Vertical" >
                 <dxdo:LayoutPanel Background="{DynamicResource Main.Background}" ShowCaption="False">
-                    <Grid>
+                    <Grid Margin="0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="5"/>
                             <ColumnDefinition/>
@@ -82,7 +219,7 @@
                             <RowDefinition Height="10"/>
                             <RowDefinition Height="100"/>
                             <RowDefinition Height="*"/>
-                            <RowDefinition Height="120"/>
+                            <RowDefinition Height="50"/>
                         </Grid.RowDefinitions>
                         <!-- System -->
                         <Grid Grid.Column="1" Grid.Row="1" Background="Transparent">
@@ -98,34 +235,24 @@
                                 <RowDefinition Height="10"/>
                             </Grid.RowDefinitions>
                             <Border Grid.ColumnSpan="5" Grid.RowSpan="3" 
-                                    Style="{StaticResource MainBorderStyle}">
-                            </Border>
+                                    Style="{StaticResource MainBorderStyle}"/>
+                            <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal" Height="auto" HorizontalAlignment="Left" Margin="60,0,0,0">
+                                <dx:DXImage Source="{dx:DXImage SvgImages/XAF/Action_Exit.svg}"
+                                            Width="20" 
+                                            Height="20" 
+                                            Margin="0"/>
+                                <TextBlock FontSize="16" Margin="5,0,0,0" 
+                                           Style="{StaticResource MonitorTextBlock}"><Run Text="시스템" FontSize="14"/><Run Text=" "/><Run Text="{Binding PanelData.Status}" Foreground="Lime"/></TextBlock>
+                            </StackPanel>
 
-                            <Label Grid.Column="0" Grid.Row="0"
-                                   Width="200"
-                                   Margin="0" 
-                                   BorderBrush="White" 
-                                   BorderThickness="0,0,0,1"
-                                   Style="{StaticResource HeadLableStyle}">
-                                <TextBlock FontSize="16" Margin="0,0,0,0" 
-                                           Style="{StaticResource MonitorTextBlock}">
-                                        <Run Text="시스템" FontSize="14"/>
-                                        <Run Text="정상" Foreground="Lime"/>
-                                </TextBlock>
-                            </Label>
-
-                            <Label Grid.Column="1" Grid.Row="0"
-                                   Width="200"
-                                   Margin="0" 
-                                   BorderBrush="White" 
-                                   BorderThickness="0,0,0,1"
-                                   Style="{StaticResource HeadLableStyle}" >
-                                <TextBlock Margin="0,0,0,0"
-                                           Style="{StaticResource MonitorTextBlock}">
-                                        <Run Text="알람" FontSize="14"/>
-                                        <Run Text="0" Foreground="Lime" FontSize="20"/>
-                                </TextBlock>
-                            </Label>
+                            <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Height="auto" HorizontalAlignment="Left" Margin="60,0,0,0">
+                                <dx:DXImage Source="{dx:DXImage SvgImages/XAF/Action_Bell.svg}"
+                                            Width="20" 
+                                            Height="20" 
+                                            Margin="0"/>
+                                <TextBlock FontSize="16" Margin="5,0,0,0" 
+                                           Style="{StaticResource MonitorTextBlock}"><Run Text="알람" FontSize="14"/><Run Text=" "/><Run Text="{Binding PanelData.AlarmCnt}" Foreground="Lime"/></TextBlock>
+                            </StackPanel>
 
                             <Label Grid.Column="2" Grid.Row="0" 
                                    Width="200"
@@ -136,10 +263,10 @@
                                 <StackPanel Margin="0" Orientation="Vertical">
                                     <TextBlock Text="수전 누적 전력(총합)"  
                                                Style="{StaticResource HeadTextBlock}"/>
-                                    <TextBlock Style="{StaticResource MonitorTextBlock}">
-                                            <Run Text="12.45" Foreground="Lime"/>
-                                            <Run Text="MWh" Foreground="White" FontSize="14" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
-                                    </TextBlock>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Label Content="{Binding PanelData.T_Import_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="55"/>
+                                        <TextBlock Text="MWh" Foreground="White" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </Label>
 
@@ -152,29 +279,36 @@
                                 <StackPanel Margin="0" Orientation="Vertical">
                                     <TextBlock Text="수전 누적 전력(일간)"
                                                Style="{StaticResource HeadTextBlock}"/>
-                                    <TextBlock Style="{StaticResource MonitorTextBlock}">
-                                            <Run Text="124.40" Foreground="Lime"/>
-                                            <Run Text="kWh" Foreground="White" FontSize="14" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" />
-                                    </TextBlock>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Label Content="{Binding PanelData.D_Import_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="55"/>
+                                        <TextBlock Text="kWh" Foreground="White" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </Label>
 
-                            <Label Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1"            
-                                   Margin="0"
-                                   Style="{StaticResource HeadLableStyle}" HorizontalAlignment="Left">
-                                <StackPanel Orientation="Horizontal" Margin="50,0,0,0">
-                                    <Image Source="pack://application:,,,/DevExpress.Images.v23.1;component/SvgImages/XAF/State_Task_InProgress.svg"
-                                           Width="20" 
-                                           Height="20" 
-                                           Margin="0"/>
-                                    <TextBlock Style="{StaticResource MonitorTextBlock}" 
-                                               FontSize="16"  
-                                               FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" 
-                                               Margin="10,0,0,0">
-                                            <Run Text="2026-02-27"/>
-                                    </TextBlock>
-                                </StackPanel>
-                            </Label>
+                            <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" Height="auto" HorizontalAlignment="Left" Margin="25,0,0,0">
+                                <dx:DXImage Source="{dx:DXImage SvgImages/XAF/State_Task_InProgress.svg}"
+                                            Width="20" 
+                                            Height="20" 
+                                            Margin="0"/>
+                                <TextBlock Style="{StaticResource MonitorTextBlock}" 
+                                           FontSize="16"  
+                                           FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" 
+                                           Foreground="White"
+                                           Margin="10,0,0,0"><Run Text="2026-03-11 00:00:00"/></TextBlock>
+                            </StackPanel>
+                            <StackPanel  Grid.Column="1" Grid.Row="1"  Orientation="Horizontal" Height="auto" HorizontalAlignment="Left" Margin="25,0,0,0">
+                                <dx:DXImage Source="{dx:DXImage SvgImages/Icon Builder/Actions_Comment.svg}"
+                                            Width="20" 
+                                            Height="20" 
+                                            Margin="0"/>
+                                <TextBlock Style="{StaticResource MonitorTextBlock}" 
+                                           FontSize="14"  
+                                           FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" 
+                                           Foreground="White"
+                                           Margin="10,0,0,0"
+                                           Text="{Binding SystemMsg}"/>
+                            </StackPanel>
 
                             <Label Grid.Column="2" Grid.Row="1"            
                                    Margin="0"
@@ -182,10 +316,10 @@
                                 <StackPanel Margin="0" Orientation="Vertical">
                                     <TextBlock Text="송전 누적 전력(총합)"
                                                Style="{StaticResource HeadTextBlock}"/>
-                                    <TextBlock Style="{StaticResource MonitorTextBlock}">
-                                            <Run Text="8.96" Foreground="Lime"/>
-                                            <Run Text="MWh" Foreground="White" FontSize="14" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
-                                    </TextBlock>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Label Content="{Binding PanelData.T_Export_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="55"/>
+                                        <TextBlock Text="MWh" Foreground="White" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </Label>
 
@@ -195,10 +329,10 @@
                                 <StackPanel Margin="0" Orientation="Vertical">
                                     <TextBlock Text="송전 누적 전력(일간)"
                                                 Style="{StaticResource HeadTextBlock}"/>
-                                    <TextBlock Style="{StaticResource MonitorTextBlock}">
-                                            <Run Text="5.4" Foreground="Lime"/>
-                                            <Run Text="kWh" Foreground="White" FontSize="14" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
-                                    </TextBlock>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Label Content="{Binding PanelData.D_Export_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="55"/>
+                                        <TextBlock Text="kWh" Foreground="White" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    </StackPanel>
                                 </StackPanel>
                             </Label>
                         </Grid>
@@ -218,22 +352,22 @@
                                     <Label Content="GRID"
                                            HorizontalAlignment="Left"
                                            FontWeight="Bold"
-                                           FontSize="20"
+                                           FontSize="18"
                                            Style="{StaticResource HeadLableStyle}"/>
-                                    <ItemsControl ItemsSource="{Binding GridItems}">
+                                    <ItemsControl ItemsSource="{Binding GridItems}" Margin="0">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Grid Margin="0 2">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="70"/>
+                                                        <ColumnDefinition Width="120"/>
                                                         <ColumnDefinition Width="30"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Header}"
                                                                FontSize="14" 
                                                                Foreground="White" VerticalAlignment="Center"/>
                                                     <TextBlock Text="{Binding Name}"
-                                                               FontSize="11"
+                                                               FontSize="12"
                                                                Foreground="LightGray" VerticalAlignment="Center"/>
                                                     <TextBlock Text="{Binding Value}"
                                                                Grid.Column="1"
@@ -241,12 +375,11 @@
                                                                VerticalAlignment="Center" 
                                                                HorizontalAlignment="Right" 
                                                                Margin="0,0,5,0"
-                                                               FontSize="18" 
-                                                               FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St">
-                                                    </TextBlock>
+                                                               FontSize="21"
+                                                               FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St"/>
                                                     <TextBlock Text="{Binding Factor}"
                                                                Grid.Column="2" 
-                                                               FontSize="11"
+                                                               FontSize="12"
                                                                Foreground="LightGray" 
                                                                VerticalAlignment="Bottom"
                                                                HorizontalAlignment="Left"/>
@@ -266,13 +399,13 @@
                                            FontWeight="Bold"
                                            FontSize="20"
                                            Style="{StaticResource HeadLableStyle}"/>
-                                    <ItemsControl ItemsSource="{Binding LoadItems}">
+                                    <ItemsControl ItemsSource="{Binding LoadItems}" Margin="0">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Grid Margin="0 2">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="70"/>
+                                                        <ColumnDefinition Width="60"/>
                                                         <ColumnDefinition Width="30"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Header}"
@@ -288,8 +421,7 @@
                                                                HorizontalAlignment="Right" 
                                                                Margin="0,0,5,0"
                                                                FontSize="18" 
-                                                               FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St">
-                                                    </TextBlock>
+                                                               FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St"/>
                                                     <TextBlock Text="{Binding Factor}"
                                                                Grid.Column="2" 
                                                                FontSize="11"
@@ -306,47 +438,49 @@
                             <!-- Inverter -->
                             <Border Grid.Column="2"
                                     Style="{StaticResource BorderCardStyle}">
-                                <StackPanel>
-                                    <Label Content="INVERTER"
-                                           HorizontalAlignment="Left"
-                                           FontWeight="Bold"
-                                           FontSize="20"
-                                           Style="{StaticResource HeadLableStyle}"/>
-                                    <ItemsControl ItemsSource="{Binding InvItems}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Grid Margin="0 2">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="70"/>
-                                                        <ColumnDefinition Width="30"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Header}"
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <StackPanel>
+                                        <Label Content="INVERTER"
+                                               HorizontalAlignment="Left"
+                                               FontWeight="Bold"
+                                               FontSize="20"
+                                               Style="{StaticResource HeadLableStyle}"/>
+
+                                        <ItemsControl ItemsSource="{Binding InvItems}" Margin="0">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid Margin="0 2">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="60"/>
+                                                            <ColumnDefinition Width="30"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding Header}"
                                                                FontSize="14" 
                                                                Foreground="White" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding Name}"
+                                                        <TextBlock Text="{Binding Name}"
                                                                FontSize="11"
                                                                Foreground="LightGray" VerticalAlignment="Center"/>
-                                                    <TextBlock Text="{Binding Value}"
+                                                        <TextBlock Text="{Binding Value}"
                                                                Grid.Column="1"
                                                                Foreground="White"
                                                                VerticalAlignment="Center" 
                                                                HorizontalAlignment="Right" 
                                                                Margin="0,0,5,0"
                                                                FontSize="18" 
-                                                               FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St">
-                                                    </TextBlock>
-                                                    <TextBlock Text="{Binding Factor}"
+                                                               FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St"/>
+                                                        <TextBlock Text="{Binding Factor}"
                                                                Grid.Column="2" 
                                                                FontSize="11"
                                                                Foreground="LightGray" 
                                                                VerticalAlignment="Bottom"
                                                                HorizontalAlignment="Left"/>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </ScrollViewer>
                             </Border>
 
                             <!-- Chart -->
@@ -356,10 +490,13 @@
                                     <RowDefinition/>
                                 </Grid.RowDefinitions>
 
-                                <s:SciChartSurface Grid.Row="0" Margin="5,5,7,5" Background="{x:Null}" BorderBrush="White" BorderThickness="0,0,1,1">
+                                <s:SciChartSurface x:Name="D_ImportedEnergyChart" Grid.Row="0" Margin="0" Background="{x:Null}" BorderBrush="White" BorderThickness="0,0,1,1" Height="300">
                                     <!--  Declare RenderableSeries  -->
                                     <s:SciChartSurface.RenderableSeries>
-                                        <s:FastMountainRenderableSeries x:Name="mountainRenderSeries" Fill="LightCyan" Stroke="Lime" StrokeThickness="2">
+                                        <s:FastMountainRenderableSeries Fill="LightCyan"
+                                                                        Stroke="Lime"
+                                                                        StrokeThickness="2"
+                                                                        DataSeries="{Binding DailyImportedEnergySummarySeries}">
                                             <s:FastMountainRenderableSeries.SeriesAnimation>
                                                 <s:WaveAnimation AnimationDelay="0:0:0.2" Duration="0:0:2" PointDurationFraction="0.3"/>
                                             </s:FastMountainRenderableSeries.SeriesAnimation>
@@ -381,12 +518,13 @@
                                     <s:SciChartSurface.YAxis>
                                         <s:NumericAxis DrawMajorBands="False" 
                                                        GrowBy="0.1, 0.1" 
-                                                       VisibleRange="0,150" 
+                                                       VisibleRange="0,500" 
                                                        MaxAutoTicks="4"
                                                        DrawMajorTicks="False" 
                                                        DrawMajorGridLines="True" 
                                                        DrawMinorGridLines="False" 
                                                        DrawMinorTicks="False"
+                                                       AxisTitle="KWh"
                                                        Foreground="LightGray"/>
                                     </s:SciChartSurface.YAxis>
 
@@ -399,10 +537,10 @@
                                     </s:SciChartSurface.ChartModifier>
                                 </s:SciChartSurface>
 
-                                <s:SciChartSurface Grid.Row="1" Margin="5,5,7,5" Background="{x:Null}" BorderBrush="White" BorderThickness="0,0,1,1">
+                                <s:SciChartSurface x:Name="D_ExportedEnergyChart" Grid.Row="1" Margin="0" Background="{x:Null}" BorderBrush="White" BorderThickness="0,0,1,1" Height="300">
                                     <!--  Declare RenderableSeries  -->
                                     <s:SciChartSurface.RenderableSeries>
-                                        <s:FastMountainRenderableSeries x:Name="mountainRenderSeries1" Fill="LightCyan" Stroke="Lime" StrokeThickness="2">
+                                        <s:FastMountainRenderableSeries x:Name="_dExportedEnergyRenderSeries" Fill="LightCyan" Stroke="Lime" StrokeThickness="2">
                                             <s:FastMountainRenderableSeries.SeriesAnimation>
                                                 <s:WaveAnimation AnimationDelay="0:0:0.2" Duration="0:0:2" PointDurationFraction="0.3"/>
                                             </s:FastMountainRenderableSeries.SeriesAnimation>
@@ -424,12 +562,13 @@
                                     <s:SciChartSurface.YAxis>
                                         <s:NumericAxis DrawMajorBands="False" 
                                                        GrowBy="0.1, 0.1" 
-                                                       VisibleRange="0,150" 
+                                                       VisibleRange="0,500" 
                                                        MaxAutoTicks="4"
                                                        DrawMajorTicks="False" 
                                                        DrawMajorGridLines="True" 
                                                        DrawMinorGridLines="False" 
                                                        DrawMinorTicks="False"
+                                                       AxisTitle="KWh"
                                                        Foreground="LightGray"/>
                                     </s:SciChartSurface.YAxis>
 
@@ -445,22 +584,16 @@
                             </Grid>
 
                         </Grid>
+
+                        <Grid Grid.Column="1" Grid.Row="3">
+                            <!--<Border Background="#FFF8F8F8" Margin="-5,0,0,0">
+                                
+                            </Border>-->
+                        </Grid>
                     </Grid>
                 </dxdo:LayoutPanel>
             </dxdo:LayoutGroup>
 
-            <dxdo:DockLayoutManager.AutoHideGroups>
-                <dxdo:AutoHideGroup DockType="Left" 
-                                    HorizontalAlignment="Left">
-                    <dxdo:LayoutPanel x:Name="CtrlSetPanel"
-                                      Caption="Control" 
-                                      AllowClose="False" 
-                                      ShowCloseButton="False"
-                                      MinWidth="250" MaxWidth="250"
-                                      Foreground="Red" >
-                    </dxdo:LayoutPanel>
-                </dxdo:AutoHideGroup>
-            </dxdo:DockLayoutManager.AutoHideGroups>
         </dxdo:DockLayoutManager>
     </Viewbox>
 </UserControl>

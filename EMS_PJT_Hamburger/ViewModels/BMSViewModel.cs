@@ -18,8 +18,10 @@ using static EMS_PJT_Hamburger.Models.Managers.DbManager;
 
 namespace EMS_PJT_Hamburger.ViewModels
 {
-    public class BMSViewModel : BmsDataModel
+    public class BMSViewModel : BmsDataModel, IDisposable
     {
+        private bool _disposed;
+
         public BMSViewModel()
         {
             _rx = new PcanRxService(Peak.Can.Basic.PcanChannel.Usb01, Peak.Can.Basic.Bitrate.Pcan500);
@@ -64,9 +66,12 @@ namespace EMS_PJT_Hamburger.ViewModels
         
         private void OnFrameReceived(uint canId, byte[] data)
         {
+            if (_disposed) return;
+
             var hexValueFormat = string.Format("{0:X}", canId);
-            // raw can data
-            app.nlog.Info($"[RX] ID:{hexValueFormat} DLC:{data.Length} DATA:{data}");
+            var payload = BitConverter.ToString(data ?? Array.Empty<byte>());
+            // 수신 프레임은 양이 많아 DEBUG 레벨로만 기록한다.
+            app.nlog.Debug($"[RX] ID:{hexValueFormat} DLC:{data?.Length ?? 0} DATA:{payload}");
             // TryGetValue : 있으면 가져와서 쓰고, 없으면 무시
             if (!BmsSpecs._specMap.TryGetValue(canId, out var spec)) // 해시 탐색 1번, key확인 + value추출
                 return;
@@ -99,6 +104,9 @@ namespace EMS_PJT_Hamburger.ViewModels
             _uiTimer = new DispatcherTimer();
             _uiTimer.Interval = TimeSpan.FromMilliseconds(500);
             _uiTimer.Tick += Snapshot_Tick;
+
+            StatusMsg01.Ready = "Close";
+            StatusMsg01.DispSOC = 20d;
         }
         private void Snapshot_Tick(object sender, EventArgs e)
         {
@@ -123,8 +131,8 @@ namespace EMS_PJT_Hamburger.ViewModels
                     if (snap.Fields.TryGetValue("MinTemperature", out var minT))
                         packVm.MinTemperature = Convert.ToDouble(minT);
 
-                    app.nlog.Info($"[PackNo:{packVm.PackNo}] MaxCellVoltage:{maxV}  MinCellVoltage:{minV}  " +
-                                  $"MaxTemperature:{maxT}  MinTemperature:{minT}");
+                    app.nlog.Debug($"[PackNo:{packVm.PackNo}] MaxCellVoltage:{maxV}  MinCellVoltage:{minV}  " +
+                                   $"MaxTemperature:{maxT}  MinTemperature:{minT}");
 
                 }
                 else { packVm.IsOnline = false; }
@@ -164,7 +172,7 @@ namespace EMS_PJT_Hamburger.ViewModels
 
             _alarmWin.Closed += (_, __) =>
             {
-                AlarmService.Stop();
+                AlarmService?.Stop();
                 _alarmWin = null;
                 AlarmWindowOpen = true;
             };
@@ -179,6 +187,44 @@ namespace EMS_PJT_Hamburger.ViewModels
         private void StatusMsg02_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             OnPropertyChanged(nameof(Alarms));
+        }
+
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            try
+            {
+                if (_uiTimer != null)
+                {
+                    _uiTimer.Stop();
+                    _uiTimer.Tick -= Snapshot_Tick;
+                    _uiTimer = null;
+                }
+
+                StatusMsg02.PropertyChanged -= StatusMsg02_PropertyChanged;
+
+                if (_rx != null)
+                {
+                    _rx.FrameReceived -= OnFrameReceived;
+                    _rx.Dispose();
+                    _rx = null;
+                }
+
+                AlarmService?.Stop();
+                AlarmService = null;
+
+                if (_alarmWin != null)
+                {
+                    _alarmWin.Close();
+                    _alarmWin = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                app?.nlog?.Warn(ex, "BMSViewModel dispose failed.");
+            }
         }
 
     }

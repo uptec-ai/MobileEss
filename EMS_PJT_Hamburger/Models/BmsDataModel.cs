@@ -133,7 +133,7 @@ namespace EMS_PJT_Hamburger.Models
             if (result != TPCANStatus.PCAN_ERROR_OK)
             {
                 // 로그 남기기
-                app.nlog.Info($"[TX] {result}");
+                app.nlog.Warn($"[TX] {result}");
             }
         }
 
@@ -151,7 +151,7 @@ namespace EMS_PJT_Hamburger.Models
                         StatusMsg01.TotalVoltage = (double)parsed["BMS_Total_Voltage"];
                         StatusMsg01.MbmsState = (byte)parsed["MBMS_State"];
                         StatusMsg01.DispSOC = (double)parsed["BMS_Disp_SOC"];
-                        app.nlog.Info($"[ID:{canId}] Ready:{StatusMsg01.Ready}  SOC:{StatusMsg01.SOC}  Curr:{StatusMsg01.TotalCurrent}  Volt:{StatusMsg01.TotalVoltage}  State:{StatusMsg01.MbmsState}  DispSOC:{StatusMsg01.DispSOC}");
+                        app.nlog.Debug($"[ID:{canId}] Ready:{StatusMsg01.Ready}  SOC:{StatusMsg01.SOC}  Curr:{StatusMsg01.TotalCurrent}  Volt:{StatusMsg01.TotalVoltage}  State:{StatusMsg01.MbmsState}  DispSOC:{StatusMsg01.DispSOC}");
                     });
                     break;
 
@@ -175,12 +175,12 @@ namespace EMS_PJT_Hamburger.Models
                         StatusMsg02.MaxCellVolt = (double)parsed["Max Cell Voltage"];
                         StatusMsg02.MaxCellVoltNum = (int)parsed["Max Cell Voltage Pack Number"];
                         StatusMsg02.Version = (double)parsed["Software Version"];
-                        app.nlog.Info($"[ID:{canId}] M_Connection:{StatusMsg02.M_Connection}  C_UnderVolt:{StatusMsg02.C_UnderVolt}  C_OverVolt:{StatusMsg02.C_OverVolt}  P_UnderVolt:{StatusMsg02.P_UnderVolt}  P_OverVolt:{StatusMsg02.P_OverVolt}  " +
-                                      $"ChargeOverCurr:{StatusMsg02.DischargeOverCurr}  DischargeOverCurr:{StatusMsg02.DischargeOverCurr}  HighTemp:{StatusMsg02.HighTemp}  LowTemp:{StatusMsg02.LowTemp}  M_TempImbal:{StatusMsg02.M_TempImbal}  " +
-                                      $"C_VoltImbal:{StatusMsg02.C_VoltImbal}  C_UnderSOC:{StatusMsg02.C_UnderSOC}  PackNum:{StatusMsg02.PackNum}  MaxCell:{StatusMsg02.MaxCellVolt}  MaxCellNum:{StatusMsg02.MaxCellVoltNum}  Ver:{StatusMsg02.Version}");
+                        app.nlog.Debug($"[ID:{canId}] M_Connection:{StatusMsg02.M_Connection}  C_UnderVolt:{StatusMsg02.C_UnderVolt}  C_OverVolt:{StatusMsg02.C_OverVolt}  P_UnderVolt:{StatusMsg02.P_UnderVolt}  P_OverVolt:{StatusMsg02.P_OverVolt}  " +
+                                       $"ChargeOverCurr:{StatusMsg02.DischargeOverCurr}  DischargeOverCurr:{StatusMsg02.DischargeOverCurr}  HighTemp:{StatusMsg02.HighTemp}  LowTemp:{StatusMsg02.LowTemp}  M_TempImbal:{StatusMsg02.M_TempImbal}  " +
+                                       $"C_VoltImbal:{StatusMsg02.C_VoltImbal}  C_UnderSOC:{StatusMsg02.C_UnderSOC}  PackNum:{StatusMsg02.PackNum}  MaxCell:{StatusMsg02.MaxCellVolt}  MaxCellNum:{StatusMsg02.MaxCellVoltNum}  Ver:{StatusMsg02.Version}");
                     });
 
-                    SaveFaults(GetActiveFaults(StatusMsg02)); // true 알람 -> db저장
+                    //SaveFaults(GetActiveFaults(StatusMsg02)); // true 알람 -> db저장
 
                     break;
 
@@ -194,7 +194,7 @@ namespace EMS_PJT_Hamburger.Models
                         StatusMsg03.CurrentPackCount = (int)parsed["Current_Pack_Count"];
                         UpdatePacks(StatusMsg03.PackReady);
 
-                        app.nlog.Info($"[ID:{canId}] MbmsReady:{StatusMsg03.MbmsReady}  PackReady:{StatusMsg03.PackReady}  MaxPackCnt:{StatusMsg03.MaxPackCount}  CurrPackCnt:{StatusMsg03.CurrentPackCount}");
+                        app.nlog.Debug($"[ID:{canId}] MbmsReady:{StatusMsg03.MbmsReady}  PackReady:{StatusMsg03.PackReady}  MaxPackCnt:{StatusMsg03.MaxPackCount}  CurrPackCnt:{StatusMsg03.CurrentPackCount}");
                     });
                     break;
 
@@ -208,8 +208,8 @@ namespace EMS_PJT_Hamburger.Models
                         StatusMsg04.MaxTemperaturePackNumber = (int)parsed["Max_Temperature_PackNum"];
                         StatusMsg04.MinTemperature = (int)parsed["Min_Temperature"];
                         StatusMsg04.MinTemperaturePackNumber = (int)parsed["Min_Temperature_PackNum"];
-                        app.nlog.Info($"[ID:{canId}] CellMinVoltage:{StatusMsg04.CellMinVoltage}  CellMinPackNumber:{StatusMsg04.CellMinPackNumber}  MaxTemperature:{StatusMsg04.MaxTemperature}  MaxTemperaturePackNumber:{StatusMsg04.MaxTemperaturePackNumber}  " +
-                                      $"MinTemperature:{StatusMsg04.MinTemperature}  MinTemperaturePackNumber:{StatusMsg04.MinTemperaturePackNumber}");
+                        app.nlog.Debug($"[ID:{canId}] CellMinVoltage:{StatusMsg04.CellMinVoltage}  CellMinPackNumber:{StatusMsg04.CellMinPackNumber}  MaxTemperature:{StatusMsg04.MaxTemperature}  MaxTemperaturePackNumber:{StatusMsg04.MaxTemperaturePackNumber}  " +
+                                       $"MinTemperature:{StatusMsg04.MinTemperature}  MinTemperaturePackNumber:{StatusMsg04.MinTemperaturePackNumber}");
                     });
                     break;
 
@@ -222,7 +222,7 @@ namespace EMS_PJT_Hamburger.Models
         public int CanIdToPackNo(uint canId)
         {
             // 0x154 -> 1, 0x155 -> 2 ... 0x170 -> 17
-            if (canId < 0x154 && canId > 0x164) return 0;
+            if (canId < 0x154 || canId > 0x164) return 0;
             return (int)(canId - 0x154) + 1;
         }
         public void UpdatePacks(int packReady)

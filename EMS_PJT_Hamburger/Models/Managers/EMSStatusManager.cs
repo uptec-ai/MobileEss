@@ -26,10 +26,6 @@ namespace EMS_PJT_Hamburger.Models.Managers
     public class DashboardStatus : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged = delegate { };
-        public void OnPropertyChanged(string propertyName)
-        {
-            if (PropertyChanged != null) PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-        }
         public string VihicleStatus { get; set; }
         public LinearGradientBrush VihicleColor { get; set; }
         public float Power { get; set; } // main power
@@ -40,7 +36,7 @@ namespace EMS_PJT_Hamburger.Models.Managers
 
     }
 
-    public class PcsStatus
+    public class PcsStatus : INotifyPropertyChanged
     {
         public float SetPower { get; set; }
         public float PresentPower { get; set; }
@@ -48,6 +44,8 @@ namespace EMS_PJT_Hamburger.Models.Managers
         public int PresentDCVoltage { get; set; }
         public float Temperature { get; set; }
         public string ErrorCode { get; set; }
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
     public class SystemComm
     {

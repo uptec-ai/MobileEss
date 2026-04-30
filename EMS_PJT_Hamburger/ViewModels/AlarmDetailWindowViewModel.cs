@@ -72,8 +72,6 @@ namespace EMS_PJT_Hamburger.ViewModels
             CommandInit();
 
             //LoadTestData();
-
-
         }
         private void Init()
         {
@@ -93,7 +91,7 @@ namespace EMS_PJT_Hamburger.ViewModels
             if (SelectAll)
                 ds = app.DbManager.SelectBmsAlarmData(0, 0);
             else if (SelectTop100)
-                ds = app.DbManager.SelectBmsAlarmData(1, 100);
+                ds = app.DbManager.SelectBmsAlarmData(2, 100);
             else if (SelectCurrent)
             {
                 if (OccurredAlarmCnt == 0) return;

@@ -8,32 +8,46 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
 {
     public static class ModbusParser
     {
-        public static Dictionary<string, object> ParseRegisters(ushort[] registers, IEnumerable<ModbusFieldSpec> specs)
+        public static Dictionary<string, object> ParseRegisters(ushort[] registers, IEnumerable<ModbusFieldSpec> specs, int startAddress = 0)
         {
+            if (registers == null) throw new ArgumentNullException(nameof(registers));
+            if (specs == null) throw new ArgumentNullException(nameof(specs));
+
             var result = new Dictionary<string, object>();
 
             foreach (var spec in specs)
             {
+                if (spec == null || string.IsNullOrWhiteSpace(spec.Name))
+                    continue;
+
+                // spec.Address는 장치 절대 주소, registers는 startAddress 기준 상대 배열입니다.
+                var index = spec.Address - startAddress;
+                var length = spec.Length;
+                if (index < 0 || index + length > registers.Length)
+                    continue;
+
                 long raw = 0;
 
                 switch (spec.DataType)
                 {
                     case ModbusDataType.U16: // ushort
-                        raw = registers[spec.Address];
+                        raw = registers[index];
                         break;
 
                     case ModbusDataType.S16: // short
-                        raw = (short)registers[spec.Address];
+                        raw = (short)registers[index];
                         break;
 
                     case ModbusDataType.U32: // uint
-                        raw = ((uint)registers[spec.Address] << 16)
-                            | registers[spec.Address + 1];
+                        //if (spec.Name == "Grid_Total_ImportedEnergy") { }
+                        
+                        raw = ((uint)registers[index] << 16)
+                            | registers[index + 1];
                         break;
 
                     case ModbusDataType.S32: // int
-                        raw = (registers[spec.Address] << 16)
-                            | registers[spec.Address + 1];
+                        raw = (registers[index] << 16)
+                            | registers[index + 1];
                         break;
                 }
 

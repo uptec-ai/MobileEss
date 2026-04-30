@@ -8,6 +8,7 @@
     <SolidColorBrush x:Key="Sub.Background" Color="#0E1012"/>
     
     <SolidColorBrush x:Key="Main.Panel.Background" Color="#15181C"/>
+    <SolidColorBrush x:Key="Main.Panel.EchoBackground" Color="#2F8F46"/>
     <SolidColorBrush x:Key="Sub.Panel.Background" Color="#15181C"/>
     
     <SolidColorBrush x:Key="Main.Highlight" Color="#1E7154"/>
@@ -25,4 +26,17 @@
         <Setter Property="Background" Value="White"/>
         <Setter Property="Opacity" Value="0.2"/>
     </Style>
+
+    <!--Toggle Button Color-->
+    <LinearGradientBrush x:Key="StartButton" EndPoint="1,0.5" StartPoint="0.1,0">
+        <GradientStop Color="#039C23" Offset="1"/>
+        <GradientStop Color="#FFD9FFA3" Offset=".4" />
+        <GradientStop Color="#039C23" Offset="0"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="StopButton" EndPoint="1,0.5" StartPoint="0.1,0">
+        <GradientStop Color="#D11C1C" Offset="1"/>
+        <GradientStop Color="#FFFDCACA" Offset=".4" />
+        <GradientStop Color="#D11C1C" Offset="0"/>
+    </LinearGradientBrush>
 </ResourceDictionary>
