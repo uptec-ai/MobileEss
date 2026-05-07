@@ -353,6 +353,9 @@
     <Compile Include="Views\PCSView.xaml.cs">
       <DependentUpon>PCSView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\PcsFaultMessageWindow.xaml.cs">
+      <DependentUpon>PcsFaultMessageWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\SystemView.xaml.cs">
       <DependentUpon>SystemView.xaml</DependentUpon>
     </Compile>
@@ -403,6 +406,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\PCSView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\PcsFaultMessageWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

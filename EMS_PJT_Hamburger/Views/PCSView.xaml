@@ -21,8 +21,8 @@
         </Style>
 
         <Style TargetType="{x:Type Border}" x:Key="MainBorderStyle">
-            <Setter Property="CornerRadius" Value="5"/>
-            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Background" Value="{DynamicResource Main.Panel.Background}"/>
             <Setter Property="BorderBrush" Value="#FFF3F3F3"/>
             <Setter Property="BorderThickness" Value="0,0,1,1"/>
             <Setter Property="Margin" Value="5"/>
@@ -33,7 +33,7 @@
             <Setter Property="Foreground" Value="AliceBlue"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="16"/>
             <Setter Property="Margin" Value="0,0,0,0"/>
         </Style>
 
@@ -59,6 +59,8 @@
 
         <Style TargetType="{x:Type Border}" x:Key="BorderCardStyle">
             <Setter Property="Margin" Value="5"/>
+            <Setter Property="Background" Value="{DynamicResource Main.Panel.Background}"/>
+            <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="BorderBrush" Value="#FFF3F3F3"/>
             <Setter Property="BorderThickness" Value="0,0,1,0"/>
             <Setter Property="Padding" Value="10"/>
@@ -104,6 +106,7 @@
                                     <RowDefinition Height="34"/>
                                     <RowDefinition Height="34"/>
                                     <RowDefinition Height="34"/>
+                                    <RowDefinition Height="40"/>
                                     <RowDefinition Height="40"/>
                                     <RowDefinition Height="40"/>
                                     <RowDefinition Height="40"/>
@@ -203,6 +206,13 @@
                                         </Style>
                                     </dx:SimpleButton.Style>
                                 </dx:SimpleButton>
+                                <dx:SimpleButton Grid.Row="19"
+                                                 Grid.Column="0"
+                                                 Grid.ColumnSpan="3"
+                                                 Margin="2,4"
+                                                 Content="Fault Message"
+                                                 Command="{Binding Cmd_OpenFaultMessage}"
+                                                 Glyph="{dx:DXImage 'SvgImages/Icon Builder/Security_Warning.svg'}"/>
                             </Grid>
                         </ScrollViewer>
                     </dxdo:LayoutPanel>
@@ -219,14 +229,14 @@
                             <RowDefinition Height="10"/>
                             <RowDefinition Height="100"/>
                             <RowDefinition Height="*"/>
-                            <RowDefinition Height="50"/>
+                            <RowDefinition Height="20"/>
                         </Grid.RowDefinitions>
                         <!-- System -->
                         <Grid Grid.Column="1" Grid.Row="1" Background="Transparent">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.1*"/>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width=".8*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
@@ -236,24 +246,108 @@
                             </Grid.RowDefinitions>
                             <Border Grid.ColumnSpan="5" Grid.RowSpan="3" 
                                     Style="{StaticResource MainBorderStyle}"/>
-                            <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Horizontal" Height="auto" HorizontalAlignment="Left" Margin="60,0,0,0">
+                            <!-- system status -->
+                            <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0" Orientation="Horizontal" Height="auto" HorizontalAlignment="Left" Margin="25,0,0,0">
                                 <dx:DXImage Source="{dx:DXImage SvgImages/XAF/Action_Exit.svg}"
-                                            Width="20" 
-                                            Height="20" 
-                                            Margin="0"/>
-                                <TextBlock FontSize="16" Margin="5,0,0,0" 
-                                           Style="{StaticResource MonitorTextBlock}"><Run Text="시스템" FontSize="14"/><Run Text=" "/><Run Text="{Binding PanelData.Status}" Foreground="Lime"/></TextBlock>
-                            </StackPanel>
+                                            Width="24" 
+                                            Height="24" 
+                                            Margin="0,2,0,0"/>
 
-                            <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" Height="auto" HorizontalAlignment="Left" Margin="60,0,0,0">
+                                <TextBlock Text="시스템" FontSize="18" FontWeight="Bold"
+                                           Style="{StaticResource HeadTextBlock}" Margin="5,0,0,1"/>
+                                <TextBlock FontSize="14" Margin="15,0,0,0" Style="{StaticResource MonitorTextBlock}"><Run Text="Battery" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/></TextBlock>
+                                <Ellipse Width="7" Height="7" Margin="5,1,0,0">
+                                    <Ellipse.Style>
+                                        <Style TargetType="{x:Type Ellipse}">
+                                            <Setter Property="Fill" Value="Gray"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding PanelData.BattReady}" Value="True">
+                                                    <Setter Property="Fill" Value="Lime"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+
+                                <TextBlock FontSize="14" Margin="15,0,0,0" Style="{StaticResource MonitorTextBlock}"><Run Text="Inverter" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/></TextBlock>
+                                <Ellipse Width="7" Height="7" Margin="5,1,0,0">
+                                    <Ellipse.Style>
+                                        <Style TargetType="{x:Type Ellipse}">
+                                            <Setter Property="Fill" Value="Gray"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding PanelData.InvReady}" Value="True">
+                                                    <Setter Property="Fill" Value="Lime"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+
+                                <TextBlock FontSize="14" Margin="15,0,0,0" Style="{StaticResource MonitorTextBlock}"><Run Text="Grid" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/></TextBlock>
+                                <Ellipse Width="7" Height="7" Margin="5,1,0,0">
+                                    <Ellipse.Style>
+                                        <Style TargetType="{x:Type Ellipse}">
+                                            <Setter Property="Fill" Value="Gray"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding PanelData.GridReady}" Value="True">
+                                                    <Setter Property="Fill" Value="Lime"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+
+                                <TextBlock FontSize="14" Margin="15,0,0,0" Style="{StaticResource MonitorTextBlock}"><Run Text="Comm" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/></TextBlock>
+                                <Ellipse Width="7" Height="7" Margin="5,1,0,0">
+                                    <Ellipse.Style>
+                                        <Style TargetType="{x:Type Ellipse}">
+                                            <Setter Property="Fill" Value="Gray"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding PanelData.CommReady}" Value="True">
+                                                    <Setter Property="Fill" Value="Lime"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+
+                                <TextBlock FontSize="14" Margin="15,0,0,0" Style="{StaticResource MonitorTextBlock}"><Run Text="Bypass" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/></TextBlock>
+                                <Ellipse Width="7" Height="7" Margin="5,1,0,0">
+                                    <Ellipse.Style>
+                                        <Style TargetType="{x:Type Ellipse}">
+                                            <Setter Property="Fill" Value="Gray"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding PanelData.BypassReady}" Value="True">
+                                                    <Setter Property="Fill" Value="Lime"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                            </StackPanel>
+                            <!-- system message -->
+                            <StackPanel  Grid.Column="0" Grid.Row="1"  Orientation="Horizontal" Height="auto" HorizontalAlignment="Left" Margin="25,0,0,0">
+                                <dx:DXImage Source="{dx:DXImage SvgImages/Icon Builder/Actions_Comment.svg}"
+                                            Width="24" 
+                                            Height="24" 
+                                            Margin="0,0,0,0"/>
+                                <TextBlock Style="{StaticResource MonitorTextBlock}" 
+                                           FontSize="16"  
+                                           FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" 
+                                           Foreground="White"
+                                           Margin="5,0,0,5"
+                                           Text="{Binding SystemMsg}"/>
+                            </StackPanel>
+                            <!-- alarm -->
+                            <StackPanel Grid.Column="3" Grid.ColumnSpan="2" Grid.Row="1" Orientation="Horizontal" Height="auto" HorizontalAlignment="Left" Margin="25,0,0,0">
                                 <dx:DXImage Source="{dx:DXImage SvgImages/XAF/Action_Bell.svg}"
-                                            Width="20" 
-                                            Height="20" 
-                                            Margin="0"/>
+                                            Width="24" 
+                                            Height="24" 
+                                            Margin="0,0,0,0"/>
                                 <TextBlock FontSize="16" Margin="5,0,0,0" 
-                                           Style="{StaticResource MonitorTextBlock}"><Run Text="알람" FontSize="14"/><Run Text=" "/><Run Text="{Binding PanelData.AlarmCnt}" Foreground="Lime"/></TextBlock>
+                                           Style="{StaticResource MonitorTextBlock}"><Run Text="알람" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/><Run Text=" "/><Run Text="{Binding PanelData.AlarmCnt}" Foreground="Lime" FontSize="20"/></TextBlock>
                             </StackPanel>
-
+                            <!-- cumulative power-->
                             <Label Grid.Column="2" Grid.Row="0" 
                                    Width="200"
                                    Margin="0" 
@@ -269,46 +363,20 @@
                                     </StackPanel>
                                 </StackPanel>
                             </Label>
-
-                            <Label Grid.Column="3" Grid.Row="0"
-                                   Width="200"
-                                   Margin="0" 
-                                   BorderBrush="White" 
-                                   BorderThickness="0,0,0,1"
-                                   Style="{StaticResource HeadLableStyle}">
-                                <StackPanel Margin="0" Orientation="Vertical">
-                                    <TextBlock Text="수전 누적 전력(일간)"
-                                               Style="{StaticResource HeadTextBlock}"/>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Label Content="{Binding PanelData.D_Import_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="55"/>
-                                        <TextBlock Text="kWh" Foreground="White" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
-                                    </StackPanel>
-                                </StackPanel>
-                            </Label>
-
-                            <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Horizontal" Height="auto" HorizontalAlignment="Left" Margin="25,0,0,0">
-                                <dx:DXImage Source="{dx:DXImage SvgImages/XAF/State_Task_InProgress.svg}"
-                                            Width="20" 
-                                            Height="20" 
-                                            Margin="0"/>
+                            <!-- system time -->
+                            <StackPanel Grid.Column="3" Grid.Row="0" Orientation="Horizontal" Height="auto" HorizontalAlignment="Left" Margin="25,0,0,0">
+                                <dx:DXImage Source="{dx:DXImage 'SvgImages/Spreadsheet/Time.svg'}"
+                                            Width="24" 
+                                            Height="24" 
+                                            Margin="0,5,0,0"/>
                                 <TextBlock Style="{StaticResource MonitorTextBlock}" 
                                            FontSize="16"  
                                            FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" 
                                            Foreground="White"
                                            Margin="10,0,0,0"><Run Text="2026-03-11 00:00:00"/></TextBlock>
                             </StackPanel>
-                            <StackPanel  Grid.Column="1" Grid.Row="1"  Orientation="Horizontal" Height="auto" HorizontalAlignment="Left" Margin="25,0,0,0">
-                                <dx:DXImage Source="{dx:DXImage SvgImages/Icon Builder/Actions_Comment.svg}"
-                                            Width="20" 
-                                            Height="20" 
-                                            Margin="0"/>
-                                <TextBlock Style="{StaticResource MonitorTextBlock}" 
-                                           FontSize="14"  
-                                           FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" 
-                                           Foreground="White"
-                                           Margin="10,0,0,0"
-                                           Text="{Binding SystemMsg}"/>
-                            </StackPanel>
+                            
+                            
 
                             <Label Grid.Column="2" Grid.Row="1"            
                                    Margin="0"
@@ -319,19 +387,6 @@
                                     <StackPanel Orientation="Horizontal">
                                         <Label Content="{Binding PanelData.T_Export_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="55"/>
                                         <TextBlock Text="MWh" Foreground="White" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
-                                    </StackPanel>
-                                </StackPanel>
-                            </Label>
-
-                            <Label Grid.Column="3" Grid.Row="1"            
-                                   Margin="0"
-                                   Style="{StaticResource HeadLableStyle}" Width="200">
-                                <StackPanel Margin="0" Orientation="Vertical">
-                                    <TextBlock Text="송전 누적 전력(일간)"
-                                                Style="{StaticResource HeadTextBlock}"/>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Label Content="{Binding PanelData.D_Export_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="55"/>
-                                        <TextBlock Text="kWh" Foreground="White" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Label>
@@ -365,22 +420,22 @@
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Header}"
                                                                FontSize="14" 
-                                                               Foreground="White" VerticalAlignment="Center"/>
+                                                               Foreground="White" VerticalAlignment="Center" Grid.ColumnSpan="3"/>
                                                     <TextBlock Text="{Binding Name}"
-                                                               FontSize="12"
-                                                               Foreground="LightGray" VerticalAlignment="Center"/>
+                                                               FontSize="14"
+                                                               Foreground="#FFC3C3C3" VerticalAlignment="Center"/>
                                                     <TextBlock Text="{Binding Value}"
                                                                Grid.Column="1"
                                                                Foreground="White"
                                                                VerticalAlignment="Center" 
                                                                HorizontalAlignment="Right" 
                                                                Margin="0,0,5,0"
-                                                               FontSize="21"
+                                                               FontSize="24"
                                                                FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St"/>
                                                     <TextBlock Text="{Binding Factor}"
                                                                Grid.Column="2" 
                                                                FontSize="12"
-                                                               Foreground="LightGray" 
+                                                               Foreground="#FFC3C3C3" 
                                                                VerticalAlignment="Bottom"
                                                                HorizontalAlignment="Left"/>
                                                 </Grid>
@@ -410,22 +465,22 @@
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Header}"
                                                                FontSize="14" 
-                                                               Foreground="White" VerticalAlignment="Center"/>
+                                                               Foreground="White" VerticalAlignment="Center" Grid.ColumnSpan="3"/>
                                                     <TextBlock Text="{Binding Name}"
-                                                               FontSize="11"
-                                                               Foreground="LightGray" VerticalAlignment="Center"/>
+                                                               FontSize="14"
+                                                               Foreground="#FFC3C3C3" VerticalAlignment="Center"/>
                                                     <TextBlock Text="{Binding Value}"
                                                                Grid.Column="1"
                                                                Foreground="White"
                                                                VerticalAlignment="Center" 
                                                                HorizontalAlignment="Right" 
                                                                Margin="0,0,5,0"
-                                                               FontSize="18" 
+                                                               FontSize="24"
                                                                FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St"/>
                                                     <TextBlock Text="{Binding Factor}"
                                                                Grid.Column="2" 
-                                                               FontSize="11"
-                                                               Foreground="LightGray" 
+                                                               FontSize="12"
+                                                               Foreground="#FFC3C3C3" 
                                                                VerticalAlignment="Bottom"
                                                                HorizontalAlignment="Left"/>
                                                 </Grid>
@@ -440,13 +495,13 @@
                                     Style="{StaticResource BorderCardStyle}">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <StackPanel>
-                                        <Label Content="INVERTER"
+                                        <Label Content="ETC"
                                                HorizontalAlignment="Left"
                                                FontWeight="Bold"
                                                FontSize="20"
                                                Style="{StaticResource HeadLableStyle}"/>
 
-                                        <ItemsControl ItemsSource="{Binding InvItems}" Margin="0">
+                                        <ItemsControl ItemsSource="{Binding EtcItems}" Margin="0">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate>
                                                     <Grid Margin="0 2">
@@ -457,22 +512,22 @@
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock Text="{Binding Header}"
                                                                FontSize="14" 
-                                                               Foreground="White" VerticalAlignment="Center"/>
+                                                               Foreground="White" VerticalAlignment="Center" Grid.ColumnSpan="3"/>
                                                         <TextBlock Text="{Binding Name}"
-                                                               FontSize="11"
-                                                               Foreground="LightGray" VerticalAlignment="Center"/>
+                                                               FontSize="14"
+                                                               Foreground="#FFC3C3C3" VerticalAlignment="Center"/>
                                                         <TextBlock Text="{Binding Value}"
                                                                Grid.Column="1"
                                                                Foreground="White"
                                                                VerticalAlignment="Center" 
                                                                HorizontalAlignment="Right" 
                                                                Margin="0,0,5,0"
-                                                               FontSize="18" 
+                                                               FontSize="24"
                                                                FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St"/>
                                                         <TextBlock Text="{Binding Factor}"
                                                                Grid.Column="2" 
-                                                               FontSize="11"
-                                                               Foreground="LightGray" 
+                                                               FontSize="12"
+                                                               Foreground="#FFC3C3C3" 
                                                                VerticalAlignment="Bottom"
                                                                HorizontalAlignment="Left"/>
                                                     </Grid>
@@ -484,7 +539,7 @@
                             </Border>
 
                             <!-- Chart -->
-                            <Grid Grid.Column="3">
+                            <Grid Grid.Column="3" Margin="10,0,0,0">
                                 <Grid.RowDefinitions>
                                     <RowDefinition/>
                                     <RowDefinition/>

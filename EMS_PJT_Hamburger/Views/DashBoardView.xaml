@@ -154,41 +154,43 @@
                 </Border>
 
                 <!-- Communication status -->
-                <Border Grid.Column="4" CornerRadius="12" Margin="10,0,0,0" Background="{DynamicResource Main.Panel.Background}">
+                <StackPanel Orientation="Vertical" Grid.Column="4">
+                    <Border CornerRadius="12" Margin="10,0,0,0" Background="{DynamicResource Main.Panel.Background}">
                     <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}" Margin="0" Width="Auto">
-                        <TextBlock Text="COMMUNICATION STATUS" Style="{StaticResource HeadTextBlockStyle}" Margin="15,10,15,15"/>
-                        <Border CornerRadius="6" Margin="15,0,15,5" Height="40" Background="#FF2E3134">
-                            <Label FontSize="24" 
-                                   HorizontalAlignment="Left" VerticalAlignment="Center"
-                                   Style="{StaticResource VariableLableStyle}" Margin="10,0,0,0" >
-                                <Label.Content>
-                                    <TextBlock>
-                                        <TextBlock.Effect>
-                                            <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
-                                        </TextBlock.Effect>
-                                        <Run Text="  PCS  " Foreground="#FFACABAB"/>
-                                        <Run Text="{Binding PcsVm.PanelData.Status, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
-                                    </TextBlock>
-                                </Label.Content>
-                            </Label>
-                        </Border>
-                        <Border CornerRadius="6" Margin="15,5" Height="40" Background="#FF2E3134">
+                            <TextBlock Text="PCS COMMUNICATION" Style="{StaticResource HeadTextBlockStyle}" Margin="15,10,15,5.1"/>
                             <Label FontSize="24" 
                                HorizontalAlignment="Left" VerticalAlignment="Center"
-                               Style="{StaticResource VariableLableStyle}" Margin="10,0,0,0">
+                               Style="{StaticResource VariableLableStyle}" Margin="40,0,0,0" >
+                            <Label.Content>
+                                <TextBlock>
+                                        <TextBlock.Effect>
+                                            <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
+                                        </TextBlock.Effect>
+                                        <Run Text="{Binding PcsVm.PanelData.Status, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                                </TextBlock>
+                            </Label.Content>
+                        </Label>
+                    </StackPanel>
+                </Border>
+                    <Border  CornerRadius="12" Margin="10,10,0,0" Background="{DynamicResource Main.Panel.Background}">
+                        <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}" Margin="0" Width="Auto">
+                            <TextBlock Text="BMS COMMUNICATION" Style="{StaticResource HeadTextBlockStyle}" Margin="15,10,15,5"/>
+                            <Label FontSize="24" 
+                               HorizontalAlignment="Left" VerticalAlignment="Center"
+                               Style="{StaticResource VariableLableStyle}" Margin="38,0,0,0">
                                 <Label.Content>
                                     <TextBlock>
                                         <TextBlock.Effect>
                                             <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
                                         </TextBlock.Effect>
-                                        <Run Text="  BMS  " Foreground="#FFACABAB"/>
                                         <Run Text="{Binding BmsVm.StatusMsg01.Ready, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
                                     </TextBlock>
                                 </Label.Content>
                             </Label>
-                        </Border>
-                    </StackPanel>
-                </Border>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+                
             </Grid>
             <!-- Vegicle status -->
 

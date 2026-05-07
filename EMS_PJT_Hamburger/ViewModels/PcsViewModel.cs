@@ -1,5 +1,6 @@
 using DevExpress.Mvvm;
 using EMS_PJT_Hamburger.Models.Client.PCS;
+using EMS_PJT_Hamburger.Views;
 using System;
 using System.Collections.ObjectModel;
 using System.Configuration;
@@ -14,12 +15,14 @@ namespace EMS_PJT_Hamburger.ViewModels
     {
         private bool _disposed;
         private DateTime _lastKeepAliveReceivedUtc = DateTime.MinValue;
+        private PcsFaultMessageWindow _faultMessageWindow;
 
         public DelegateCommand Cmd_StartCharge { get; private set; }
         public DelegateCommand Cmd_StartDischarge { get; private set; }
         public DelegateCommand Cmd_StopPcs { get; private set; }
         public DelegateCommand Cmd_FaultReset { get; private set; }
         public DelegateCommand Cmd_EmergencyStop { get; private set; }
+        public DelegateCommand Cmd_OpenFaultMessage { get; private set; }
 
         public bool IsControlBusy { get => GetProperty(() => IsControlBusy); set => SetProperty(() => IsControlBusy, value); }
         public string ControlOperationMode { get => GetProperty(() => ControlOperationMode); set => SetProperty(() => ControlOperationMode, value); }
@@ -60,48 +63,57 @@ namespace EMS_PJT_Hamburger.ViewModels
 
             GridItems = new ObservableCollection<DataItem>
             {
-                new DataItem { Header="■ 상태"},
-                new DataItem { Name="운전 상태", Value=$"off"},
-                new DataItem { Name="차단기 상태", Value=$"on"},
-                new DataItem { Name="퓨즈 상태", Value=$"on"},
-                new DataItem { Name="SPD 상태", Value=$"on"},
-                new DataItem { Name="Sourge Count 상태", Value=$"on"},
-                new DataItem { Name="Fault 상태", Value=$"0"},
-                new DataItem { Header="■ 정보"},
-                new DataItem { Name="수전 누적 전력량", Value=$"0.0", Factor="MWh"},
-                new DataItem { Name="송전 누적 전력량", Value=$"0.0", Factor="MWh"},
-                new DataItem { Name="선간 전압 (AB)", Value=$"0.0", Factor="V"},
-                new DataItem { Name="선간 전압 (BC)", Value=$"0.0", Factor="V"},
-                new DataItem { Name="선간 전압 (CA)", Value=$"0.0", Factor="V"},
-                new DataItem { Name="선간 전류 (AB)", Value=$"0.0", Factor="A"},
-                new DataItem { Name="선간 전류 (BC)", Value=$"0.0", Factor="A"},
-                new DataItem { Name="선간 전류 (CA)", Value=$"0.0", Factor="A"},
-                new DataItem { Name="주파수", Value=$"0.00", Factor="Hz"},
-                new DataItem { Name="역률", Value=$"0.00", Factor="%"},
-                new DataItem { Name="Sourge Count", Value=$"0", Factor="Cyc"},
+                new DataItem { Header="----------------------- 상태 -----------------------"},
+                new DataItem { Name="운전 상태", Value=$"off"}, // 1
+                new DataItem { Name="퓨즈 상태", Value=$"on"}, // 2
+                new DataItem { Name="Fault 상태", Value=$"0"}, // 3
+                new DataItem { Header="----------------------- 정보 -----------------------"},
+                new DataItem { Name="Total 수전 전력량", Value=$"0.0", Factor="MWh"}, // 5
+                new DataItem { Name="Total 송전 전력량", Value=$"0.0", Factor="MWh"}, // 6
+
+                new DataItem { Name="상전압 (AN)", Value=$"0.0", Factor="V"},       // 7
+                new DataItem { Name="상전압 (BN)", Value=$"0.0", Factor="V"},       // 8 
+                new DataItem { Name="상전압 (CN)", Value=$"0.0", Factor="V"},       // 9
+
+                new DataItem { Name="상전류 (AN)", Value=$"0.0", Factor="A"},       // 10
+                new DataItem { Name="상전류 (BN)", Value=$"0.0", Factor="A"},       // 11
+                new DataItem { Name="상전류 (CN)", Value=$"0.0", Factor="A"},       // 12
+
+                new DataItem { Name="선간 전압 (AB)", Value=$"0.0", Factor="A"},    // 13
+                new DataItem { Name="선간 전압 (BC)", Value=$"0.0", Factor="A"},    // 14
+                new DataItem { Name="선간 전압 (CA)", Value=$"0.0", Factor="A"},    // 15
+
+                new DataItem { Name="주파수", Value=$"0.00", Factor="Hz"},          // 16
+                new DataItem { Name="역률", Value=$"0.00", Factor="%"},             // 17
+                new DataItem { Name="Sourge Count", Value=$"0", Factor="Cyc"},     // 18
             };
 
             LoadItems = new ObservableCollection<DataItem>
             {
-                new DataItem { Header="■ 상태"},
-                new DataItem { Name="운전 상태", Value=$"off"},
-                new DataItem { Name="차단기 상태", Value=$"on"},
-                new DataItem { Name="퓨즈 상태", Value=$"on"},
-                new DataItem { Name="SPD 상태", Value=$"on"},
-                new DataItem { Name="Sourge Count 상태", Value=$"on"},
-                new DataItem { Name="Fault 상태", Value=$"0"},
-                new DataItem { Header="■ 정보"},
-                new DataItem { Name="누적 전력량", Value=$"0.0", Factor="MWh"},
-                new DataItem { Name="누적 전력량", Value=$"0.0", Factor="kWh"},
-                new DataItem { Name="선간 전압 (AB)", Value=$"0.0", Factor="V"},
-                new DataItem { Name="선간 전압 (BC)", Value=$"0.0", Factor="V"},
-                new DataItem { Name="선간 전압 (CA)", Value=$"0.0", Factor="V"},
-                new DataItem { Name="선간 전류 (AB)", Value=$"0.0", Factor="A"},
-                new DataItem { Name="선간 전류 (BC)", Value=$"0.0", Factor="A"},
-                new DataItem { Name="선간 전류 (CA)", Value=$"0.0", Factor="A"},
-                new DataItem { Name="주파수", Value=$"0.00", Factor="Hz"},
-                new DataItem { Name="역률", Value=$"0.00", Factor="%"},
-                new DataItem { Name="Sourge Count", Value=$"0", Factor="Cyc"},
+                new DataItem { Header="----------------------- 상태 -----------------------"},
+                //new DataItem { Name="운전 상태", Value=$"off"}, // 1
+                new DataItem { Name="Fault 상태", Value=$"0"},            // 1
+                new DataItem { Header="----------------------- 정보 -----------------------"},
+                new DataItem { Name="Total 송전 전력량", Value=$"0.0", Factor="MWh"},  // 3
+                new DataItem { Name="유효 전력", Value=$"0.0", Factor="kWh"},       // 4
+                new DataItem { Name="유효 전력(RN)", Value=$"0.0", Factor="kWh"},   // 5
+                new DataItem { Name="유효 전력(SN)", Value=$"0.0", Factor="kWh"},   // 6
+                new DataItem { Name="유효 전력(TN)", Value=$"0.0", Factor="kWh"},   // 7
+
+                new DataItem { Name="상전압 (AN)", Value=$"0.0", Factor="V"}, // 8
+                new DataItem { Name="상전압 (BN)", Value=$"0.0", Factor="V"}, // 9
+                new DataItem { Name="상전압 (CN)", Value=$"0.0", Factor="V"}, // 10
+
+                new DataItem { Name="상전류 (AN)", Value=$"0.0", Factor="A"}, // 11
+                new DataItem { Name="상전류 (BN)", Value=$"0.0", Factor="A"}, // 12
+                new DataItem { Name="상전류 (CN)", Value=$"0.0", Factor="A"}, // 13
+
+                new DataItem { Name="선간 전압 (AB)", Value=$"0.0", Factor="A"}, // 14
+                new DataItem { Name="선간 전압 (BC)", Value=$"0.0", Factor="A"}, // 15
+                new DataItem { Name="선간 전압 (CA)", Value=$"0.0", Factor="A"}, // 16
+
+                new DataItem { Name="주파수", Value=$"0.00", Factor="Hz"},       // 17
+                new DataItem { Name="역률", Value=$"0.00", Factor="%"},          // 18
                 //new DataItem { Name="수전 누적 전력량(일간)", Value="124.4", Factor="kWh"},
                 //new DataItem { Name="송전 누적 전력량(일간)", Value="5.4", Factor="kWh"},
                 //new DataItem { Name="선간전압 BC", Value="23.0", Factor="V"},
@@ -110,33 +122,21 @@ namespace EMS_PJT_Hamburger.ViewModels
                 //new DataItem { Name="선간전류 CA", Value="31.1", Factor="A"},
             };
 
-            InvItems = new ObservableCollection<DataItem>
+            EtcItems = new ObservableCollection<DataItem>
             {
-                new DataItem { Header="■ 정보"},
-                new DataItem { Name="내부온도1 (주위)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도2 (주위)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도3 (주위)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도4 (주위)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도1 (방열판)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도2 (방열판)", Value=$"0.0" , Factor="℃"},
-                new DataItem { Name="내부온도3 (방열판)", Value=$"0.0" , Factor="℃"},
-                new DataItem { Name="내부온도4 (방열판)", Value=$"0.0" , Factor="℃"},
-                new DataItem { Name="내부온도5 (방열판)", Value=$"0.0" , Factor="℃"},
-                new DataItem { Name="내부온도6 (방열판)", Value=$"0.0" , Factor="℃"},
-                new DataItem { Name="내부온도7 (방열판)", Value=$"0.0" , Factor="℃"},
-                new DataItem { Name="내부온도8 (방열판)", Value=$"0.0" , Factor="℃"},
-                new DataItem { Name="내부온도1 (IGBT)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도2 (IGBT)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도3 (IGBT)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도4 (IGBT)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도5 (IGBT)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도6 (IGBT)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도7 (IGBT)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도8 (IGBT)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도9 (IGBT)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도10 (IGBT)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도11 (IGBT)", Value=$"0.0", Factor="℃"},
-                new DataItem { Name="내부온도12 (IGBT)", Value=$"0.0", Factor="℃"},
+                new DataItem { Header=""},
+                new DataItem { Name="내부온도 (주위)", Value=$"0.0", Factor="℃"},      //1
+                new DataItem { Name="내부온도1 (방열판)", Value=$"0.0", Factor="℃"},   // 2
+                new DataItem { Name="내부온도2 (방열판)", Value=$"0.0", Factor="℃"},   // 3
+                new DataItem { Name="내부온도3 (방열판)", Value=$"0.0", Factor="℃"},   // 4
+                new DataItem { Name="내부온도4 (방열판)", Value=$"0.0", Factor="℃"},   // 5
+                new DataItem { Name="내부온도5 (방열판)", Value=$"0.0", Factor="℃"},   // 6
+                new DataItem { Name="내부온도6 (방열판)", Value=$"0.0", Factor="℃"},   // 7
+                new DataItem { Name="내부온도7 (방열판)", Value=$"0.0", Factor="℃"},   // 8
+                new DataItem { Name="내부온도8 (방열판)", Value=$"0.0", Factor="℃"},   // 9
+                new DataItem { Name="누설 전류(RCMU)", Value=$"0", Factor="mA"},       // 10
+                new DataItem { Name="Heart Beat 카운트", Value=$"0", Factor="Cyc"},    // 11
+                
             };
 
             _ = ConnectAsync();
@@ -167,6 +167,22 @@ namespace EMS_PJT_Hamburger.ViewModels
             Cmd_StopPcs = new DelegateCommand(async () => await ExecuteControlSequenceAsync("정지", StopSequenceAsync));
             Cmd_FaultReset = new DelegateCommand(async () => await ExecuteControlSequenceAsync("Fault Reset", FaultResetSequenceAsync));
             Cmd_EmergencyStop = new DelegateCommand(async () => await ExecuteControlSequenceAsync("비상정지", EmergencyStopSequenceAsync));
+            Cmd_OpenFaultMessage = new DelegateCommand(OpenFaultMessageWindow);
+        }
+
+        private void OpenFaultMessageWindow()
+        {
+            if (_faultMessageWindow != null) return;
+
+            _faultMessageWindow = new PcsFaultMessageWindow
+            {
+                DataContext = this,
+                Owner = Application.Current.MainWindow,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
+
+            _faultMessageWindow.Closed += (_, __) => _faultMessageWindow = null;
+            _faultMessageWindow.Show();
         }
 
         private async Task ExecuteControlSequenceAsync(string name, Func<Task> sequence)
@@ -197,17 +213,21 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private async Task StartChargeSequenceAsync()
         {
+            await CheckControlReadyAsync(); // 1005 Read -> 1004 Read
+            await CheckChargeCommandConflictAsync(); // 1003 bit2 high -> keep current command
             await WriteModeAsync(); // 1000 -> 7, 1001 -> 1
             await WriteChargeParametersAsync(); // 현재 control setting write
-            await WriteControlRawU16Async("ChargeDischargeStart", 0x004A); // 1003 -> 74
+            await WriteControlRawU16Async("ChargeDischargeStart", 0x000A); // 1003 -> bit1 + bit3
             await WriteControlRawU16Async("RunStop", 1); // 1002 -> 1
         }
 
         private async Task StartDischargeSequenceAsync()
         {
+            await CheckControlReadyAsync(); // 1005 Read -> 1004 Read
+            await CheckDischargeCommandConflictAsync(); // 1003 bit1 high -> keep current command
             await WriteModeAsync(); // 1000 -> 7, 1001 -> 1
             await WriteDischargeParametersAsync(); // 현재 control setting write
-            await WriteControlRawU16Async("ChargeDischargeStart", 0x0044); // 1003 -> 68
+            await WriteControlRawU16Async("ChargeDischargeStart", 0x0004); // 1003 -> bit2
             await WriteControlRawU16Async("RunStop", 1); // 1002 -> 1
         }
 
@@ -231,6 +251,42 @@ namespace EMS_PJT_Hamburger.ViewModels
             await StopSequenceAsync();
         }
 
+        private async Task CheckControlReadyAsync()
+        {
+            var heartbeat = await _client.ReadHoldingRegistersAsync(1, 1005, 1, CancellationToken.None);
+            if (heartbeat == null || heartbeat.Length < 1)
+                throw new InvalidOperationException("Heartbeat(1005) read failed.");
+
+            var fault = await _client.ReadHoldingRegistersAsync(1, 1004, 1, CancellationToken.None);
+            if (fault == null || fault.Length < 1)
+                throw new InvalidOperationException("Fault(1004) read failed.");
+
+            if (fault[0] != 0)
+                throw new InvalidOperationException($"Fault(1004)={fault[0]}.");
+        }
+
+        private async Task CheckChargeCommandConflictAsync()
+        {
+            var start = await _client.ReadHoldingRegistersAsync(1, 1003, 1, CancellationToken.None);
+            if (start == null || start.Length < 1)
+                throw new InvalidOperationException("Charge/Discharge Start(1003) read failed.");
+
+            var startBits = start[0];
+            if ((startBits & (1 << 2)) != 0)
+                throw new InvalidOperationException($"Command fault: discharge is already active. Keep current command. Start(1003)={startBits}.");
+        }
+
+        private async Task CheckDischargeCommandConflictAsync()
+        {
+            var start = await _client.ReadHoldingRegistersAsync(1, 1003, 1, CancellationToken.None);
+            if (start == null || start.Length < 1)
+                throw new InvalidOperationException("Charge/Discharge Start(1003) read failed.");
+
+            var startBits = start[0];
+            if ((startBits & (1 << 1)) != 0)
+                throw new InvalidOperationException($"Command fault: charge is already active. Keep current command. Start(1003)={startBits}.");
+        }
+
         private async Task<string> ReadControlStatusMessageAsync()
         {
             var values = await _client.ReadHoldingRegistersAsync(1, 148, 2, CancellationToken.None);
@@ -247,22 +303,22 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private async Task WriteChargeParametersAsync()
         {
-            await WriteControlU16Async("MaxChargePowerPercent", ParseControlDouble(ControlMaxChargePowerPercent, "최대 충전 전력(%)"));
-            await WriteControlU32Async("MaxChargePower", ParseControlDouble(ControlMaxChargePowerW, "최대 충전 전력(W)"));
-            await WriteControlU16Async("MaxChargeSOC", ParseControlDouble(ControlMaxChargeSoc, "최대 충전 SOC(%)"));
-            await WriteControlU16Async("MaxChargeVoltage", ParseControlDouble(ControlMaxChargeVoltage, "최대 충전 전압(V)"));
-            await WriteControlU16Async("MaxChargeCurrent", ParseControlDouble(ControlMaxChargeCurrent, "최대 충전 전류(A)"));
-            await WriteControlU32Async("GridMaxImportPower", ParseControlDouble(ControlGridMaxImportPowerW, "Grid 최대 수전 전력(W)"));
+            await WriteControlU16Async("MaxChargePowerPercent", ParseControlDouble(ControlMaxChargePowerPercent, "최대 충전 전력(%)")); // 1006
+            await WriteControlU32Async("MaxChargePower", ParseControlDouble(ControlMaxChargePowerW, "최대 충전 전력(W)")); // 1008
+            await WriteControlU16Async("MaxChargeSOC", ParseControlDouble(ControlMaxChargeSoc, "최대 충전 SOC(%)")); // 1012
+            await WriteControlU16Async("MaxChargeVoltage", ParseControlDouble(ControlMaxChargeVoltage, "최대 충전 전압(V)")); // 1014
+            await WriteControlU16Async("MaxChargeCurrent", ParseControlDouble(ControlMaxChargeCurrent, "최대 충전 전류(A)")); // 1016
+            //await WriteControlU32Async("GridMaxImportPower", ParseControlDouble(ControlGridMaxImportPowerW, "Grid 최대 수전 전력(W)"));
         }
 
         private async Task WriteDischargeParametersAsync()
         {
-            await WriteControlU16Async("MaxDischargePowerPercent", ParseControlDouble(ControlMaxDischargePowerPercent, "최대 방전 전력(%)"));
-            await WriteControlU32Async("MaxDischargePower", ParseControlDouble(ControlMaxDischargePowerW, "최대 방전 전력(W)"));
-            await WriteControlU16Async("MinDischargeSOC", ParseControlDouble(ControlMinDischargeSoc, "최소 방전 SOC(%)"));
-            await WriteControlU16Async("MaxDischargeVoltage", ParseControlDouble(ControlMaxDischargeVoltage, "최대 방전 전압(V)"));
-            await WriteControlU16Async("MaxDischargeCurrent", ParseControlDouble(ControlMaxDischargeCurrent, "최대 방전 전류(A)"));
-            await WriteControlU32Async("GridMaxExportPower", ParseControlDouble(ControlGridMaxExportPowerW, "Grid 최대 송전 전력(W)"));
+            await WriteControlU16Async("MaxDischargePowerPercent", ParseControlDouble(ControlMaxDischargePowerPercent, "최대 방전 전력(%)")); // 1007
+            await WriteControlU32Async("MaxDischargePower", ParseControlDouble(ControlMaxDischargePowerW, "최대 방전 전력(W)")); // 1010
+            await WriteControlU16Async("MinDischargeSOC", ParseControlDouble(ControlMinDischargeSoc, "최소 방전 SOC(%)")); // 1013
+            //await WriteControlU16Async("MaxDischargeVoltage", ParseControlDouble(ControlMaxDischargeVoltage, "최대 방전 전압(V)"));
+            //await WriteControlU16Async("MaxDischargeCurrent", ParseControlDouble(ControlMaxDischargeCurrent, "최대 방전 전류(A)"));
+            //await WriteControlU32Async("GridMaxExportPower", ParseControlDouble(ControlGridMaxExportPowerW, "Grid 최대 송전 전력(W)"));
         }
 
         private static ushort ParseControlU16(string text, string fieldName)

@@ -23,25 +23,105 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
 
         public event PropertyChangedEventHandler PropertyChanged;
     }
+    public class PcsFaultItem
+    {
+        public DateTime OccurredAt { get; set; }
+        public string Category { get; set; }
+        public int Bit { get; set; }
+        public string Message { get; set; }
+        public ushort RawValue { get; set; }
+    }
     public class PcsModel : ViewModelBase, INotifyPropertyChanged
     {
+        private static readonly string[] GridFaultMessages =
+        {
+            "Line Frequency Fault",
+            "G Frequency Fault",
+            "Line Voltage Fault",
+            "Line Check Fault",
+            "Island Fault",
+            "OV Grid Fault",
+            "UV Grid Fault",
+            "OF Grid Fault",
+            "UF Grid Fault",
+            "OC Grid Fault",
+        };
+
+        private static readonly string[] InvFaultMessages =
+        {
+            "Connection Error",
+            "DC OV Fault",
+            "OC INV Fault",
+            "OC Converter Fault",
+            "Sensor Fault",
+            "IGBT Error",
+            "INV GND Fault",
+            "Zero Sequence Fault",
+            "DCL OC Fault",
+            "DC UV Fault",
+            "DC Charge Fault",
+            "OV INV Fault",
+            "UV INV Fault",
+            "Unbalanced AC Fault",
+        };
+
+        private static readonly string[] LoadFaultMessages =
+        {
+            "Over Load Fault",
+        };
+
+        private static readonly string[] BatteryFaultMessages =
+        {
+            "Battery OC Fault",
+            "BMS Fault",
+            "Battery OV Fault",
+            "Battery UV Fault",
+            "BMS OC1 Fault",
+            "BMS OC2 Fault",
+            "Low SOC Fault",
+            "BMS Warning",
+            "BMS Fault",
+        };
+
+        private static readonly string[] SystemFaultMessages =
+        {
+            "PV Fault",
+            "Battery Fault",
+            "INV Fault",
+            "Grid Fault",
+            "Load Fault",
+            "Communication Fault",
+        };
+
+        private static readonly string[] CommunicationFaultMessages =
+        {
+            "PMS Communication Fault",
+            "KPD Communication Fault",
+            "RTU Communication Fault",
+            "PMS Command Error",
+        };
+
+        private readonly HashSet<string> _activePcsFaultKeys = new HashSet<string>();
         public ModbusService _client = new ModbusService();
         public ConnectionSettings Conn_Settings { get; set; }
         public ConnectionState Conn_State { get; set; }
         public ObservableCollection<RegisterItem> KeepAliveRegisters { get; } = new ObservableCollection<RegisterItem>();
-        protected const ushort PollStartAddress = 4;
+        public ObservableCollection<PcsFaultItem> PcsFaultMessages { get; } = new ObservableCollection<PcsFaultItem>();
+        protected const ushort PollStartAddress = 0;
         protected const ushort PollRegisterCount = 355;
         protected static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(500);
 
         // UI Data Init
         public PCS_PanelData PanelData { get; set; } = new PCS_PanelData()
         {
-            Status = "정지",
+            BattReady = false,
+            InvReady = false,
+            GridReady = false,
+            CommReady = false,
+            BypassReady = false,
             AlarmCnt = "0",
             T_Import_Energy = "0.0",
             T_Export_Energy = "0.0",
-            D_Import_Energy = "0.0",
-            D_Export_Energy = "0.0",
         };
         public INV_PcsData InvData { get; set; } = new INV_PcsData()
         {
@@ -71,14 +151,14 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             }
         }
 
-        public ObservableCollection<DataItem> _invItems { get; set; }
-        public ObservableCollection<DataItem> InvItems
+        public ObservableCollection<DataItem> _etcItems { get; set; }
+        public ObservableCollection<DataItem> EtcItems
         {
-            get => _invItems;
+            get => _etcItems;
             set
             {
-                _invItems = value;
-                OnPropertyChanged(nameof(InvItems));
+                _etcItems = value;
+                OnPropertyChanged(nameof(EtcItems));
             }
         }
 
@@ -201,6 +281,52 @@ limit 1;",
             }
         }
 
+        private void UpdatePcsFaultMessages(string category, ushort bits, string[] messages)
+        {
+            for (var bit = 0; bit < messages.Length; bit++)
+            {
+                var key = $"{category}:{bit}";
+                var isFault = (bits & (1 << bit)) != 0;
+
+                if (!isFault)
+                {
+                    _activePcsFaultKeys.Remove(key);
+                    continue;
+                }
+
+                if (!_activePcsFaultKeys.Add(key))
+                    continue;
+
+                AddPcsFaultMessage(new PcsFaultItem
+                {
+                    OccurredAt = DateTime.Now,
+                    Category = category,
+                    Bit = bit,
+                    Message = messages[bit],
+                    RawValue = bits,
+                });
+            }
+        }
+
+        private void AddPcsFaultMessage(PcsFaultItem fault)
+        {
+            void Add()
+            {
+                PcsFaultMessages.Insert(0, fault);
+                if (PcsFaultMessages.Count > 500)
+                    PcsFaultMessages.RemoveAt(PcsFaultMessages.Count - 1);
+            }
+
+            var ui = Application.Current?.Dispatcher;
+            if (ui == null || ui.CheckAccess())
+            {
+                Add();
+                return;
+            }
+
+            ui.BeginInvoke((Action)Add);
+        }
+
         #endregion
 
         #region [ Conncet Function ]
@@ -258,8 +384,6 @@ limit 1;",
 
                     Conn_State.Rtt = connected ? Conn_State.Rtt : "0";
                     SystemMsg = connected ? "connected to server." : "disconnected from server";
-                    PanelData.Status = connected ? "동작" : "정지";
-                    GridItems[1].Value = connected ? "on" : "off";
                 };
 
                 if (ui?.CheckAccess() == true)
@@ -357,104 +481,188 @@ limit 1;",
         #endregion
 
         #region [ UI Function ]
+        private static int CountSetBits(ushort value)
+        {
+            int count = 0;
 
+            while (value != 0)
+            {
+                count += value & 1;
+                value >>= 1;
+            }
+
+            return count;
+        }
         void ChangePanelData(Dictionary<string, object> parsed)
         {
-            if (TryGetDouble(parsed, "Grid_Status", out var ready)) { PanelData.Status = ready != 0 ? "동작" : "정지"; }
-            if (TryGetDouble(parsed, "Grid_CB", out var cnt)) PanelData.AlarmCnt = cnt.ToString(); ;
-            if (TryGetDouble(parsed, "Grid_Total_ImportedEnergy", out var tImport)) PanelData.T_Import_Energy = tImport.ToString("0.0");
-            if (TryGetDouble(parsed, "Grid_Total_ExportedEnergy", out var tExport)) PanelData.T_Export_Energy = tExport.ToString("0.0");
-            if (TryGetDouble(parsed, "Grid_Daily_ImportedEnergy", out var dImport)) PanelData.D_Import_Energy = dImport.ToString("0.0");
-            if (TryGetDouble(parsed, "Grid_Daily_ExportedEnergy", out var dExport)) PanelData.D_Export_Energy = dExport.ToString("0.0");
-        }
-        void ChangeInverterData(Dictionary<string, object> parsed)
-        {
-            double volt = 0;
-            double curr = 0;
-            if (TryGetDouble(parsed, "Inv_Daily_ImportedEnergy", out var dImport)) { InvData.D_ImportEnergy = dImport.ToString("0.0"); }
-            if (TryGetDouble(parsed, "Inv_Daily_ExportedEnergy", out var dExport)) { InvData.D_ExportEnergy = dExport.ToString("0.0"); }
-            if (TryGetDouble(parsed, "Inv_ActivePower", out var power)) { InvData.Power = power.ToString("0.0"); }
-            if (TryGetDouble(parsed, "Inv_Volt_AB", out var vab)) volt += vab;
-            if (TryGetDouble(parsed, "Inv_Volt_BC", out var vbc)) volt += vbc;
-            if (TryGetDouble(parsed, "Inv_Volt_CA", out var vca)) volt += vca;
-            if (TryGetDouble(parsed, "Inv_Curr_AB", out var cab)) curr += cab;
-            if (TryGetDouble(parsed, "Inv_Curr_BC", out var cbc)) curr += cbc;
-            if (TryGetDouble(parsed, "Inv_Curr_BC", out var cca)) curr += cca;
+            if (TryGetDouble(parsed, "ReadyStatus", out var ready))
+            {
+                var readyBits = Convert.ToUInt16(ready);
+                PanelData.BattReady = (readyBits & (1 << 1)) != 0;
+                PanelData.InvReady = (readyBits & (1 << 2)) != 0;
+                PanelData.GridReady = (readyBits & (1 << 3)) != 0;
+                PanelData.CommReady = (readyBits & (1 << 5)) != 0;
+                PanelData.BypassReady = (readyBits & (1 << 6)) != 0;
+            }
 
-            InvData.VoltAverage = (volt / 3).ToString("0.0");
-            InvData.CurrAverage = (curr / 3).ToString("0.0");
+            int alarmCnt = 0;
+            if (TryGetDouble(parsed, "GridFault", out var gridFault))
+            {
+                var bits = Convert.ToUInt16(gridFault);
+                alarmCnt += CountSetBits(bits);
+                UpdatePcsFaultMessages("Grid", bits, GridFaultMessages);
+            }
+            if (TryGetDouble(parsed, "InvFault", out var invFault))
+            {
+                var bits = Convert.ToUInt16(invFault);
+                alarmCnt += CountSetBits(bits);
+                UpdatePcsFaultMessages("Inverter", bits, InvFaultMessages);
+            }
+            if (TryGetDouble(parsed, "LoadFault", out var loadFault))
+            {
+                var bits = Convert.ToUInt16(loadFault);
+                alarmCnt += CountSetBits(bits);
+                UpdatePcsFaultMessages("Load", bits, LoadFaultMessages);
+            }
+            if (TryGetDouble(parsed, "BatteryFault", out var batteryFault))
+            {
+                var bits = Convert.ToUInt16(batteryFault);
+                alarmCnt += CountSetBits(bits);
+                UpdatePcsFaultMessages("Battery", bits, BatteryFaultMessages);
+            }
+            if (TryGetDouble(parsed, "SystemFault", out var systemFault))
+            {
+                var bits = Convert.ToUInt16(systemFault);
+                alarmCnt += CountSetBits(bits);
+                UpdatePcsFaultMessages("System", bits, SystemFaultMessages);
+            }
+            if (TryGetDouble(parsed, "CommunicationFault", out var communicationFault))
+            {
+                var bits = Convert.ToUInt16(communicationFault);
+                alarmCnt += CountSetBits(bits);
+                UpdatePcsFaultMessages("Communication", bits, CommunicationFaultMessages);
+            }
+            PanelData.AlarmCnt = alarmCnt.ToString();
 
         }
         void ChangeGridData(Dictionary<string, object> parsed)
         {
-            if (TryGetDouble(parsed, "Grid_Status", out var ready)) { GridItems[1].Value = IsConnected ? "on" : "off"; }
-            if (TryGetDouble(parsed, "Grid_CB", out var cb)) GridItems[2].Value = cb >= 500 ? "on" : "off";
-            if (TryGetDouble(parsed, "Grid_Fuse", out var fuse)) GridItems[3].Value = fuse >= 500 ? "on" : "off";
-            if (TryGetDouble(parsed, "Grid_SPD", out var spd)) GridItems[4].Value = spd >= 500 ? "on" : "off";
-            if (TryGetDouble(parsed, "Grid_SC", out var sc)) GridItems[5].Value = sc >= 500 ? "on" : "off";
-            if (TryGetDouble(parsed, "Grid_Fault", out var fault)) GridItems[6].Value = fault.ToString();
+            if (TryGetDouble(parsed, "ReadyStatus", out var ready))
+            {
+                var readyBits = Convert.ToUInt16(ready);
+                GridItems[1].Value = (readyBits & (1 << 3)) != 0 ? "on" : "off";
+            }
+            if (TryGetDouble(parsed, "GridFuseStatus", out var fuse))
+            {
+                var readyBits = Convert.ToUInt16(fuse);
+                var faultPhase = "grid fuse fault : ";
 
-            if (TryGetDouble(parsed, "Grid_Total_ImportedEnergy", out var tImport)) GridItems[8].Value = tImport.ToString("0.0");
-            if (TryGetDouble(parsed, "Grid_Total_ExportedEnergy", out var tExport)) GridItems[9].Value = tExport.ToString("0.0");
-            if (TryGetDouble(parsed, "Grid_Volt_AB", out var vAb)) GridItems[10].Value = vAb.ToString("0.0");
-            if (TryGetDouble(parsed, "Grid_Volt_BC", out var vBc)) GridItems[11].Value = vBc.ToString("0.0");
-            if (TryGetDouble(parsed, "Grid_Volt_CA", out var vCa)) GridItems[12].Value = vCa.ToString("0.0");
-            if (TryGetDouble(parsed, "Grid_Curr_AB", out var cAb)) GridItems[13].Value = cAb.ToString("0.0");
-            if (TryGetDouble(parsed, "Grid_Curr_BC", out var cBc)) GridItems[14].Value = cBc.ToString("0.0");
-            if (TryGetDouble(parsed, "Grid_Curr_CA", out var cCa)) GridItems[15].Value = cCa.ToString("0.0");
-            if (TryGetDouble(parsed, "Grid_Freq", out var freq)) GridItems[16].Value = freq.ToString("0.00");
-            if (TryGetDouble(parsed, "Grid_PF", out var pf)) GridItems[17].Value = pf.ToString("0.00");
-            if (TryGetDouble(parsed, "Grid_SC_Cnt", out var scCnt)) GridItems[18].Value = scCnt.ToString("0");
+                if ((readyBits & (1 << 0)) != 0) faultPhase += "R";
+                if ((readyBits & (1 << 1)) != 0) faultPhase += "S";
+                if ((readyBits & (1 << 2)) != 0) faultPhase += "T";
+
+                SystemMsg = faultPhase;
+                GridItems[2].Value = (fuse == 0) ? "normal" : $"fault";
+            }
+            
+            if (TryGetDouble(parsed, "GridFault", out var fault))
+            {
+                var readyBits = Convert.ToUInt16(fault);
+                int alarmCnt = 0;
+
+                if ((readyBits & (1 << 0)) != 0) { alarmCnt++; SystemMsg = "line frequency fault"; }// line freq
+                if ((readyBits & (1 << 1)) != 0) { alarmCnt++; SystemMsg = "G.frequency fault"; }// G.freq
+                if ((readyBits & (1 << 2)) != 0) { alarmCnt++; SystemMsg = "line voltage fault"; } // Line Volt
+                if ((readyBits & (1 << 3)) != 0) { alarmCnt++; SystemMsg = "line check fault"; }// Line Check
+                if ((readyBits & (1 << 4)) != 0) { alarmCnt++; SystemMsg = "island fault"; } // Island
+                if ((readyBits & (1 << 5)) != 0) { alarmCnt++; SystemMsg = "ov grid fault"; }// OV grid
+                if ((readyBits & (1 << 6)) != 0) { alarmCnt++; SystemMsg = "uv grid fault"; }// UV grid
+                if ((readyBits & (1 << 7)) != 0) { alarmCnt++; SystemMsg = "of grid fault"; }// OF grid
+                if ((readyBits & (1 << 8)) != 0) { alarmCnt++; SystemMsg = "uf grid fault"; } // UF grid
+                if ((readyBits & (1 << 9)) != 0) { alarmCnt++; SystemMsg = "oc grid fault"; }// OC grid
+
+                GridItems[3].Value = alarmCnt.ToString();
+            }
+            // Grid 수전 유효전력량
+            if (TryGetDouble(parsed, "GridTotalImportActivePower", out var tImport))
+            {
+                PanelData.T_Import_Energy = tImport.ToString("0.0");
+                GridItems[5].Value = tImport.ToString("0.0");
+            }
+            // Grid 송전 유효전력량
+            if (TryGetDouble(parsed, "GridTotalExportedActivePower", out var tExport))
+            {
+                PanelData.T_Export_Energy = tExport.ToString("0.0");
+                GridItems[6].Value = tExport.ToString("0.0");
+            }
+            if (TryGetDouble(parsed, "GridVoltageAN", out var vAn)) GridItems[7].Value = vAn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageBN", out var vBn)) GridItems[8].Value = vBn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageCN", out var vCn)) GridItems[9].Value = vCn.ToString("0.0");
+
+            if (TryGetDouble(parsed, "GridCurrentAN", out var cAn)) GridItems[10].Value = cAn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridCurrentBN", out var cBn)) GridItems[11].Value = cBn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridCurrentCN", out var cCn)) GridItems[12].Value = cCn.ToString("0.0");
+
+            if (TryGetDouble(parsed, "GridVoltageAB", out var vAb)) GridItems[13].Value = vAb.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageBC", out var vBc)) GridItems[14].Value = vBc.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageCA", out var vCa)) GridItems[15].Value = vCa.ToString("0.0");
+
+            if (TryGetDouble(parsed, "GridFrequency", out var freq)) GridItems[16].Value = freq.ToString("0.00");
+            if (TryGetDouble(parsed, "GridPowerFactor", out var pf)) GridItems[17].Value = pf.ToString("0.00");
+            if (TryGetDouble(parsed, "GridSurgeCounter", out var sc)) GridItems[18].Value = sc.ToString();
+        }
+        void ChangeInverterData(Dictionary<string, object> parsed)
+        {
+            
+
         }
         void ChangeLoadData(Dictionary<string, object> parsed)
         {
-            if (TryGetDouble(parsed, "Load_Status", out var ready)) LoadItems[1].Value = ready >= 500 ? "on" : "off";
-            if (TryGetDouble(parsed, "Load_CB", out var cb)) LoadItems[2].Value = cb >= 500 ? "on" : "off";
-            if (TryGetDouble(parsed, "Load_Fuse", out var fuse)) LoadItems[3].Value = fuse >= 500 ? "on" : "off";
-            if (TryGetDouble(parsed, "Load_SPD", out var spd)) LoadItems[4].Value = spd >= 500 ? "on" : "off";
-            if (TryGetDouble(parsed, "Load_SC", out var sc)) LoadItems[5].Value = sc >= 500 ? "on" : "off";
-            if (TryGetDouble(parsed, "Load_Fault", out var fault)) LoadItems[6].Value = fault.ToString();
+            //if (TryGetDouble(parsed, "Load_Status", out var ready)) LoadItems[1].Value = ready >= 500 ? "on" : "off";
+            if (TryGetDouble(parsed, "LoadFault", out var fault))
+            {
+                var readyBits = Convert.ToUInt16(fault);
 
-            if (TryGetDouble(parsed, "Load_Total_Energy", out var tImport)) LoadItems[8].Value = tImport.ToString("0.0");
-            if (TryGetDouble(parsed, "Load_Daily_Energy", out var tExport)) LoadItems[9].Value = tExport.ToString("0.0");
-            if (TryGetDouble(parsed, "Load_Volt_AB", out var vAb)) LoadItems[10].Value = vAb.ToString("0.0");
-            if (TryGetDouble(parsed, "Load_Volt_BC", out var vBc)) LoadItems[11].Value = vBc.ToString("0.0");
-            if (TryGetDouble(parsed, "Load_Volt_CA", out var vCa)) LoadItems[12].Value = vCa.ToString("0.0");
-            if (TryGetDouble(parsed, "Load_Curr_AB", out var cAb)) LoadItems[13].Value = cAb.ToString("0.0");
-            if (TryGetDouble(parsed, "Load_Curr_BC", out var cBc)) LoadItems[14].Value = cBc.ToString("0.0");
-            if (TryGetDouble(parsed, "Load_Curr_CA", out var cCa)) LoadItems[15].Value = cCa.ToString("0.0");
-            if (TryGetDouble(parsed, "Load_Freq", out var freq)) LoadItems[16].Value = freq.ToString("0.00");
-            if (TryGetDouble(parsed, "Load_PF", out var pf)) LoadItems[17].Value = pf.ToString("0.00");
-            if (TryGetDouble(parsed, "Load_SC_Cnt", out var scCnt)) LoadItems[18].Value = scCnt.ToString("0");
+                if ((readyBits & (1 << 0)) != 0) { GridItems[1].Value = "fault"; SystemMsg = "over load fault"; }// line freq
+                else GridItems[1].Value = "normal";
+            }
+
+            if (TryGetDouble(parsed, "LoadTotalExportedActivePower", out var tExport)) LoadItems[3].Value = tExport.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadActivePower", out var p)) LoadItems[4].Value = p.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadActivePowerRN", out var pRn)) LoadItems[5].Value = pRn.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadActivePowerSN", out var pSn)) LoadItems[6].Value = pSn.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadActivePowerTN", out var pTn)) LoadItems[7].Value = pTn.ToString("0.0");
+
+            if (TryGetDouble(parsed, "LoadVoltageAN", out var vAn)) LoadItems[8].Value = vAn.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadVoltageBN", out var vBn)) LoadItems[9].Value = vBn.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadVoltageCN", out var vCn)) LoadItems[10].Value = vCn.ToString("0.0");
+
+            if (TryGetDouble(parsed, "LoadCurrentAN", out var cAn)) LoadItems[11].Value = cAn.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadCurrentBN", out var cBn)) LoadItems[12].Value = cBn.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadCurrentCN", out var cCn)) LoadItems[13].Value = cCn.ToString("0.0");
+
+            if (TryGetDouble(parsed, "LoadVoltageAB", out var vAb)) LoadItems[14].Value = vAb.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadVoltageBC", out var vBc)) LoadItems[15].Value = vBc.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadVoltageCA", out var vCa)) LoadItems[16].Value = vCa.ToString("0.0");
+
+            if (TryGetDouble(parsed, "LoadFrequency", out var freq)) LoadItems[17].Value = freq.ToString("0.00");
+            if (TryGetDouble(parsed, "LoadPowerFactor", out var pf)) LoadItems[18].Value = pf.ToString("0.00");
         }
         void ChangeEtcData(Dictionary<string, object> parsed)
         {
-            if (TryGetDouble(parsed, "INV_Ambient_Temp01", out var aTemp01)) InvItems[1].Value = aTemp01.ToString();
-            if (TryGetDouble(parsed, "INV_Ambient_Temp02", out var aTemp02)) InvItems[2].Value = aTemp02.ToString();
-            if (TryGetDouble(parsed, "INV_Ambient_Temp03", out var aTemp03)) InvItems[3].Value = aTemp03.ToString();
-            if (TryGetDouble(parsed, "INV_Ambient_Temp04", out var aTemp04)) InvItems[4].Value = aTemp04.ToString();
+            if (TryGetDouble(parsed, "InvAmbientTemperature", out var aTemp01)) EtcItems[1].Value = aTemp01.ToString();
 
-            if (TryGetDouble(parsed, "INV_Heatsink_Temp01", out var hTemp01)) InvItems[5].Value = hTemp01.ToString();
-            if (TryGetDouble(parsed, "INV_Heatsink_Temp02", out var hTemp02)) InvItems[6].Value = hTemp02.ToString();
-            if (TryGetDouble(parsed, "INV_Heatsink_Temp03", out var hTemp03)) InvItems[7].Value = hTemp03.ToString();
-            if (TryGetDouble(parsed, "INV_Heatsink_Temp04", out var hTemp04)) InvItems[8].Value = hTemp04.ToString();
-            if (TryGetDouble(parsed, "INV_Heatsink_Temp05", out var hTemp05)) InvItems[9].Value = hTemp05.ToString();
-            if (TryGetDouble(parsed, "INV_Heatsink_Temp06", out var hTemp06)) InvItems[10].Value = hTemp06.ToString();
-            if (TryGetDouble(parsed, "INV_Heatsink_Temp07", out var hTemp07)) InvItems[11].Value = hTemp07.ToString();
-            if (TryGetDouble(parsed, "INV_Heatsink_Temp08", out var hTemp08)) InvItems[12].Value = hTemp08.ToString();
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature01", out var hTemp01)) EtcItems[2].Value = hTemp01.ToString();
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature02", out var hTemp02)) EtcItems[3].Value = hTemp02.ToString();
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature03", out var hTemp03)) EtcItems[4].Value = hTemp03.ToString();
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature04", out var hTemp04)) EtcItems[5].Value = hTemp04.ToString();
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature05", out var hTemp05)) EtcItems[6].Value = hTemp05.ToString();
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature06", out var hTemp06)) EtcItems[7].Value = hTemp06.ToString();
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature07", out var hTemp07)) EtcItems[8].Value = hTemp07.ToString();
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature08", out var hTemp08)) EtcItems[9].Value = hTemp08.ToString();
 
-            if (TryGetDouble(parsed, "INV_IGBT_Temp01", out var iTemp01)) InvItems[13].Value = iTemp01.ToString();
-            if (TryGetDouble(parsed, "INV_IGBT_Temp02", out var iTemp02)) InvItems[14].Value = iTemp02.ToString();
-            if (TryGetDouble(parsed, "INV_IGBT_Temp03", out var iTemp03)) InvItems[15].Value = iTemp03.ToString();
-            if (TryGetDouble(parsed, "INV_IGBT_Temp04", out var iTemp04)) InvItems[16].Value = iTemp04.ToString();
-            if (TryGetDouble(parsed, "INV_IGBT_Temp05", out var iTemp05)) InvItems[17].Value = iTemp05.ToString();
-            if (TryGetDouble(parsed, "INV_IGBT_Temp06", out var iTemp06)) InvItems[18].Value = iTemp06.ToString();
-            if (TryGetDouble(parsed, "INV_IGBT_Temp07", out var iTemp07)) InvItems[19].Value = iTemp07.ToString();
-            if (TryGetDouble(parsed, "INV_IGBT_Temp08", out var iTemp08)) InvItems[20].Value = iTemp08.ToString();
-            if (TryGetDouble(parsed, "INV_IGBT_Temp09", out var iTemp09)) InvItems[21].Value = iTemp09.ToString();
-            if (TryGetDouble(parsed, "INV_IGBT_Temp10", out var iTemp10)) InvItems[22].Value = iTemp10.ToString();
-            if (TryGetDouble(parsed, "INV_IGBT_Temp11", out var iTemp11)) InvItems[23].Value = iTemp11.ToString();
-            if (TryGetDouble(parsed, "INV_IGBT_Temp12", out var iTemp12)) InvItems[24].Value = iTemp12.ToString();
+            if (TryGetDouble(parsed, "InvLeakageCurrent", out var leak)) EtcItems[10].Value = leak.ToString();
+            if (TryGetDouble(parsed, "InvHeartBeat", out var hb)) EtcItems[11].Value = hb.ToString();
         }
 
         private int _uiUpdatePending;

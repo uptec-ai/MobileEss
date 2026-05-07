@@ -1,0 +1,61 @@
+<Window x:Class="EMS_PJT_Hamburger.Views.PcsFaultMessageWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+        xmlns:dxg="http://schemas.devexpress.com/winfx/2008/xaml/grid"
+        xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
+        Title="PCS Fault Message"
+        Icon="{dx:DXImage 'SvgImages/Icon Builder/Security_Warning.svg'}"
+        Height="420"
+        Width="760"
+        FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR">
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="PCS Fault Message"
+                   FontSize="16"
+                   FontWeight="Bold"
+                   Margin="0,0,0,8"/>
+
+        <dxg:GridControl Grid.Row="1"
+                         ItemsSource="{Binding PcsFaultMessages}"
+                         ShowBorder="True">
+            <dxg:GridControl.Columns>
+                <dxg:GridColumn FieldName="OccurredAt"
+                                Header="Time"
+                                Width="150"
+                                AllowEditing="False">
+                    <dxg:GridColumn.EditSettings>
+                        <dxe:TextEditSettings DisplayFormat="yyyy-MM-dd HH:mm:ss"/>
+                    </dxg:GridColumn.EditSettings>
+                </dxg:GridColumn>
+                <dxg:GridColumn FieldName="Category"
+                                Header="Category"
+                                Width="120"
+                                AllowEditing="False"/>
+                <dxg:GridColumn FieldName="Bit"
+                                Header="Bit"
+                                Width="55"
+                                AllowEditing="False"/>
+                <dxg:GridColumn FieldName="Message"
+                                Header="Fault Message"
+                                Width="*"
+                                AllowEditing="False"/>
+                <dxg:GridColumn FieldName="RawValue"
+                                Header="Raw"
+                                Width="80"
+                                AllowEditing="False"/>
+            </dxg:GridControl.Columns>
+
+            <dxg:GridControl.View>
+                <dxg:TableView ShowGroupPanel="False"
+                               AllowGrouping="False"
+                               NavigationStyle="Row"
+                               ShowIndicator="False"/>
+            </dxg:GridControl.View>
+        </dxg:GridControl>
+    </Grid>
+</Window>
