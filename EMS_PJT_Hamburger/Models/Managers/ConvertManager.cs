@@ -61,9 +61,21 @@ namespace EMS_PJT_Hamburger.Models.Managers
         {
             if (value is bool b && !b)
             {
-                return "Relay ON";
+                return "OFF";
             }
-            return "Relay OFF";
+            return "ON";
+        }
+        public object ConvertBack(object v, Type t, object p, CultureInfo c) => throw new NotImplementedException();
+    }
+    public class ControlConverter : IValueConverter
+    {
+        public object Convert(object value, Type t, object p, CultureInfo c)
+        {
+            if (value is int i && i == 0)
+            {
+                return "CC+CV";
+            }
+            return "CP";
         }
         public object ConvertBack(object v, Type t, object p, CultureInfo c) => throw new NotImplementedException();
     }

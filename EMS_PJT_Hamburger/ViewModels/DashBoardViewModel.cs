@@ -10,7 +10,6 @@ namespace EMS_PJT_Hamburger.ViewModels
     {
         public App app = Application.Current as App;
 
-
         public ICommand Cmd_Test { get; set; }
         public DashBoardViewModel()
         {

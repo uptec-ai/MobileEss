@@ -83,6 +83,15 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             new ModbusFieldSpec { Address = 119, DataType = ModbusDataType.S16, Name = "LoadPowerFactorTN", Scale = 0.01, Unit = "%", },            // Load TN 역률
         };
 
+        public static readonly IList<ModbusFieldSpec> BatteryData = new List<ModbusFieldSpec>
+        {
+            new ModbusFieldSpec { Address = 120, DataType = ModbusDataType.U32, Name = "BatteryTotalChargePower", Scale = 0.1, Unit = "kWh", }, // Battery 총 충전량
+            new ModbusFieldSpec { Address = 122, DataType = ModbusDataType.U32, Name = "BatteryTotalDischargePower", Scale = 0.1, Unit = "kWh", },   // Battery 총 방전량
+            new ModbusFieldSpec { Address = 124, DataType = ModbusDataType.S32, Name = "BatteryPower", Scale = 1, Unit = "W", },   // Battery 전력
+            new ModbusFieldSpec { Address = 126, DataType = ModbusDataType.U16, Name = "BatteryVoltage", Scale = 0.1, Unit = "V", },   // Battery 전압
+            new ModbusFieldSpec { Address = 127, DataType = ModbusDataType.S16, Name = "BatteryCurrent", Scale = 0.1, Unit = "A", },   // Battery 전류
+        };
+
         public static readonly IList<ModbusFieldSpec> EtcData = new List<ModbusFieldSpec>
         {
             new ModbusFieldSpec { Address = 132, DataType = ModbusDataType.S16, Name = "InvAmbientTemperature", Scale = 0.1, Unit = "℃", },       // Inverter 내부온도 (주위)
@@ -146,7 +155,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             { "FaultReset", new ModbusWriteSpec { Address = 1024, Scale = 1 } }                     // Fault Reset
         };
 
-        public static IEnumerable<ModbusFieldSpec> All => GridData.Concat(InvData).Concat(LoadData).Concat(EtcData).Concat(StatusData);
+        public static IEnumerable<ModbusFieldSpec> All => GridData.Concat(InvData).Concat(LoadData).Concat(BatteryData).Concat(EtcData).Concat(StatusData);
 
     }
     public class ConnectionSettings : ViewModelBase

@@ -4,16 +4,18 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:convert ="clr-namespace:EMS_PJT_Hamburger.Models.Managers"
     xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm" 
     xmlns:ViewModels="clr-namespace:EMS_PJT_Hamburger.ViewModels" xmlns:s="http://schemas.abtsoftware.co.uk/scichart"
     mc:Ignorable="d" d:DesignHeight="860" d:DesignWidth="1200" 
     Background="Transparent" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR">
     <UserControl.Resources>
+        <convert:RelayConverter x:Key="RelayConverter"/>
+        <convert:ControlConverter x:Key="ControlConverter"/>
         <Style TargetType="StackPanel" x:Key="VerticalStackpanelStyle">
             <Setter Property="Margin" Value="0,0,0,0"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Width" Value="221"/>
-
         </Style>
 
         <Style TargetType="TextBlock" x:Key="HeadTextBlockStyle">
@@ -55,7 +57,7 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height=".4*"/>
+                <RowDefinition Height=".5*"/>
                 <RowDefinition Height=".9*"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
@@ -74,7 +76,7 @@
                     <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}" Width="Auto">
                         <TextBlock Text="VIHICLE STATUS" Style="{StaticResource HeadTextBlockStyle}" Margin="15,10,15,15"/>
                         <!-- 차량 Status -->
-                        <Label Content="{Binding EMSStatusManager.DashboardStatus.VihicleStatus, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}" Foreground="White" FontSize="30" FontWeight="Bold" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" Margin="10,0">
+                        <Label Content="{Binding EMSStatusManager.DashboardStatus.VihicleStatus, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}" Foreground="White" FontSize="30" FontWeight="Bold" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" Margin="0,10,0,0">
                             <Label.Effect>
                                 <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
                             </Label.Effect>
@@ -85,6 +87,7 @@
                                     <Setter Property="BorderThickness" Value="0"/>
                                     <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                     <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
                                 </Style>
                             </Label.Style>
                         </Label>
@@ -96,7 +99,7 @@
                         <TextBlock Text="PCS POWER" Style="{StaticResource HeadTextBlockStyle}" Margin="15,10,15,15"/>
 
                         <!-- PCS inv_유효전력 -->
-                        <Label Margin="15,0" Height="80" FontSize="36"
+                        <Label Margin="0,10,0,0" Height="80" FontSize="36"
                                    HorizontalAlignment="Center" VerticalAlignment="Center"                       
                                    Style="{StaticResource VariableLableStyle}" >
                             <Label.Content>
@@ -104,8 +107,8 @@
                                     <TextBlock.Effect>
                                         <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
                                     </TextBlock.Effect>
-                                    <Run Text="{Binding PcsVm.InvData.Power, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <Run Text="kW" Foreground="White"/>
+                                    <Run Text="{Binding PcsVm.BattItems[2].Value, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Run Text="W" Foreground="White"/>
                                 </TextBlock>
                             </Label.Content>
                         </Label>
@@ -117,7 +120,7 @@
                     <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}" Width="Auto">
                         <TextBlock Text="SOC" Style="{StaticResource HeadTextBlockStyle}" Margin="15,10,15,15"/>
                         <!-- BMS Disp_SOC -->
-                        <Label Margin="15,0" Height="80" FontSize="36" 
+                        <Label Margin="0,10,0,0" Height="80" FontSize="36" 
                                    HorizontalAlignment="Center" VerticalAlignment="Center"
                                    Style="{StaticResource VariableLableStyle}" >
                             <Label.Content>
@@ -136,8 +139,9 @@
                 <!--Battery voltage-->
                 <Border Grid.Column="3" CornerRadius="12" Margin="10,0,0,0" Background="{DynamicResource Main.Panel.Background}">
                     <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}" Width="Auto">
+                        <!-- BMS Battery Current -->
                         <TextBlock Text="Battery Current" Style="{StaticResource HeadTextBlockStyle}" Margin="15,10,15,15"/>
-                        <Label Margin="15,0" Height="80" FontSize="36" 
+                        <Label Margin="0,10,0,0" Height="80" FontSize="36" 
                                HorizontalAlignment="Center" VerticalAlignment="Center"
                                Style="{StaticResource VariableLableStyle}" >
                             <Label.Content>
@@ -155,29 +159,31 @@
 
                 <!-- Communication status -->
                 <StackPanel Orientation="Vertical" Grid.Column="4">
-                    <Border CornerRadius="12" Margin="10,0,0,0" Background="{DynamicResource Main.Panel.Background}">
-                    <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}" Margin="0" Width="Auto">
+                    <Border CornerRadius="12" Margin="10,0,0,0" Background="{DynamicResource Main.Panel.Background}" Height="85">
+                        <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}" Margin="0" Width="Auto">
+                            <!-- PCS Comm Ready -->
                             <TextBlock Text="PCS COMMUNICATION" Style="{StaticResource HeadTextBlockStyle}" Margin="15,10,15,5.1"/>
                             <Label FontSize="24" 
-                               HorizontalAlignment="Left" VerticalAlignment="Center"
-                               Style="{StaticResource VariableLableStyle}" Margin="40,0,0,0" >
-                            <Label.Content>
-                                <TextBlock>
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Style="{StaticResource VariableLableStyle}" Margin="0">
+                                <Label.Content>
+                                    <TextBlock>
                                         <TextBlock.Effect>
                                             <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
                                         </TextBlock.Effect>
-                                        <Run Text="{Binding PcsVm.PanelData.Status, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
-                                </TextBlock>
-                            </Label.Content>
-                        </Label>
-                    </StackPanel>
-                </Border>
-                    <Border  CornerRadius="12" Margin="10,10,0,0" Background="{DynamicResource Main.Panel.Background}">
+                                        <Run Text="{Binding PcsVm.PanelData.CommReady, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource RelayConverter}}"/>
+                                    </TextBlock>
+                                </Label.Content>
+                            </Label>
+                        </StackPanel>
+                    </Border>
+                    <Border  CornerRadius="12" Margin="10,10,0,0" Background="{DynamicResource Main.Panel.Background}" Height="85">
                         <StackPanel Orientation="Vertical" Style="{StaticResource VerticalStackpanelStyle}" Margin="0" Width="Auto">
+                            <!-- BMS Ready -->
                             <TextBlock Text="BMS COMMUNICATION" Style="{StaticResource HeadTextBlockStyle}" Margin="15,10,15,5"/>
                             <Label FontSize="24" 
-                               HorizontalAlignment="Left" VerticalAlignment="Center"
-                               Style="{StaticResource VariableLableStyle}" Margin="38,0,0,0">
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                   Style="{StaticResource VariableLableStyle}" Margin="0">
                                 <Label.Content>
                                     <TextBlock>
                                         <TextBlock.Effect>
@@ -190,9 +196,7 @@
                         </StackPanel>
                     </Border>
                 </StackPanel>
-                
             </Grid>
-            <!-- Vegicle status -->
 
             <!-- PCS infomation-->
             <Border Grid.Column="0" Grid.Row="1" Margin="22,15,10,0" CornerRadius="12" Background="{DynamicResource Main.Panel.Background}">
@@ -206,10 +210,9 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Column="0" Grid.Row="0" Text="PCS INFORMATION" Style="{StaticResource HeadTextBlockStyle}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="PCS INFOMATION" Style="{StaticResource HeadTextBlockStyle}"/>
 
                     <!--Run/Stop + Charge/Discharge-->
                     <Grid Grid.Column="0" Grid.Row="1" >
@@ -218,79 +221,66 @@
                         <Label Style="{StaticResource VariableLableStyle}">
                             <Label.Content>
                                 <TextBlock>
-                                    <Run Text="{Binding PcsVm.PanelData.Status, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <Run Text="{Binding PcsVm.ControlChargeMode, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource ControlConverter}}"/>
                                 </TextBlock>
                             </Label.Content>
                         </Label>
                     </Grid>
-
-
                     <Grid Grid.Column="0" Grid.Row="2" >
-                        <Label Content="Power" Width="150" FontWeight="Light" Style="{StaticResource HeadLableStyle}"/>
-                        <!-- INV 유효전력 -->
-                        <Label Style="{StaticResource VariableLableStyle}">
-                            <Label.Content>
-                                <TextBlock>
-                                    <Run Text="{Binding PcsVm.InvData.Power, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <Run Text="kW"/>
-                                </TextBlock>
-                            </Label.Content>
-                        </Label>
-                    </Grid>
-                    <Grid Grid.Column="0" Grid.Row="3" >
                         <Label Content="Voltage" Width="150" FontWeight="Light" Style="{StaticResource HeadLableStyle}"/>
-                        <!-- 3상 선간전압 평균 -->
+                        <!-- battery 전압 -->
                         <Label Style="{StaticResource VariableLableStyle}">
                             <Label.Content>
                                 <TextBlock>
-                            <Run Text="{Binding PcsVm.InvData.VoltAverage, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Run Text="{Binding PcsVm.BattItems[3].Value, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
                             <Run Text="V"/>
                                 </TextBlock>
                             </Label.Content>
                         </Label>
                     </Grid>
-                    <Grid Grid.Column="0" Grid.Row="4" >
-                        <Label Content="Error Code" Width="150" FontWeight="Light" Style="{StaticResource HeadLableStyle}"/>
+                    <Grid Grid.Column="0" Grid.Row="3" >
                         <!-- PCS Error code -->
+                        <Label Content="Error Code" Width="150" FontWeight="Light" Style="{StaticResource HeadLableStyle}"/>
                         <Label Style="{StaticResource VariableLableStyle}">
                             <Label.Content>
                                 <TextBlock>
-                            <Run Text="{Binding EMSStatusManager.PcsStatus.ErrorCode}"/>
+                            <Run Text="{Binding PcsVm.PcsStatus.ErrorCode}"/>
                                 </TextBlock>
                             </Label.Content>
                         </Label>
                     </Grid>
 
                     <Grid Grid.Column="1" Grid.Row="1">
+                        <!-- battery 설정 전력 -->
                         <Label Content="Set Power" Width="150" FontWeight="Light" Style="{StaticResource HeadLableStyle}"/>
-                        <!-- battery max charge power -->
                         <Label Style="{StaticResource VariableLableStyle}">
                             <Label.Content>
                                 <TextBlock>
-                            <Run Text="{Binding EMSStatusManager.PcsStatus.SetPower, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
-                            <Run Text="kW"/>
+                            <Run Text="{Binding PcsVm.ControlMaxChargePowerW, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Run Text="W"/>
                                 </TextBlock>
                             </Label.Content>
                         </Label>
                     </Grid>
                     <Grid Grid.Column="1" Grid.Row="2">
+                        <!-- battery 전류 -->
                         <Label Content="Current" Width="150" FontWeight="Light" Style="{StaticResource HeadLableStyle}"/>
-                        <!-- 3상 전류 평균 -->
                         <Label Style="{StaticResource VariableLableStyle}">
                             <Label.Content>
                                 <TextBlock>
-                            <Run Text="{Binding PcsVm.InvData.CurrAverage, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Run Text="{Binding PcsVm.BattItems[4].Value, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
                             <Run Text="A"/>
                                 </TextBlock>
                             </Label.Content>
                         </Label>
                     </Grid>
                     <Grid Grid.Column="1" Grid.Row="3">
+                        <!-- battery 온도 -->
                         <Label Content="Temperature" FontWeight="Light" Style="{StaticResource HeadLableStyle}"/>
                         <Label Style="{StaticResource VariableLableStyle}">
                             <Label.Content>
                                 <TextBlock>
-                            <Run Text="{Binding PcsVm.InvItems[1].Value, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Run Text="{Binding PcsVm.EtcItems[1].Value, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
                             <Run Text="℃"/>
                                 </TextBlock>
                             </Label.Content>
@@ -317,7 +307,7 @@
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" Text="SYSTEM &amp; COMMUNICATION STATUS" Style="{StaticResource HeadTextBlockStyle}"/>
-                    <TextBlock Grid.Column="1" Grid.Row="0" Text="BMS INFORMATION" Style="{StaticResource HeadTextBlockStyle}"/>
+                    <TextBlock Grid.Column="1" Grid.Row="0" Text="BMS INFOMATION" Style="{StaticResource HeadTextBlockStyle}"/>
 
                     <Label Grid.Column="0" Grid.Row="1" Content="IPC State"
                            FontWeight="Light" HorizontalAlignment="Left" VerticalAlignment="Center"
@@ -414,7 +404,7 @@
                             <!--  Create an X Axis  -->
                             <s:SciChartSurface.XAxis>
                                 <s:DateTimeAxis DrawMajorBands="False" DrawMajorTicks="False" DrawMajorGridLines="False"
-                                        DrawMinorGridLines="False" DrawMinorTicks="False"/>
+                                        DrawMinorGridLines="False" DrawMinorTicks="False" TextFormatting="yyyy-MM-dd"/>
                             </s:SciChartSurface.XAxis>
 
                             <!--  Create a Y Axis. Optional bands give a cool look and feel for minimal performance impact  -->
@@ -441,7 +431,7 @@
                             <Label Margin="0,0,15,0" Style="{StaticResource VariableLableStyle}">
                                 <Label.Content>
                                     <TextBlock>
-                            <Run Text="{Binding PcsVm.InvData.D_ImportEnergy, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Run Text="{Binding PcsVm.BattItems[0].Value, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
                             <Run Text="kWh"/>
                                     </TextBlock>
                                 </Label.Content>
@@ -454,7 +444,7 @@
                             <Label Margin="0,0,15,0" Style="{StaticResource VariableLableStyle}">
                                 <Label.Content>
                                     <TextBlock>
-                            <Run Text="{Binding PcsVm.InvData.D_ExportEnergy, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Run Text="{Binding PcsVm.BattItems[1].Value, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
                             <Run Text="kWh"/>
                                     </TextBlock>
                                 </Label.Content>

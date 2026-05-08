@@ -306,6 +306,109 @@ namespace EMS_PJT_Hamburger.Models.Managers
                     throw new ArgumentOutOfRangeException(nameof(set), set, "Unsupported BMS data insert mode.");
             }
         }
+
+        public void UpsertPcsGridDailyTotals(double totalImported, double totalExported, DateTime collectedAt)
+        {
+            var day = collectedAt.Date;
+
+            ExecuteNonQuery(@"
+with updated as
+(
+    update public.tb_pcs_grid
+    set total_imported = @total_imported,
+        total_exported = @total_exported,
+        collected_at = @collected_at
+    where collected_at >= @day
+      and collected_at < @next_day
+    returning gridid
+)
+insert into public.tb_pcs_grid
+(
+    total_imported,
+    total_exported,
+    collected_at
+)
+select
+    @total_imported,
+    @total_exported,
+    @collected_at
+where not exists (select 1 from updated);",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@total_imported", totalImported);
+                    cmd.Parameters.AddWithValue("@total_exported", totalExported);
+                    cmd.Parameters.AddWithValue("@collected_at", collectedAt);
+                    cmd.Parameters.AddWithValue("@day", day);
+                    cmd.Parameters.AddWithValue("@next_day", day.AddDays(1));
+                });
+        }
+
+        public void InsertPcsStatusSnapshot(
+            int statusGrid,
+            int statusInv,
+            int statusBatt,
+            int statusComm,
+            int statusBypass,
+            int faultGrid,
+            int faultInv,
+            int faultLoad,
+            int faultComm,
+            int fuseGrid,
+            int fuseBatt,
+            int fuseBypass,
+            DateTime collectedAt)
+        {
+            ExecuteNonQuery(@"
+insert into public.tb_pcs_status
+(
+    status_grid,
+    status_inv,
+    status_batt,
+    status_comm,
+    status_bypass,
+    fault_grid,
+    fault_inv,
+    fault_load,
+    fault_comm,
+    fuse_grid,
+    fuse_batt,
+    fuse_bypass,
+    collected_at
+)
+values
+(
+    @status_grid,
+    @status_inv,
+    @status_batt,
+    @status_comm,
+    @status_bypass,
+    @fault_grid,
+    @fault_inv,
+    @fault_load,
+    @fault_comm,
+    @fuse_grid,
+    @fuse_batt,
+    @fuse_bypass,
+    @collected_at
+);",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@status_grid", statusGrid);
+                    cmd.Parameters.AddWithValue("@status_inv", statusInv);
+                    cmd.Parameters.AddWithValue("@status_batt", statusBatt);
+                    cmd.Parameters.AddWithValue("@status_comm", statusComm);
+                    cmd.Parameters.AddWithValue("@status_bypass", statusBypass);
+                    cmd.Parameters.AddWithValue("@fault_grid", faultGrid);
+                    cmd.Parameters.AddWithValue("@fault_inv", faultInv);
+                    cmd.Parameters.AddWithValue("@fault_load", faultLoad);
+                    cmd.Parameters.AddWithValue("@fault_comm", faultComm);
+                    cmd.Parameters.AddWithValue("@fuse_grid", fuseGrid);
+                    cmd.Parameters.AddWithValue("@fuse_batt", fuseBatt);
+                    cmd.Parameters.AddWithValue("@fuse_bypass", fuseBypass);
+                    cmd.Parameters.AddWithValue("@collected_at", collectedAt);
+                });
+        }
+
         public int ReadInt(Dictionary<string, object> parsed, string key, int defaultValue = 0)
         {
             if (parsed == null || !parsed.TryGetValue(key, out var raw) || raw == null)

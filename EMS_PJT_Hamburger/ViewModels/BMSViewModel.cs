@@ -105,7 +105,7 @@ namespace EMS_PJT_Hamburger.ViewModels
             _uiTimer.Interval = TimeSpan.FromMilliseconds(500);
             _uiTimer.Tick += Snapshot_Tick;
 
-            StatusMsg01.Ready = "Close";
+            StatusMsg01.Ready = "OFF";
             StatusMsg01.DispSOC = 20d;
         }
         private void Snapshot_Tick(object sender, EventArgs e)

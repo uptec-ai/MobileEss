@@ -73,7 +73,6 @@
 
     <Viewbox>
         <dxdo:DockLayoutManager Height="860" Width="1200">
-
             <dxdo:DockLayoutManager.AutoHideGroups>
                 <dxdo:AutoHideGroup DockType="Left" 
                                     HorizontalAlignment="Left">
@@ -460,7 +459,7 @@
                                                 <Grid Margin="0 2">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="60"/>
+                                                        <ColumnDefinition Width="120"/>
                                                         <ColumnDefinition Width="30"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Header}"
@@ -507,7 +506,7 @@
                                                     <Grid Margin="0 2">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="60"/>
+                                                            <ColumnDefinition Width="120"/>
                                                             <ColumnDefinition Width="30"/>
                                                         </Grid.ColumnDefinitions>
                                                         <TextBlock Text="{Binding Header}"
@@ -552,9 +551,43 @@
                                                                         Stroke="Lime"
                                                                         StrokeThickness="2"
                                                                         DataSeries="{Binding DailyImportedEnergySummarySeries}">
+                                            <s:RolloverModifier.TooltipContainerStyle>
+                                                <Style TargetType="s:TooltipControl">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                    <Setter Property="Padding" Value="0"/>
+                                                </Style>
+                                            </s:RolloverModifier.TooltipContainerStyle>
+
+                                            <s:RolloverModifier.TooltipTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="#CC1E1E1E"
+                                                            BorderBrush="Lime"
+                                                            BorderThickness="1"
+                                                            CornerRadius="3"
+                                                            Padding="6,3">
+                                                        <TextBlock Foreground="White"
+                                                                   FontSize="14"
+                                                                   FontWeight="SemiBold">
+                                                            <Run Text="{Binding FormattedYValue, Mode=OneWay}" />
+                                                            <Run Text=" kWh" />
+                                                        </TextBlock>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </s:RolloverModifier.TooltipTemplate>
+
                                             <s:FastMountainRenderableSeries.SeriesAnimation>
                                                 <s:WaveAnimation AnimationDelay="0:0:0.2" Duration="0:0:2" PointDurationFraction="0.3"/>
                                             </s:FastMountainRenderableSeries.SeriesAnimation>
+                                            <s:FastMountainRenderableSeries.PointMarker>
+                                                <s:EllipsePointMarker Width="7"
+                                                                      Height="7"
+                                                                      Fill="White"
+                                                                      Stroke="Lime"
+                                                                      StrokeThickness="2"/>
+                                            </s:FastMountainRenderableSeries.PointMarker>
+                                            
                                         </s:FastMountainRenderableSeries>
                                     </s:SciChartSurface.RenderableSeries>
 
@@ -565,8 +598,10 @@
                                                         DrawMajorGridLines="False"
                                                         DrawMinorGridLines="False" 
                                                         DrawMinorTicks="False"
-                                                        AxisTitle="수전 누적량 (일간)" 
-                                                        Foreground="LightGray"/>
+                                                        TextFormatting="yyyy-MM-dd"
+                                                        AxisTitle="수전 누적 전력 (MWh)" 
+                                                        Foreground="LightGray">
+                                        </s:DateTimeAxis>
                                     </s:SciChartSurface.XAxis>
 
                                     <!--  Create a Y Axis. Optional bands give a cool look and feel for minimal performance impact  -->
@@ -586,8 +621,13 @@
                                     <!--  Optional ChartModifier to add interactivity  -->
                                     <s:SciChartSurface.ChartModifier>
                                         <s:ModifierGroup>
+                                            <s:MouseWheelZoomModifier/>
                                             <s:RubberBandXyZoomModifier IsAnimated="False" IsXAxisOnly="True"/>
                                             <s:ZoomExtentsModifier/>
+                                            <s:RolloverModifier ReceiveHandledEvents="True"
+                                                                DrawVerticalLine="True"
+                                                                ShowTooltipOn="Always"
+                                                                SourceMode="AllVisibleSeries"/>
                                         </s:ModifierGroup>
                                     </s:SciChartSurface.ChartModifier>
                                 </s:SciChartSurface>
@@ -595,10 +635,43 @@
                                 <s:SciChartSurface x:Name="D_ExportedEnergyChart" Grid.Row="1" Margin="0" Background="{x:Null}" BorderBrush="White" BorderThickness="0,0,1,1" Height="300">
                                     <!--  Declare RenderableSeries  -->
                                     <s:SciChartSurface.RenderableSeries>
-                                        <s:FastMountainRenderableSeries x:Name="_dExportedEnergyRenderSeries" Fill="LightCyan" Stroke="Lime" StrokeThickness="2">
-                                            <s:FastMountainRenderableSeries.SeriesAnimation>
-                                                <s:WaveAnimation AnimationDelay="0:0:0.2" Duration="0:0:2" PointDurationFraction="0.3"/>
-                                            </s:FastMountainRenderableSeries.SeriesAnimation>
+                                        <s:FastMountainRenderableSeries x:Name="_dExportedEnergyRenderSeries"
+                                                                        Fill="LightCyan"
+                                                                        Stroke="Lime"
+                                                                        StrokeThickness="2"
+                                                                        DataSeries="{Binding DailyExportedEnergySummarySeries}">
+                                            <s:RolloverModifier.TooltipContainerStyle>
+                                                <Style TargetType="s:TooltipControl">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                    <Setter Property="Padding" Value="0"/>
+                                                </Style>
+                                            </s:RolloverModifier.TooltipContainerStyle>
+
+                                            <s:RolloverModifier.TooltipTemplate>
+                                                <DataTemplate>
+                                                    <Border Background="#CC1E1E1E"
+                                                            BorderBrush="Lime"
+                                                            BorderThickness="1"
+                                                            CornerRadius="3"
+                                                            Padding="6,3">
+                                                        <TextBlock Foreground="White"
+                                                                   FontSize="14"
+                                                                   FontWeight="SemiBold">
+                                                            <Run Text="{Binding FormattedYValue, Mode=OneWay}" />
+                                                            <Run Text=" kWh" />
+                                                        </TextBlock>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </s:RolloverModifier.TooltipTemplate>
+                                            <s:FastMountainRenderableSeries.PointMarker>
+                                                <s:EllipsePointMarker Width="7"
+                                                                      Height="7"
+                                                                      Fill="White"
+                                                                      Stroke="Lime"
+                                                                      StrokeThickness="2"/>
+                                            </s:FastMountainRenderableSeries.PointMarker>
                                         </s:FastMountainRenderableSeries>
                                     </s:SciChartSurface.RenderableSeries>
 
@@ -609,7 +682,8 @@
                                                         DrawMajorGridLines="False"
                                                         DrawMinorGridLines="False" 
                                                         DrawMinorTicks="False"
-                                                        AxisTitle="송전 누적량 (일간)"
+                                                        TextFormatting="yyyy-MM-dd"
+                                                        AxisTitle="송전 누적 전력 (MWh)"
                                                         Foreground="LightGray"/>
                                     </s:SciChartSurface.XAxis>
 
@@ -630,11 +704,15 @@
                                     <!--  Optional ChartModifier to add interactivity  -->
                                     <s:SciChartSurface.ChartModifier>
                                         <s:ModifierGroup>
+                                            <s:MouseWheelZoomModifier/>
                                             <s:RubberBandXyZoomModifier IsAnimated="False" IsXAxisOnly="True"/>
                                             <s:ZoomExtentsModifier/>
+                                            <s:RolloverModifier ReceiveHandledEvents="True"
+                                                                DrawVerticalLine="True"
+                                                                ShowTooltipOn="Always"
+                                                                SourceMode="AllVisibleSeries"/>
                                         </s:ModifierGroup>
                                     </s:SciChartSurface.ChartModifier>
-
                                 </s:SciChartSurface>
                             </Grid>
 

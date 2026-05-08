@@ -102,6 +102,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         };
 
         private readonly HashSet<string> _activePcsFaultKeys = new HashSet<string>();
+        private string _lastPcsStatusSnapshotKey;
         public ModbusService _client = new ModbusService();
         public ConnectionSettings Conn_Settings { get; set; }
         public ConnectionState Conn_State { get; set; }
@@ -150,7 +151,16 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 OnPropertyChanged(nameof(LoadItems));
             }
         }
-
+        public ObservableCollection<DataItem> _battItems { get; set; }
+        public ObservableCollection<DataItem> BattItems
+        {
+            get => _battItems;
+            set
+            {
+                _battItems = value;
+                OnPropertyChanged(nameof(BattItems));
+            }
+        }
         public ObservableCollection<DataItem> _etcItems { get; set; }
         public ObservableCollection<DataItem> EtcItems
         {
@@ -174,25 +184,98 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         // Chart
         private DateTime _chartBaseDate = DateTime.Today;
         private double _yesterdayFinalImportedEnergy = 0d;
+        private double _yesterdayFinalExportedEnergy = 0d;
         private double _todayImportedEnergy = 0d;
+        private double _todayExportedEnergy = 0d;
 
         public XyDataSeries<DateTime, double> DailyImportedEnergySummarySeries
         {
             get => GetProperty(() => DailyImportedEnergySummarySeries);
             set => SetProperty(() => DailyImportedEnergySummarySeries, value);
         }
+        public XyDataSeries<DateTime, double> DailyExportedEnergySummarySeries
+        {
+            get => GetProperty(() => DailyExportedEnergySummarySeries);
+            set => SetProperty(() => DailyExportedEnergySummarySeries, value);
+        }
+        public string DailyImportedYesterdayLabel
+        {
+            get => GetProperty(() => DailyImportedYesterdayLabel);
+            set => SetProperty(() => DailyImportedYesterdayLabel, value);
+        }
+        public DateTime DailyImportedYesterdayX
+        {
+            get => GetProperty(() => DailyImportedYesterdayX);
+            set => SetProperty(() => DailyImportedYesterdayX, value);
+        }
+        public double DailyImportedYesterdayY
+        {
+            get => GetProperty(() => DailyImportedYesterdayY);
+            set => SetProperty(() => DailyImportedYesterdayY, value);
+        }
+        public string DailyImportedTodayLabel
+        {
+            get => GetProperty(() => DailyImportedTodayLabel);
+            set => SetProperty(() => DailyImportedTodayLabel, value);
+        }
+        public DateTime DailyImportedTodayX
+        {
+            get => GetProperty(() => DailyImportedTodayX);
+            set => SetProperty(() => DailyImportedTodayX, value);
+        }
+        public double DailyImportedTodayY
+        {
+            get => GetProperty(() => DailyImportedTodayY);
+            set => SetProperty(() => DailyImportedTodayY, value);
+        }
+        public string DailyExportedYesterdayLabel
+        {
+            get => GetProperty(() => DailyExportedYesterdayLabel);
+            set => SetProperty(() => DailyExportedYesterdayLabel, value);
+        }
+        public DateTime DailyExportedYesterdayX
+        {
+            get => GetProperty(() => DailyExportedYesterdayX);
+            set => SetProperty(() => DailyExportedYesterdayX, value);
+        }
+        public double DailyExportedYesterdayY
+        {
+            get => GetProperty(() => DailyExportedYesterdayY);
+            set => SetProperty(() => DailyExportedYesterdayY, value);
+        }
+        public string DailyExportedTodayLabel
+        {
+            get => GetProperty(() => DailyExportedTodayLabel);
+            set => SetProperty(() => DailyExportedTodayLabel, value);
+        }
+        public DateTime DailyExportedTodayX
+        {
+            get => GetProperty(() => DailyExportedTodayX);
+            set => SetProperty(() => DailyExportedTodayX, value);
+        }
+        public double DailyExportedTodayY
+        {
+            get => GetProperty(() => DailyExportedTodayY);
+            set => SetProperty(() => DailyExportedTodayY, value);
+        }
         public async Task InitializeDailyImportedEnergySummaryAsync()
         {
             _chartBaseDate = DateTime.Today;
             _yesterdayFinalImportedEnergy = await LoadYesterdayFinalImportedEnergyAsync();
+            _yesterdayFinalExportedEnergy = await LoadYesterdayFinalExportedEnergyAsync();
             _todayImportedEnergy = 0d;
+            _todayExportedEnergy = 0d;
 
             DailyImportedEnergySummarySeries = new XyDataSeries<DateTime, double>
             {
                 SeriesName = "Daily Imported Energy Summary"
             };
-
+            DailyExportedEnergySummarySeries = new XyDataSeries<DateTime, double>
+            {
+                SeriesName = "Daily Exported Energy Summary"
+            };
             RebuildDailyImportedEnergySummary();
+            RebuildDailyExportedEnergySummary();
         }
 
         private async Task<double> LoadYesterdayFinalImportedEnergyAsync()
@@ -203,12 +286,37 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 if (app?.DbManager == null) return 0d;
 
                 DataSet ds = app.DbManager.GetDataSetByQuery(@"
-select g.grid_daily_imported_energy
-from tb_pcs_status s
-join tb_pcs_grid g on g.snapshot_id = s.snapshot_id
-where s.collected_at >= @from_dt
-  and s.collected_at < @to_dt
-order by s.collected_at desc
+select total_imported
+from public.tb_pcs_grid
+where collected_at >= @from_dt
+  and collected_at < @to_dt
+order by collected_at desc
+limit 1;",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@from_dt", DateTime.Today.AddDays(-1));
+                    cmd.Parameters.AddWithValue("@to_dt", DateTime.Today);
+                });
+
+                if (ds.Tables.Count == 0 || ds.Tables[0].Rows.Count == 0)
+                    return 0d;
+
+                return Convert.ToDouble(ds.Tables[0].Rows[0][0]);
+            });
+        }
+        private async Task<double> LoadYesterdayFinalExportedEnergyAsync()
+        {
+            return await Task.Run(() =>
+            {
+                var app = Application.Current as App;
+                if (app?.DbManager == null) return 0d;
+
+                DataSet ds = app.DbManager.GetDataSetByQuery(@"
+select total_exported
+from public.tb_pcs_grid
+where collected_at >= @from_dt
+  and collected_at < @to_dt
+order by collected_at desc
 limit 1;",
                 cmd =>
                 {
@@ -224,17 +332,28 @@ limit 1;",
         }
         public void UpdateDailyImportedEnergySummary(double todayDailyImportedEnergy)
         {
-            var today = DateTime.Today;
-
-            if (today != _chartBaseDate)
-            {
-                _chartBaseDate = today;
-                _yesterdayFinalImportedEnergy = _todayImportedEnergy;
-                _todayImportedEnergy = 0d;
-            }
-
+            EnsureDailyEnergySummaryDate();
             _todayImportedEnergy = todayDailyImportedEnergy;
             RebuildDailyImportedEnergySummary();
+        }
+
+        public void UpdateDailyExportedEnergySummary(double todayDailyExportedEnergy)
+        {
+            EnsureDailyEnergySummaryDate();
+            _todayExportedEnergy = todayDailyExportedEnergy;
+            RebuildDailyExportedEnergySummary();
+        }
+
+        private void EnsureDailyEnergySummaryDate()
+        {
+            var today = DateTime.Today;
+            if (today == _chartBaseDate) return;
+
+            _chartBaseDate = today;
+            _yesterdayFinalImportedEnergy = _todayImportedEnergy;
+            _yesterdayFinalExportedEnergy = _todayExportedEnergy;
+            _todayImportedEnergy = 0d;
+            _todayExportedEnergy = 0d;
         }
 
         private void RebuildDailyImportedEnergySummary()
@@ -244,6 +363,27 @@ limit 1;",
             DailyImportedEnergySummarySeries.Append(_chartBaseDate.AddDays(-1), _yesterdayFinalImportedEnergy);
             DailyImportedEnergySummarySeries.Append(_chartBaseDate, _todayImportedEnergy);
             DailyImportedEnergySummarySeries.Append(_chartBaseDate.AddDays(1), 0d);
+            DailyImportedYesterdayLabel = _yesterdayFinalImportedEnergy.ToString("0.0");
+            DailyImportedYesterdayX = _chartBaseDate.AddDays(-1);
+            DailyImportedYesterdayY = _yesterdayFinalImportedEnergy;
+            DailyImportedTodayLabel = _todayImportedEnergy.ToString("0.0");
+            DailyImportedTodayX = _chartBaseDate;
+            DailyImportedTodayY = _todayImportedEnergy;
+        }
+
+        private void RebuildDailyExportedEnergySummary()
+        {
+            DailyExportedEnergySummarySeries.Clear();
+
+            DailyExportedEnergySummarySeries.Append(_chartBaseDate.AddDays(-1), _yesterdayFinalExportedEnergy);
+            DailyExportedEnergySummarySeries.Append(_chartBaseDate, _todayExportedEnergy);
+            DailyExportedEnergySummarySeries.Append(_chartBaseDate.AddDays(1), 0d);
+            DailyExportedYesterdayLabel = _yesterdayFinalExportedEnergy.ToString("0.0");
+            DailyExportedYesterdayX = _chartBaseDate.AddDays(-1);
+            DailyExportedYesterdayY = _yesterdayFinalExportedEnergy;
+            DailyExportedTodayLabel = _todayExportedEnergy.ToString("0.0");
+            DailyExportedTodayX = _chartBaseDate;
+            DailyExportedTodayY = _todayExportedEnergy;
         }
 
 
@@ -325,6 +465,20 @@ limit 1;",
             }
 
             ui.BeginInvoke((Action)Add);
+        }
+
+        private static int ToBitValue(ushort bits, int bit)
+        {
+            return (bits & (1 << bit)) != 0 ? 1 : 0;
+        }
+
+        private static ushort ReadU16(Dictionary<string, object> parsed, string key)
+        {
+            if (parsed == null || !parsed.TryGetValue(key, out var raw) || raw == null)
+                return 0;
+
+            try { return Convert.ToUInt16(raw); }
+            catch { return 0; }
         }
 
         #endregion
@@ -544,6 +698,10 @@ limit 1;",
             }
             PanelData.AlarmCnt = alarmCnt.ToString();
 
+            if (TryGetDouble(parsed, "GridTotalImportActivePower", out var tImport))
+            {
+                PanelData.T_Import_Energy = tImport.ToString("0.0");
+            }
         }
         void ChangeGridData(Dictionary<string, object> parsed)
         {
@@ -561,8 +719,8 @@ limit 1;",
                 if ((readyBits & (1 << 1)) != 0) faultPhase += "S";
                 if ((readyBits & (1 << 2)) != 0) faultPhase += "T";
 
-                SystemMsg = faultPhase;
                 GridItems[2].Value = (fuse == 0) ? "normal" : $"fault";
+                if(fuse != 0) SystemMsg = faultPhase;
             }
             
             if (TryGetDouble(parsed, "GridFault", out var fault))
@@ -583,38 +741,35 @@ limit 1;",
 
                 GridItems[3].Value = alarmCnt.ToString();
             }
-            // Grid 수전 유효전력량
-            if (TryGetDouble(parsed, "GridTotalImportActivePower", out var tImport))
+            // Grid 유효전력
+            if (TryGetDouble(parsed, "GridActivePower", out var power))
             {
-                PanelData.T_Import_Energy = tImport.ToString("0.0");
-                GridItems[5].Value = tImport.ToString("0.0");
+                GridItems[5].Value = power.ToString("0");
             }
-            // Grid 송전 유효전력량
-            if (TryGetDouble(parsed, "GridTotalExportedActivePower", out var tExport))
-            {
-                PanelData.T_Export_Energy = tExport.ToString("0.0");
-                GridItems[6].Value = tExport.ToString("0.0");
-            }
-            if (TryGetDouble(parsed, "GridVoltageAN", out var vAn)) GridItems[7].Value = vAn.ToString("0.0");
-            if (TryGetDouble(parsed, "GridVoltageBN", out var vBn)) GridItems[8].Value = vBn.ToString("0.0");
-            if (TryGetDouble(parsed, "GridVoltageCN", out var vCn)) GridItems[9].Value = vCn.ToString("0.0");
 
-            if (TryGetDouble(parsed, "GridCurrentAN", out var cAn)) GridItems[10].Value = cAn.ToString("0.0");
-            if (TryGetDouble(parsed, "GridCurrentBN", out var cBn)) GridItems[11].Value = cBn.ToString("0.0");
-            if (TryGetDouble(parsed, "GridCurrentCN", out var cCn)) GridItems[12].Value = cCn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageAN", out var vAn)) GridItems[6].Value = vAn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageBN", out var vBn)) GridItems[7].Value = vBn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageCN", out var vCn)) GridItems[8].Value = vCn.ToString("0.0");
 
-            if (TryGetDouble(parsed, "GridVoltageAB", out var vAb)) GridItems[13].Value = vAb.ToString("0.0");
-            if (TryGetDouble(parsed, "GridVoltageBC", out var vBc)) GridItems[14].Value = vBc.ToString("0.0");
-            if (TryGetDouble(parsed, "GridVoltageCA", out var vCa)) GridItems[15].Value = vCa.ToString("0.0");
+            if (TryGetDouble(parsed, "GridCurrentAN", out var cAn)) GridItems[9].Value = cAn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridCurrentBN", out var cBn)) GridItems[10].Value = cBn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridCurrentCN", out var cCn)) GridItems[11].Value = cCn.ToString("0.0");
 
-            if (TryGetDouble(parsed, "GridFrequency", out var freq)) GridItems[16].Value = freq.ToString("0.00");
-            if (TryGetDouble(parsed, "GridPowerFactor", out var pf)) GridItems[17].Value = pf.ToString("0.00");
-            if (TryGetDouble(parsed, "GridSurgeCounter", out var sc)) GridItems[18].Value = sc.ToString();
+            if (TryGetDouble(parsed, "GridVoltageAB", out var vAb)) GridItems[12].Value = vAb.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageBC", out var vBc)) GridItems[13].Value = vBc.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageCA", out var vCa)) GridItems[14].Value = vCa.ToString("0.0");
+
+            if (TryGetDouble(parsed, "GridFrequency", out var freq)) GridItems[15].Value = freq.ToString("0.00");
+            if (TryGetDouble(parsed, "GridPowerFactor", out var pf)) GridItems[16].Value = pf.ToString("0.00");
+            if (TryGetDouble(parsed, "GridSurgeCounter", out var sc)) GridItems[17].Value = sc.ToString("0");
         }
-        void ChangeInverterData(Dictionary<string, object> parsed)
+        void ChangeBatteryData(Dictionary<string, object> parsed)
         {
-            
-
+            if (TryGetDouble(parsed, "BatteryTotalChargePower", out var tcPower)) BattItems[0].Value = tcPower.ToString("0.0");
+            if (TryGetDouble(parsed, "BatteryTotalDischargePower", out var tdPower)) BattItems[1].Value = tdPower.ToString("0.0");
+            if (TryGetDouble(parsed, "BatteryPower", out var power)) BattItems[2].Value = power.ToString("0");
+            if (TryGetDouble(parsed, "BatteryVoltage", out var volt)) BattItems[3].Value = volt.ToString("0.0");
+            if (TryGetDouble(parsed, "BatteryCurrent", out var curr)) BattItems[4].Value = curr.ToString("0.0");
         }
         void ChangeLoadData(Dictionary<string, object> parsed)
         {
@@ -623,8 +778,8 @@ limit 1;",
             {
                 var readyBits = Convert.ToUInt16(fault);
 
-                if ((readyBits & (1 << 0)) != 0) { GridItems[1].Value = "fault"; SystemMsg = "over load fault"; }// line freq
-                else GridItems[1].Value = "normal";
+                if ((readyBits & (1 << 0)) != 0) { LoadItems[1].Value = "fault"; SystemMsg = "over load fault"; }// line freq
+                else LoadItems[1].Value = "normal";
             }
 
             if (TryGetDouble(parsed, "LoadTotalExportedActivePower", out var tExport)) LoadItems[3].Value = tExport.ToString("0.0");
@@ -682,25 +837,98 @@ limit 1;",
                 {
                     var snapshot = _latestParsed;
                     ChangePanelData(snapshot);
-                    ChangeInverterData(snapshot);
+                    //ChangeInverterData(snapshot);
+                    ChangeBatteryData(snapshot);
                     ChangeGridData(snapshot);
                     ChangeLoadData(snapshot);
                     ChangeEtcData(snapshot);
+                    if (TryGetDouble(snapshot, "GridTotalImportActivePower", out var totalImported))
+                        UpdateDailyImportedEnergySummary(totalImported);
+                    if (TryGetDouble(snapshot, "GridTotalExportedActivePower", out var totalExported))
+                        UpdateDailyExportedEnergySummary(totalExported);
                 }
                 finally
                 {
                     Interlocked.Exchange(ref _uiUpdatePending, 0);
                 }
             }));
-            App app = Application.Current as App;
             //SavePcsData(_latestParsed);
 
-            UpdateDailyImportedEnergySummary(app.DbManager.ReadDouble(_latestParsed, "Grid_Daily_ImportedEnergy"));
+            SavePcsStatusIfChanged(_latestParsed);
+            SavePcsGridDailyTotals(_latestParsed);
         }
 
         #endregion
 
         #region [ Database Function ]
+
+        private void SavePcsStatusIfChanged(Dictionary<string, object> parsed)
+        {
+            var app = Application.Current as App;
+            if (app?.DbManager == null || parsed == null) return;
+
+            if (!parsed.ContainsKey("ReadyStatus")) return;
+
+            var ready = ReadU16(parsed, "ReadyStatus");
+            var gridFault = ReadU16(parsed, "GridFault");
+            var invFault = ReadU16(parsed, "InvFault");
+            var loadFault = ReadU16(parsed, "LoadFault");
+            var commFault = ReadU16(parsed, "CommunicationFault");
+            var gridFuse = ReadU16(parsed, "GridFuseStatus");
+            var battFuse = ReadU16(parsed, "BatteryFuseStatus");
+            var bypassFuse = ReadU16(parsed, "BypassFuseStatus");
+
+            var statusGrid = ToBitValue(ready, 3);
+            var statusInv = ToBitValue(ready, 2);
+            var statusBatt = ToBitValue(ready, 1);
+            var statusComm = ToBitValue(ready, 5);
+            var statusBypass = ToBitValue(ready, 6);
+
+            var snapshotKey = string.Join("|",
+                statusGrid,
+                statusInv,
+                statusBatt,
+                statusComm,
+                statusBypass,
+                gridFault,
+                invFault,
+                loadFault,
+                commFault,
+                gridFuse,
+                battFuse,
+                bypassFuse);
+
+            if (snapshotKey == _lastPcsStatusSnapshotKey)
+                return;
+
+            app.DbManager.InsertPcsStatusSnapshot(
+                statusGrid,
+                statusInv,
+                statusBatt,
+                statusComm,
+                statusBypass,
+                gridFault,
+                invFault,
+                loadFault,
+                commFault,
+                gridFuse,
+                battFuse,
+                bypassFuse,
+                DateTime.Now);
+
+            _lastPcsStatusSnapshotKey = snapshotKey;
+        }
+
+        private void SavePcsGridDailyTotals(Dictionary<string, object> parsed)
+        {
+            var app = Application.Current as App;
+            if (app?.DbManager == null || parsed == null) return;
+
+            if (!TryGetDouble(parsed, "GridTotalImportActivePower", out var totalImported)) return;
+            if (!TryGetDouble(parsed, "GridTotalExportedActivePower", out var totalExported)) return;
+
+            app.DbManager.UpsertPcsGridDailyTotals(totalImported, totalExported, DateTime.Now);
+        }
 
         public void SavePcsData(Dictionary<string, object> parsed)
         {
