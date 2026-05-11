@@ -319,6 +319,7 @@
     <Compile Include="Models\Client\BMS\AlarmService.cs" />
     <Compile Include="Models\Client\BMS\BmsSpecs.cs" />
     <Compile Include="Models\Client\BMS\PcanRxService.cs" />
+    <Compile Include="Behaviors\TouchKeyboardService.cs" />
     <Compile Include="Models\Client\BMS\CanFieldSpec.cs" />
     <Compile Include="Models\Client\PCS\ModbusFieldSpec.cs" />
     <Compile Include="Models\Client\PCS\ModbusParse.cs" />

@@ -9,11 +9,11 @@
     xmlns:dxb="http://schemas.devexpress.com/winfx/2008/xaml/bars" 
     xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm" 
     xmlns:Views="clr-namespace:EMS_PJT_Hamburger.Views"
-    WindowStyle="ToolWindow"
     Title="Outside EMS PJT" 
     Height="768" Width="1024" Background="{DynamicResource Main.Background}"
     WindowStartupLocation="CenterOwner"
-    WindowState="Normal"
+    WindowState="Maximized"
+    WindowStyle="None"
     FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" Loaded="ThemedWindow_Loaded">
     <dx:ThemedWindow.Resources>
         <Style TargetType="{x:Type dxwui:HamburgerMenuNavigationButton}">

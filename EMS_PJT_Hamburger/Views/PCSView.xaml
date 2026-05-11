@@ -162,7 +162,7 @@
                                 <Label Content="V" Grid.Column="2" Grid.Row="9" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
                                 <Label Content="최대 충전전류" Grid.Row="10" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <dxe:TextEdit Grid.Column="1" Grid.Row="10" Margin="2,4" EditValue="{Binding ControlMaxChargeCurrent, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="1" Grid.Row="10" MaskType="Numeric" Margin="0,4,2,4" EditValue="{Binding ControlMaxChargeCurrent, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center" HorizontalAlignment="Right" Width="82"/>
                                 <Label Content="A" Grid.Column="2" Grid.Row="10" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
                                 <Label Content="최대 방전전류" Grid.Row="11" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -375,7 +375,7 @@
                                            Margin="10,0,0,0"
                                            Text="{Binding PanelData.PcsTime}"/>
                             </StackPanel>
-                            
+
                             <Label Grid.Column="2" Grid.Row="1"            
                                    Margin="0"
                                    Style="{StaticResource HeadLableStyle}" Width="200">
@@ -584,7 +584,7 @@
                                                                       Stroke="Lime"
                                                                       StrokeThickness="2"/>
                                             </s:FastMountainRenderableSeries.PointMarker>
-                                            
+
                                         </s:FastMountainRenderableSeries>
                                     </s:SciChartSurface.RenderableSeries>
 
