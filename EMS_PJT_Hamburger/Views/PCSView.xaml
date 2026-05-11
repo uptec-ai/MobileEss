@@ -60,7 +60,7 @@
         <Style TargetType="{x:Type Border}" x:Key="BorderCardStyle">
             <Setter Property="Margin" Value="5"/>
             <Setter Property="Background" Value="{DynamicResource Main.Panel.Background}"/>
-            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="CornerRadius" Value="0"/>
             <Setter Property="BorderBrush" Value="#FFF3F3F3"/>
             <Setter Property="BorderThickness" Value="0,0,1,0"/>
             <Setter Property="Padding" Value="10"/>
@@ -372,11 +372,10 @@
                                            FontSize="16"  
                                            FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" 
                                            Foreground="White"
-                                           Margin="10,0,0,0"><Run Text="2026-03-11 00:00:00"/></TextBlock>
+                                           Margin="10,0,0,0"
+                                           Text="{Binding PanelData.PcsTime}"/>
                             </StackPanel>
                             
-                            
-
                             <Label Grid.Column="2" Grid.Row="1"            
                                    Margin="0"
                                    Style="{StaticResource HeadLableStyle}" Width="200">
@@ -414,7 +413,7 @@
                                                 <Grid Margin="0 2">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="120"/>
+                                                        <ColumnDefinition Width="110"/>
                                                         <ColumnDefinition Width="30"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Header}"
@@ -459,7 +458,7 @@
                                                 <Grid Margin="0 2">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="120"/>
+                                                        <ColumnDefinition Width="110"/>
                                                         <ColumnDefinition Width="30"/>
                                                     </Grid.ColumnDefinitions>
                                                     <TextBlock Text="{Binding Header}"
@@ -492,30 +491,29 @@
                             <!-- Inverter -->
                             <Border Grid.Column="2"
                                     Style="{StaticResource BorderCardStyle}">
-                                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                    <StackPanel>
-                                        <Label Content="ETC"
+                                <StackPanel>
+                                    <Label Content="ETC"
                                                HorizontalAlignment="Left"
                                                FontWeight="Bold"
                                                FontSize="20"
                                                Style="{StaticResource HeadLableStyle}"/>
 
-                                        <ItemsControl ItemsSource="{Binding EtcItems}" Margin="0">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Grid Margin="0 2">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="*"/>
-                                                            <ColumnDefinition Width="120"/>
-                                                            <ColumnDefinition Width="30"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <TextBlock Text="{Binding Header}"
+                                    <ItemsControl ItemsSource="{Binding EtcItems}" Margin="0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0 2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="110"/>
+                                                        <ColumnDefinition Width="30"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding Header}"
                                                                FontSize="14" 
                                                                Foreground="White" VerticalAlignment="Center" Grid.ColumnSpan="3"/>
-                                                        <TextBlock Text="{Binding Name}"
+                                                    <TextBlock Text="{Binding Name}"
                                                                FontSize="14"
                                                                Foreground="#FFC3C3C3" VerticalAlignment="Center"/>
-                                                        <TextBlock Text="{Binding Value}"
+                                                    <TextBlock Text="{Binding Value}"
                                                                Grid.Column="1"
                                                                Foreground="White"
                                                                VerticalAlignment="Center" 
@@ -523,18 +521,17 @@
                                                                Margin="0,0,5,0"
                                                                FontSize="24"
                                                                FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St"/>
-                                                        <TextBlock Text="{Binding Factor}"
+                                                    <TextBlock Text="{Binding Factor}"
                                                                Grid.Column="2" 
                                                                FontSize="12"
                                                                Foreground="#FFC3C3C3" 
                                                                VerticalAlignment="Bottom"
                                                                HorizontalAlignment="Left"/>
-                                                    </Grid>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </StackPanel>
-                                </ScrollViewer>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
                             </Border>
 
                             <!-- Chart -->
@@ -599,7 +596,8 @@
                                                         DrawMinorGridLines="False" 
                                                         DrawMinorTicks="False"
                                                         TextFormatting="yyyy-MM-dd"
-                                                        AxisTitle="수전 누적 전력 (MWh)" 
+                                                        MaxAutoTicks="5"
+                                                        AxisTitle="수전 누적 전력 (총합)" 
                                                         Foreground="LightGray">
                                         </s:DateTimeAxis>
                                     </s:SciChartSurface.XAxis>
@@ -680,10 +678,11 @@
                                         <s:DateTimeAxis DrawMajorBands="False" 
                                                         DrawMajorTicks="False" 
                                                         DrawMajorGridLines="False"
-                                                        DrawMinorGridLines="False" 
+                                                        DrawMinorGridLines="False"
                                                         DrawMinorTicks="False"
                                                         TextFormatting="yyyy-MM-dd"
-                                                        AxisTitle="송전 누적 전력 (MWh)"
+                                                        MaxAutoTicks="5"
+                                                        AxisTitle="송전 누적 전력 (총합)"
                                                         Foreground="LightGray"/>
                                     </s:SciChartSurface.XAxis>
 

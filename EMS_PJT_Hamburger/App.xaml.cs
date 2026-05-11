@@ -110,7 +110,7 @@ namespace EMS_PJT_Hamburger
             ConvertManager = new ConvertManager();
             StatusManager = new StatusManager();
             StatusManager.Init();
-            DbManager = new DbManager();
+            //DbManager = new DbManager();
 
             // Communication Code
             //CommonSetDataModel = new CommonSetDataModel();

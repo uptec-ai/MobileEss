@@ -11,6 +11,14 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
 
     public static class PcsSpecs
     {
+        public static readonly IList<ModbusFieldSpec> TimeData = new List<ModbusFieldSpec>
+        {
+            new ModbusFieldSpec { Address = 1, DataType = ModbusDataType.U16, Name = "PcsTimeYear", Scale = 1, Unit = "Y", },              // 시간(연)
+            new ModbusFieldSpec { Address = 2, DataType = ModbusDataType.U16, Name = "PcsTimeMonthDay", Scale = 1, Unit = "M/D", },       // 시간(월/일)
+            new ModbusFieldSpec { Address = 3, DataType = ModbusDataType.U16, Name = "PcsTimeHourMinute", Scale = 1, Unit = "h/m", },     // 시간(시/분)
+            new ModbusFieldSpec { Address = 4, DataType = ModbusDataType.U16, Name = "PcsTimeSecondMs", Scale = 1, Unit = "s/ms", },      // 시간(초/밀리초)
+        };
+
         public static readonly IList<ModbusFieldSpec> GridData = new List<ModbusFieldSpec>
         {
             new ModbusFieldSpec { Address = 5, DataType = ModbusDataType.U32, Name = "GridTotalImportActivePower", Scale = 0.1, Unit = "kWh", },   // Grid 수전 유효전력량
@@ -155,7 +163,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             { "FaultReset", new ModbusWriteSpec { Address = 1024, Scale = 1 } }                     // Fault Reset
         };
 
-        public static IEnumerable<ModbusFieldSpec> All => GridData.Concat(InvData).Concat(LoadData).Concat(BatteryData).Concat(EtcData).Concat(StatusData);
+        public static IEnumerable<ModbusFieldSpec> All => TimeData.Concat(GridData).Concat(InvData).Concat(LoadData).Concat(BatteryData).Concat(EtcData).Concat(StatusData);
 
     }
     public class ConnectionSettings : ViewModelBase
@@ -202,6 +210,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         public string AlarmCnt { get; set; }
         public string T_Import_Energy { get; set; }
         public string T_Export_Energy { get; set; }
+        public string PcsTime { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
     }
