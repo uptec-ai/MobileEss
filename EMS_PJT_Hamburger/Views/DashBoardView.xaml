@@ -154,7 +154,7 @@
                                         <DropShadowEffect Color="Black" Direction="320" ShadowDepth="3" BlurRadius="0" Opacity="1"/>
                                     </TextBlock.Effect>
                                     <Run Text="{Binding PcsVm.BattItems[2].Value, Mode=TwoWay, Source={x:Static Application.Current}, UpdateSourceTrigger=PropertyChanged}"/>
-                                    <Run Text="W" Foreground="White"/>
+                                    <Run Text="kW" Foreground="White"/>
                                 </TextBlock>
                             </Label.Content>
                         </Label>

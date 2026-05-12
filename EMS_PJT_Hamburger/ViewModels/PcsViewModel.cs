@@ -78,19 +78,43 @@ namespace EMS_PJT_Hamburger.ViewModels
                 new DataItem { Name="상전류 (BN)", Value=$"0.0", Factor="A"},       // 10
                 new DataItem { Name="상전류 (CN)", Value=$"0.0", Factor="A"},       // 11
 
-                new DataItem { Name="선간 전압 (AB)", Value=$"0.0", Factor="A"},    // 12
-                new DataItem { Name="선간 전압 (BC)", Value=$"0.0", Factor="A"},    // 13
-                new DataItem { Name="선간 전압 (CA)", Value=$"0.0", Factor="A"},    // 14
+                new DataItem { Name="선간 전압 (AB)", Value=$"0", Factor="V"},    // 12
+                new DataItem { Name="선간 전압 (BC)", Value=$"0", Factor="V"},    // 13
+                new DataItem { Name="선간 전압 (CA)", Value=$"0", Factor="V"},    // 14
 
-                new DataItem { Name="주파수", Value=$"0.00", Factor="Hz"},          // 15
+                new DataItem { Name="주파수", Value=$"0.0", Factor="Hz"},          // 15
                 new DataItem { Name="역률", Value=$"0.00", Factor="%"},             // 16
                 new DataItem { Name="Sourge Count", Value=$"0", Factor="Cyc"},     // 17
+            };
+
+            InvItems = new ObservableCollection<DataItem>
+            {
+                new DataItem { Header="----------------------- 상태 -----------------------"},
+                new DataItem { Name="Fault 상태", Value=$"0"},            // 1
+                new DataItem { Header="----------------------- 정보 -----------------------"},
+                new DataItem { Name="Total 송전 전력량", Value=$"0.0", Factor="MWh"},  // 3
+                new DataItem { Name="Total 수전 전력량", Value=$"0.0", Factor="MWh"},  // 4
+                new DataItem { Name="유효 전력", Value=$"0", Factor="kWh"},       // 5
+
+                new DataItem { Name="상전압 (AN)", Value=$"0.0", Factor="V"}, // 6
+                new DataItem { Name="상전압 (BN)", Value=$"0.0", Factor="V"}, // 7
+                new DataItem { Name="상전압 (CN)", Value=$"0.0", Factor="V"}, // 8
+
+                new DataItem { Name="상전류 (AN)", Value=$"0.0", Factor="A"}, // 9
+                new DataItem { Name="상전류 (BN)", Value=$"0.0", Factor="A"}, // 10
+                new DataItem { Name="상전류 (CN)", Value=$"0.0", Factor="A"}, // 11
+
+                new DataItem { Name="선간 전압 (AB)", Value=$"0", Factor="V"}, // 12
+                new DataItem { Name="선간 전압 (BC)", Value=$"0", Factor="V"}, // 13
+                new DataItem { Name="선간 전압 (CA)", Value=$"0", Factor="V"}, // 14
+
+                new DataItem { Name="주파수", Value=$"0.0", Factor="Hz"},      // 15
+                new DataItem { Name="역률", Value=$"0.00", Factor="%"},        // 16
             };
 
             LoadItems = new ObservableCollection<DataItem>
             {
                 new DataItem { Header="----------------------- 상태 -----------------------"},
-                //new DataItem { Name="운전 상태", Value=$"off"}, // 1
                 new DataItem { Name="Fault 상태", Value=$"0"},            // 1
                 new DataItem { Header="----------------------- 정보 -----------------------"},
                 new DataItem { Name="Total 송전 전력량", Value=$"0.0", Factor="MWh"},  // 3
@@ -107,11 +131,11 @@ namespace EMS_PJT_Hamburger.ViewModels
                 new DataItem { Name="상전류 (BN)", Value=$"0.0", Factor="A"}, // 12
                 new DataItem { Name="상전류 (CN)", Value=$"0.0", Factor="A"}, // 13
 
-                new DataItem { Name="선간 전압 (AB)", Value=$"0.0", Factor="A"}, // 14
-                new DataItem { Name="선간 전압 (BC)", Value=$"0.0", Factor="A"}, // 15
-                new DataItem { Name="선간 전압 (CA)", Value=$"0.0", Factor="A"}, // 16
+                new DataItem { Name="선간 전압 (AB)", Value=$"0", Factor="V"}, // 14
+                new DataItem { Name="선간 전압 (BC)", Value=$"0", Factor="V"}, // 15
+                new DataItem { Name="선간 전압 (CA)", Value=$"0", Factor="V"}, // 16
 
-                new DataItem { Name="주파수", Value=$"0.00", Factor="Hz"},       // 17
+                new DataItem { Name="주파수", Value=$"0.0", Factor="Hz"},       // 17
                 new DataItem { Name="역률", Value=$"0.00", Factor="%"},          // 18
                 //new DataItem { Name="수전 누적 전력량(일간)", Value="124.4", Factor="kWh"},
                 //new DataItem { Name="송전 누적 전력량(일간)", Value="5.4", Factor="kWh"},
@@ -121,30 +145,29 @@ namespace EMS_PJT_Hamburger.ViewModels
                 //new DataItem { Name="선간전류 CA", Value="31.1", Factor="A"},
             };
 
+            EtcItems = new ObservableCollection<DataItem>
+            {
+                new DataItem { Header="----------------------- 정보 -----------------------"},
+                new DataItem { Name="내부온도 (주위)", Value=$"0", Factor="℃"},      // 1
+                new DataItem { Name="내부온도1 (방열판)", Value=$"0", Factor="℃"},   // 2
+                new DataItem { Name="내부온도2 (방열판)", Value=$"0", Factor="℃"},   // 3
+                new DataItem { Name="내부온도3 (방열판)", Value=$"0", Factor="℃"},   // 4
+                new DataItem { Name="내부온도4 (방열판)", Value=$"0", Factor="℃"},   // 5
+                new DataItem { Name="내부온도5 (방열판)", Value=$"0", Factor="℃"},   // 6
+                new DataItem { Name="내부온도6 (방열판)", Value=$"0", Factor="℃"},   // 7
+                new DataItem { Name="내부온도7 (방열판)", Value=$"0", Factor="℃"},   // 8
+                new DataItem { Name="내부온도8 (방열판)", Value=$"0", Factor="℃"},   // 9
+                new DataItem { Name="누설 전류(RCMU)", Value=$"0", Factor="mA"},     // 10
+                new DataItem { Name="Heart Beat 카운트", Value=$"0", Factor="Cyc"},  // 11
+            }; 
+            
             BattItems = new ObservableCollection<DataItem>
             {
                 new DataItem { Name="Battery 총 충전량", Value=$"0.0", Factor="kWh"},   // 0
                 new DataItem { Name="Battery 총 방전량", Value=$"0.0", Factor="kWh"},   // 1
-                new DataItem { Name="Battery 전력", Value=$"0", Factor="kWh"},   // 2
-                new DataItem { Name="Battery 전압", Value=$"0.0", Factor="kWh"},   // 3
+                new DataItem { Name="Battery 전력", Value=$"0.0", Factor="kW"},   // 2
+                new DataItem { Name="Battery 전압", Value=$"0", Factor="kWh"},   // 3
                 new DataItem { Name="Battery 전류", Value=$"0.0", Factor="kWh"},   // 4
-            };
-
-            EtcItems = new ObservableCollection<DataItem>
-            {
-                new DataItem { Header="----------------------- 정보 -----------------------"},
-                new DataItem { Name="내부온도 (주위)", Value=$"0.0", Factor="℃"},      //1
-                new DataItem { Name="내부온도1 (방열판)", Value=$"0.0", Factor="℃"},   // 2
-                new DataItem { Name="내부온도2 (방열판)", Value=$"0.0", Factor="℃"},   // 3
-                new DataItem { Name="내부온도3 (방열판)", Value=$"0.0", Factor="℃"},   // 4
-                new DataItem { Name="내부온도4 (방열판)", Value=$"0.0", Factor="℃"},   // 5
-                new DataItem { Name="내부온도5 (방열판)", Value=$"0.0", Factor="℃"},   // 6
-                new DataItem { Name="내부온도6 (방열판)", Value=$"0.0", Factor="℃"},   // 7
-                new DataItem { Name="내부온도7 (방열판)", Value=$"0.0", Factor="℃"},   // 8
-                new DataItem { Name="내부온도8 (방열판)", Value=$"0.0", Factor="℃"},   // 9
-                new DataItem { Name="누설 전류(RCMU)", Value=$"0", Factor="mA"},       // 10
-                new DataItem { Name="Heart Beat 카운트", Value=$"0", Factor="Cyc"},    // 11
-                
             };
 
             _ = ConnectAsync();

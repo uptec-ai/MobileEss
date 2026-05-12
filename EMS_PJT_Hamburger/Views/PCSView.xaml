@@ -443,8 +443,54 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Load -->
+                            <!-- Inverter -->
                             <Border Grid.Column="1"
+                                    Style="{StaticResource BorderCardStyle}">
+                                <StackPanel>
+                                    <Label Content="INVERTER"
+                                               HorizontalAlignment="Left"
+                                               FontWeight="Bold"
+                                               FontSize="20"
+                                               Style="{StaticResource HeadLableStyle}"/>
+
+                                    <ItemsControl ItemsSource="{Binding InvItems}" Margin="0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0 2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="110"/>
+                                                        <ColumnDefinition Width="30"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding Header}"
+                                                               FontSize="14" 
+                                                               Foreground="White" VerticalAlignment="Center" Grid.ColumnSpan="3"/>
+                                                    <TextBlock Text="{Binding Name}"
+                                                               FontSize="14"
+                                                               Foreground="#FFC3C3C3" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding Value}"
+                                                               Grid.Column="1"
+                                                               Foreground="White"
+                                                               VerticalAlignment="Center" 
+                                                               HorizontalAlignment="Right" 
+                                                               Margin="0,0,5,0"
+                                                               FontSize="24"
+                                                               FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St"/>
+                                                    <TextBlock Text="{Binding Factor}"
+                                                               Grid.Column="2" 
+                                                               FontSize="12"
+                                                               Foreground="#FFC3C3C3" 
+                                                               VerticalAlignment="Bottom"
+                                                               HorizontalAlignment="Left"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Load -->
+                            <Border Grid.Column="2"
                                     Style="{StaticResource BorderCardStyle}">
                                 <StackPanel>
                                     <Label Content="LOAD"
@@ -488,8 +534,8 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Inverter -->
-                            <Border Grid.Column="2"
+                            <!-- Battery -->
+                            <Border Grid.Column="3"
                                     Style="{StaticResource BorderCardStyle}">
                                 <StackPanel>
                                     <Label Content="ETC"
@@ -533,187 +579,6 @@
                                     </ItemsControl>
                                 </StackPanel>
                             </Border>
-
-                            <!-- Chart -->
-                            <Grid Grid.Column="3" Margin="10,0,0,0">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                </Grid.RowDefinitions>
-
-                                <s:SciChartSurface x:Name="D_ImportedEnergyChart" Grid.Row="0" Margin="0" Background="{x:Null}" BorderBrush="White" BorderThickness="0,0,1,1" Height="300">
-                                    <!--  Declare RenderableSeries  -->
-                                    <s:SciChartSurface.RenderableSeries>
-                                        <s:FastMountainRenderableSeries Fill="LightCyan"
-                                                                        Stroke="Lime"
-                                                                        StrokeThickness="2"
-                                                                        DataSeries="{Binding DailyImportedEnergySummarySeries}">
-                                            <s:RolloverModifier.TooltipContainerStyle>
-                                                <Style TargetType="s:TooltipControl">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                    <Setter Property="BorderBrush" Value="Transparent"/>
-                                                    <Setter Property="BorderThickness" Value="0"/>
-                                                    <Setter Property="Padding" Value="0"/>
-                                                </Style>
-                                            </s:RolloverModifier.TooltipContainerStyle>
-
-                                            <s:RolloverModifier.TooltipTemplate>
-                                                <DataTemplate>
-                                                    <Border Background="#CC1E1E1E"
-                                                            BorderBrush="Lime"
-                                                            BorderThickness="1"
-                                                            CornerRadius="3"
-                                                            Padding="6,3">
-                                                        <TextBlock Foreground="White"
-                                                                   FontSize="14"
-                                                                   FontWeight="SemiBold">
-                                                            <Run Text="{Binding FormattedYValue, Mode=OneWay}" />
-                                                            <Run Text=" kWh" />
-                                                        </TextBlock>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </s:RolloverModifier.TooltipTemplate>
-
-                                            <s:FastMountainRenderableSeries.SeriesAnimation>
-                                                <s:WaveAnimation AnimationDelay="0:0:0.2" Duration="0:0:2" PointDurationFraction="0.3"/>
-                                            </s:FastMountainRenderableSeries.SeriesAnimation>
-                                            <s:FastMountainRenderableSeries.PointMarker>
-                                                <s:EllipsePointMarker Width="7"
-                                                                      Height="7"
-                                                                      Fill="White"
-                                                                      Stroke="Lime"
-                                                                      StrokeThickness="2"/>
-                                            </s:FastMountainRenderableSeries.PointMarker>
-
-                                        </s:FastMountainRenderableSeries>
-                                    </s:SciChartSurface.RenderableSeries>
-
-                                    <!--  Create an X Axis  -->
-                                    <s:SciChartSurface.XAxis>
-                                        <s:DateTimeAxis DrawMajorBands="False" 
-                                                        DrawMajorTicks="False" 
-                                                        DrawMajorGridLines="False"
-                                                        DrawMinorGridLines="False" 
-                                                        DrawMinorTicks="False"
-                                                        TextFormatting="yyyy-MM-dd"
-                                                        MaxAutoTicks="5"
-                                                        AxisTitle="수전 누적 전력 (총합)" 
-                                                        Foreground="LightGray">
-                                        </s:DateTimeAxis>
-                                    </s:SciChartSurface.XAxis>
-
-                                    <!--  Create a Y Axis. Optional bands give a cool look and feel for minimal performance impact  -->
-                                    <s:SciChartSurface.YAxis>
-                                        <s:NumericAxis DrawMajorBands="False" 
-                                                       GrowBy="0.1, 0.1" 
-                                                       VisibleRange="0,500" 
-                                                       MaxAutoTicks="4"
-                                                       DrawMajorTicks="False" 
-                                                       DrawMajorGridLines="True" 
-                                                       DrawMinorGridLines="False" 
-                                                       DrawMinorTicks="False"
-                                                       AxisTitle="KWh"
-                                                       Foreground="LightGray"/>
-                                    </s:SciChartSurface.YAxis>
-
-                                    <!--  Optional ChartModifier to add interactivity  -->
-                                    <s:SciChartSurface.ChartModifier>
-                                        <s:ModifierGroup>
-                                            <s:MouseWheelZoomModifier/>
-                                            <s:RubberBandXyZoomModifier IsAnimated="False" IsXAxisOnly="True"/>
-                                            <s:ZoomExtentsModifier/>
-                                            <s:RolloverModifier ReceiveHandledEvents="True"
-                                                                DrawVerticalLine="True"
-                                                                ShowTooltipOn="Always"
-                                                                SourceMode="AllVisibleSeries"/>
-                                        </s:ModifierGroup>
-                                    </s:SciChartSurface.ChartModifier>
-                                </s:SciChartSurface>
-
-                                <s:SciChartSurface x:Name="D_ExportedEnergyChart" Grid.Row="1" Margin="0" Background="{x:Null}" BorderBrush="White" BorderThickness="0,0,1,1" Height="300">
-                                    <!--  Declare RenderableSeries  -->
-                                    <s:SciChartSurface.RenderableSeries>
-                                        <s:FastMountainRenderableSeries x:Name="_dExportedEnergyRenderSeries"
-                                                                        Fill="LightCyan"
-                                                                        Stroke="Lime"
-                                                                        StrokeThickness="2"
-                                                                        DataSeries="{Binding DailyExportedEnergySummarySeries}">
-                                            <s:RolloverModifier.TooltipContainerStyle>
-                                                <Style TargetType="s:TooltipControl">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                    <Setter Property="BorderBrush" Value="Transparent"/>
-                                                    <Setter Property="BorderThickness" Value="0"/>
-                                                    <Setter Property="Padding" Value="0"/>
-                                                </Style>
-                                            </s:RolloverModifier.TooltipContainerStyle>
-
-                                            <s:RolloverModifier.TooltipTemplate>
-                                                <DataTemplate>
-                                                    <Border Background="#CC1E1E1E"
-                                                            BorderBrush="Lime"
-                                                            BorderThickness="1"
-                                                            CornerRadius="3"
-                                                            Padding="6,3">
-                                                        <TextBlock Foreground="White"
-                                                                   FontSize="14"
-                                                                   FontWeight="SemiBold">
-                                                            <Run Text="{Binding FormattedYValue, Mode=OneWay}" />
-                                                            <Run Text=" kWh" />
-                                                        </TextBlock>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </s:RolloverModifier.TooltipTemplate>
-                                            <s:FastMountainRenderableSeries.PointMarker>
-                                                <s:EllipsePointMarker Width="7"
-                                                                      Height="7"
-                                                                      Fill="White"
-                                                                      Stroke="Lime"
-                                                                      StrokeThickness="2"/>
-                                            </s:FastMountainRenderableSeries.PointMarker>
-                                        </s:FastMountainRenderableSeries>
-                                    </s:SciChartSurface.RenderableSeries>
-
-                                    <!--  Create an X Axis  -->
-                                    <s:SciChartSurface.XAxis>
-                                        <s:DateTimeAxis DrawMajorBands="False" 
-                                                        DrawMajorTicks="False" 
-                                                        DrawMajorGridLines="False"
-                                                        DrawMinorGridLines="False"
-                                                        DrawMinorTicks="False"
-                                                        TextFormatting="yyyy-MM-dd"
-                                                        MaxAutoTicks="5"
-                                                        AxisTitle="송전 누적 전력 (총합)"
-                                                        Foreground="LightGray"/>
-                                    </s:SciChartSurface.XAxis>
-
-                                    <!--  Create a Y Axis. Optional bands give a cool look and feel for minimal performance impact  -->
-                                    <s:SciChartSurface.YAxis>
-                                        <s:NumericAxis DrawMajorBands="False" 
-                                                       GrowBy="0.1, 0.1" 
-                                                       VisibleRange="0,500" 
-                                                       MaxAutoTicks="4"
-                                                       DrawMajorTicks="False" 
-                                                       DrawMajorGridLines="True" 
-                                                       DrawMinorGridLines="False" 
-                                                       DrawMinorTicks="False"
-                                                       AxisTitle="KWh"
-                                                       Foreground="LightGray"/>
-                                    </s:SciChartSurface.YAxis>
-
-                                    <!--  Optional ChartModifier to add interactivity  -->
-                                    <s:SciChartSurface.ChartModifier>
-                                        <s:ModifierGroup>
-                                            <s:MouseWheelZoomModifier/>
-                                            <s:RubberBandXyZoomModifier IsAnimated="False" IsXAxisOnly="True"/>
-                                            <s:ZoomExtentsModifier/>
-                                            <s:RolloverModifier ReceiveHandledEvents="True"
-                                                                DrawVerticalLine="True"
-                                                                ShowTooltipOn="Always"
-                                                                SourceMode="AllVisibleSeries"/>
-                                        </s:ModifierGroup>
-                                    </s:SciChartSurface.ChartModifier>
-                                </s:SciChartSurface>
-                            </Grid>
 
                         </Grid>
 

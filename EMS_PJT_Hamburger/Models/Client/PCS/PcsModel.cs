@@ -152,6 +152,16 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 OnPropertyChanged(nameof(LoadItems));
             }
         }
+        public ObservableCollection<DataItem> _invtems { get; set; }
+        public ObservableCollection<DataItem> InvItems
+        {
+            get => _invtems;
+            set
+            {
+                _invtems = value;
+                OnPropertyChanged(nameof(InvItems));
+            }
+        }
         public ObservableCollection<DataItem> _battItems { get; set; }
         public ObservableCollection<DataItem> BattItems
         {
@@ -644,24 +654,53 @@ order by collected_at::date, collected_at desc;",
             var parsed = ModbusParser.ParseRegisters(registers, PcsSpecs.All, PollStartAddress);
             ChangeInformation(parsed);
         }
-
         protected async Task WriteControlU16Async(string ctrl, double input)
         {
             var spec = PcsSpecs.ControlWrite[ctrl];
 
             var raw = (int)Math.Round(input / spec.Scale);
-            if (raw < ushort.MinValue || raw > ushort.MaxValue)
-                throw new ArgumentOutOfRangeException(nameof(input), $"[{ctrl}] write value is out of U16 range.");
 
-            await _client.WriteSingleRegisterAsync(spec.Address, (ushort)raw);
+            if (raw < ushort.MinValue || raw > ushort.MaxValue)
+                throw new ArgumentOutOfRangeException(
+                    nameof(input),
+                    $"[{ctrl}] write value is out of U16 range."
+                );
+
+            await _client.WriteMultipleRegistersAsync(
+                spec.Address,
+                new ushort[]
+                {
+            (ushort)raw
+                }
+            );
         }
+        //protected async Task WriteControlU16Async(string ctrl, double input)
+        //{
+        //    var spec = PcsSpecs.ControlWrite[ctrl];
+
+        //    var raw = (int)Math.Round(input / spec.Scale);
+        //    if (raw < ushort.MinValue || raw > ushort.MaxValue)
+        //        throw new ArgumentOutOfRangeException(nameof(input), $"[{ctrl}] write value is out of U16 range.");
+
+        //    await _client.WriteSingleRegisterAsync(spec.Address, (ushort)raw);
+        //}
 
         protected async Task WriteControlRawU16Async(string ctrl, ushort value)
         {
             var spec = PcsSpecs.ControlWrite[ctrl];
 
-            await _client.WriteSingleRegisterAsync(spec.Address, value);
+            // FC10: Write Multiple Registers
+            await _client.WriteMultipleRegistersAsync(
+                spec.Address,
+                new ushort[] { value }
+            );
         }
+        //protected async Task WriteControlRawU16Async(string ctrl, ushort value)
+        //{
+        //    var spec = PcsSpecs.ControlWrite[ctrl];
+
+        //    await _client.WriteSingleRegisterAsync(spec.Address, value);
+        //}
 
         protected async Task WriteControlU32Async(string ctrl, double input)
         {
@@ -672,6 +711,12 @@ order by collected_at::date, collected_at desc;",
                 throw new ArgumentOutOfRangeException(nameof(input), $"[{ctrl}] write value is out of U32 range.");
 
             var value = (uint)Math.Round(raw);
+            // low word
+            //var values = new[]
+            //{
+            //    (ushort)(value & 0xFFFF),
+            //    (ushort)(value >> 16)
+            //};
             var values = new[]
             {
                 (ushort)(value >> 16),
@@ -784,7 +829,7 @@ order by collected_at::date, collected_at desc;",
             if (minute < 0 || minute > 59) return;
             if (second < 0 || second > 59) return;
 
-            PanelData.PcsTime = new DateTime(year, month, day, hour, minute, second).ToString("yyyy-MM-dd HH:mm:ss");
+            PanelData.PcsTime = new DateTime(year, month, day, hour, minute, second).ToString("20yy-MM-dd HH:mm:ss");
         }
         void ChangeGridData(Dictionary<string, object> parsed)
         {
@@ -846,13 +891,36 @@ order by collected_at::date, collected_at desc;",
             if (TryGetDouble(parsed, "GridPowerFactor", out var pf)) GridItems[16].Value = pf.ToString("0.00");
             if (TryGetDouble(parsed, "GridSurgeCounter", out var sc)) GridItems[17].Value = sc.ToString("0");
         }
-        void ChangeBatteryData(Dictionary<string, object> parsed)
+        void ChangeInverterData(Dictionary<string, object> parsed)
         {
-            if (TryGetDouble(parsed, "BatteryTotalChargePower", out var tcPower)) BattItems[0].Value = tcPower.ToString("0.0");
-            if (TryGetDouble(parsed, "BatteryTotalDischargePower", out var tdPower)) BattItems[1].Value = tdPower.ToString("0.0");
-            if (TryGetDouble(parsed, "BatteryPower", out var power)) BattItems[2].Value = power.ToString("0");
-            if (TryGetDouble(parsed, "BatteryVoltage", out var volt)) BattItems[3].Value = volt.ToString("0.0");
-            if (TryGetDouble(parsed, "BatteryCurrent", out var curr)) BattItems[4].Value = curr.ToString("0.0");
+            //if (TryGetDouble(parsed, "Load_Status", out var ready)) LoadItems[1].Value = ready >= 500 ? "on" : "off";
+            if (TryGetDouble(parsed, "InvFault", out var fault))
+            {
+                var readyBits = Convert.ToUInt16(fault);
+
+                if ((readyBits & (1 << 0)) != 0) { InvItems[1].Value = "fault"; SystemMsg = "over inverter fault"; }// line freq
+                else LoadItems[1].Value = "normal";
+            }
+
+            if (TryGetDouble(parsed, "InvTotalImportActivePower", out var tImport)) InvItems[3].Value = tImport.ToString("0.0");
+            if (TryGetDouble(parsed, "InvTotalExportedActivePower", out var tExport)) InvItems[4].Value = tExport.ToString("0.0");
+            if (TryGetDouble(parsed, "InvActivePower", out var p)) InvItems[5].Value = p.ToString("0");
+
+
+            if (TryGetDouble(parsed, "InvVoltageAN", out var vAn)) InvItems[6].Value = vAn.ToString("0.0");
+            if (TryGetDouble(parsed, "InvVoltageBN", out var vBn)) InvItems[7].Value = vBn.ToString("0.0");
+            if (TryGetDouble(parsed, "InvVoltageCN", out var vCn)) InvItems[8].Value = vCn.ToString("0.0");
+
+            if (TryGetDouble(parsed, "InvCurrentAN", out var cAn)) InvItems[9].Value = cAn.ToString("0.0");
+            if (TryGetDouble(parsed, "InvCurrentBN", out var cBn)) InvItems[10].Value = cBn.ToString("0.0");
+            if (TryGetDouble(parsed, "InvCurrentCN", out var cCn)) InvItems[11].Value = cCn.ToString("0.0");
+
+            if (TryGetDouble(parsed, "InvVoltageAB", out var vAb)) InvItems[12].Value = vAb.ToString("0");
+            if (TryGetDouble(parsed, "InvVoltageBC", out var vBc)) InvItems[13].Value = vBc.ToString("0");
+            if (TryGetDouble(parsed, "InvVoltageCA", out var vCa)) InvItems[14].Value = vCa.ToString("0");
+
+            if (TryGetDouble(parsed, "InvFrequency", out var freq)) InvItems[15].Value = freq.ToString("0.0");
+            if (TryGetDouble(parsed, "InvPowerFactor", out var pf)) InvItems[16].Value = pf.ToString("0.00");
         }
         void ChangeLoadData(Dictionary<string, object> parsed)
         {
@@ -886,6 +954,15 @@ order by collected_at::date, collected_at desc;",
             if (TryGetDouble(parsed, "LoadFrequency", out var freq)) LoadItems[17].Value = freq.ToString("0.00");
             if (TryGetDouble(parsed, "LoadPowerFactor", out var pf)) LoadItems[18].Value = pf.ToString("0.00");
         }
+        void ChangeBatteryData(Dictionary<string, object> parsed)
+        {
+            if (TryGetDouble(parsed, "BatteryTotalChargePower", out var tcPower)) BattItems[0].Value = tcPower.ToString("0.0");
+            if (TryGetDouble(parsed, "BatteryTotalDischargePower", out var tdPower)) BattItems[1].Value = tdPower.ToString("0.0");
+            if (TryGetDouble(parsed, "BatteryPower", out var power)) BattItems[2].Value = power.ToString("0.0");
+            if (TryGetDouble(parsed, "BatteryVoltage", out var volt)) BattItems[3].Value = volt.ToString("0");
+            if (TryGetDouble(parsed, "BatteryCurrent", out var curr)) BattItems[4].Value = curr.ToString("0.0");
+        }
+
         void ChangeEtcData(Dictionary<string, object> parsed)
         {
             if (TryGetDouble(parsed, "InvAmbientTemperature", out var aTemp01)) EtcItems[1].Value = aTemp01.ToString("0.0");
@@ -920,11 +997,11 @@ order by collected_at::date, collected_at desc;",
                 {
                     var snapshot = _latestParsed;
                     ChangePanelData(snapshot);
-                    //ChangeInverterData(snapshot);
-                    ChangeBatteryData(snapshot);
                     ChangeGridData(snapshot);
+                    ChangeInverterData(snapshot);
                     ChangeLoadData(snapshot);
                     ChangeEtcData(snapshot);
+                    ChangeBatteryData(snapshot);
                     if (TryGetDouble(snapshot, "GridTotalImportActivePower", out var totalImported))
                         UpdateDailyImportedEnergySummary(totalImported);
                     if (TryGetDouble(snapshot, "GridTotalExportedActivePower", out var totalExported))

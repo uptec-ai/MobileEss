@@ -33,11 +33,11 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             new ModbusFieldSpec { Address = 33, DataType = ModbusDataType.S16, Name = "GridCurrentBN", Scale = 0.1, Unit = "A", },                 // Grid 상전류 (BN)
             new ModbusFieldSpec { Address = 34, DataType = ModbusDataType.S16, Name = "GridCurrentCN", Scale = 0.1, Unit = "A", },                 // Grid 상전류 (CN)
                                                                                                                                                    
-            new ModbusFieldSpec { Address = 35, DataType = ModbusDataType.U16, Name = "GridVoltageAB", Scale = 0.1, Unit = "V", },                 // Grid 선간 전압 (A-B)
-            new ModbusFieldSpec { Address = 36, DataType = ModbusDataType.U16, Name = "GridVoltageBC", Scale = 0.1, Unit = "V", },                 // Grid 선간 전압 (B-C)
-            new ModbusFieldSpec { Address = 37, DataType = ModbusDataType.U16, Name = "GridVoltageCA", Scale = 0.1, Unit = "V", },                 // Grid 선간 전압 (C-A)
+            new ModbusFieldSpec { Address = 35, DataType = ModbusDataType.U16, Name = "GridVoltageAB", Scale = 1, Unit = "V", },                 // Grid 선간 전압 (A-B)
+            new ModbusFieldSpec { Address = 36, DataType = ModbusDataType.U16, Name = "GridVoltageBC", Scale = 1, Unit = "V", },                 // Grid 선간 전압 (B-C)
+            new ModbusFieldSpec { Address = 37, DataType = ModbusDataType.U16, Name = "GridVoltageCA", Scale = 1, Unit = "V", },                 // Grid 선간 전압 (C-A)
 
-            new ModbusFieldSpec { Address = 41, DataType = ModbusDataType.U16, Name = "GridFrequency", Scale = 0.01, Unit = "Hz", },               // Grid 주파수
+            new ModbusFieldSpec { Address = 41, DataType = ModbusDataType.U16, Name = "GridFrequency", Scale = 0.1, Unit = "Hz", },               // Grid 주파수
             new ModbusFieldSpec { Address = 42, DataType = ModbusDataType.S16, Name = "GridPowerFactor", Scale = 0.01, Unit = "%", }               // Grid 역률
         };
 
@@ -55,11 +55,11 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             new ModbusFieldSpec { Address = 74, DataType = ModbusDataType.S16, Name = "InvCurrentBN", Scale = 0.1, Unit = "A", },                // Inv 상전류 (BN)
             new ModbusFieldSpec { Address = 75, DataType = ModbusDataType.S16, Name = "InvCurrentCN", Scale = 0.1, Unit = "A", },                // Inv 상전류 (CN)
 
-            new ModbusFieldSpec { Address = 76, DataType = ModbusDataType.U16, Name = "InvVoltageAB", Scale = 0.1, Unit = "V", },                // Inv 선간 전압 (A-B)
-            new ModbusFieldSpec { Address = 77, DataType = ModbusDataType.U16, Name = "InvVoltageBC", Scale = 0.1, Unit = "V", },                // Inv 선간 전압 (B-C)
-            new ModbusFieldSpec { Address = 78, DataType = ModbusDataType.U16, Name = "InvVoltageCA", Scale = 0.1, Unit = "V", },                // Inv 선간 전압 (C-A)
+            new ModbusFieldSpec { Address = 76, DataType = ModbusDataType.U16, Name = "InvVoltageAB", Scale = 1, Unit = "V", },                // Inv 선간 전압 (A-B)
+            new ModbusFieldSpec { Address = 77, DataType = ModbusDataType.U16, Name = "InvVoltageBC", Scale = 1, Unit = "V", },                // Inv 선간 전압 (B-C)
+            new ModbusFieldSpec { Address = 78, DataType = ModbusDataType.U16, Name = "InvVoltageCA", Scale = 1, Unit = "V", },                // Inv 선간 전압 (C-A)
 
-            new ModbusFieldSpec { Address = 82, DataType = ModbusDataType.U16, Name = "InvFrequency", Scale = 0.01, Unit = "Hz", },               // Inv 주파수
+            new ModbusFieldSpec { Address = 82, DataType = ModbusDataType.U16, Name = "InvFrequency", Scale = 0.1, Unit = "Hz", },               // Inv 주파수
             new ModbusFieldSpec { Address = 83, DataType = ModbusDataType.S16, Name = "InvPowerFactor", Scale = 0.01, Unit = "%", }               // Inv 역률
         };
 
@@ -79,11 +79,11 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             new ModbusFieldSpec { Address = 107, DataType = ModbusDataType.S16, Name = "LoadCurrentBN", Scale = 0.1, Unit = "A", },                 // Load 상전류 (BN)
             new ModbusFieldSpec { Address = 108, DataType = ModbusDataType.S16, Name = "LoadCurrentCN", Scale = 0.1, Unit = "A", },                 // Load 상전류 (CN)
                                             
-            new ModbusFieldSpec { Address = 109, DataType = ModbusDataType.U16, Name = "LoadVoltageAB", Scale = 0.1, Unit = "V", },                 // Load 선간 전압 (A-B)
-            new ModbusFieldSpec { Address = 110, DataType = ModbusDataType.U16, Name = "LoadVoltageBC", Scale = 0.1, Unit = "V", },                 // Load 선간 전압 (B-C)
-            new ModbusFieldSpec { Address = 111, DataType = ModbusDataType.U16, Name = "LoadVoltageCA", Scale = 0.1, Unit = "V", },                 // Load 선간 전압 (C-A)
+            new ModbusFieldSpec { Address = 109, DataType = ModbusDataType.U16, Name = "LoadVoltageAB", Scale = 1, Unit = "V", },                 // Load 선간 전압 (A-B)
+            new ModbusFieldSpec { Address = 110, DataType = ModbusDataType.U16, Name = "LoadVoltageBC", Scale = 1, Unit = "V", },                 // Load 선간 전압 (B-C)
+            new ModbusFieldSpec { Address = 111, DataType = ModbusDataType.U16, Name = "LoadVoltageCA", Scale = 1, Unit = "V", },                 // Load 선간 전압 (C-A)
                                             
-            new ModbusFieldSpec { Address = 115, DataType = ModbusDataType.U16, Name = "LoadFrequency", Scale = 0.01, Unit = "Hz", },               // Load 주파수
+            new ModbusFieldSpec { Address = 115, DataType = ModbusDataType.U16, Name = "LoadFrequency", Scale = 0.1, Unit = "Hz", },               // Load 주파수
             new ModbusFieldSpec { Address = 116, DataType = ModbusDataType.S16, Name = "LoadPowerFactor", Scale = 0.01, Unit = "%", },              // Load 역률
 
             new ModbusFieldSpec { Address = 117, DataType = ModbusDataType.S16, Name = "LoadPowerFactorRN", Scale = 0.01, Unit = "%", },            // Load RN 역률
@@ -95,23 +95,23 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         {
             new ModbusFieldSpec { Address = 120, DataType = ModbusDataType.U32, Name = "BatteryTotalChargePower", Scale = 0.1, Unit = "kWh", }, // Battery 총 충전량
             new ModbusFieldSpec { Address = 122, DataType = ModbusDataType.U32, Name = "BatteryTotalDischargePower", Scale = 0.1, Unit = "kWh", },   // Battery 총 방전량
-            new ModbusFieldSpec { Address = 124, DataType = ModbusDataType.S32, Name = "BatteryPower", Scale = 1, Unit = "W", },   // Battery 전력
-            new ModbusFieldSpec { Address = 126, DataType = ModbusDataType.U16, Name = "BatteryVoltage", Scale = 0.1, Unit = "V", },   // Battery 전압
+            new ModbusFieldSpec { Address = 124, DataType = ModbusDataType.S32, Name = "BatteryPower", Scale = 0.1, Unit = "kW", },   // Battery 전력
+            new ModbusFieldSpec { Address = 126, DataType = ModbusDataType.U16, Name = "BatteryVoltage", Scale = 1, Unit = "V", },   // Battery 전압
             new ModbusFieldSpec { Address = 127, DataType = ModbusDataType.S16, Name = "BatteryCurrent", Scale = 0.1, Unit = "A", },   // Battery 전류
         };
 
         public static readonly IList<ModbusFieldSpec> EtcData = new List<ModbusFieldSpec>
         {
-            new ModbusFieldSpec { Address = 132, DataType = ModbusDataType.S16, Name = "InvAmbientTemperature", Scale = 0.1, Unit = "℃", },       // Inverter 내부온도 (주위)
+            new ModbusFieldSpec { Address = 132, DataType = ModbusDataType.S16, Name = "InvAmbientTemperature", Scale = 1, Unit = "℃", },       // Inverter 내부온도 (주위)
                                                                          
-            new ModbusFieldSpec { Address = 133, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature01", Scale = 0.1, Unit = "℃", },    // Inverter 내부온도1 (방열판)
-            new ModbusFieldSpec { Address = 134, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature02", Scale = 0.1, Unit = "℃", },    // Inverter 내부온도2 (방열판)
-            new ModbusFieldSpec { Address = 135, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature03", Scale = 0.1, Unit = "℃", },    // Inverter 내부온도3 (방열판)
-            new ModbusFieldSpec { Address = 136, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature04", Scale = 0.1, Unit = "℃", },    // Inverter 내부온도4 (방열판)
-            new ModbusFieldSpec { Address = 137, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature05", Scale = 0.1, Unit = "℃", },    // Inverter 내부온도5 (방열판)
-            new ModbusFieldSpec { Address = 138, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature06", Scale = 0.1, Unit = "℃", },    // Inverter 내부온도6 (방열판)
-            new ModbusFieldSpec { Address = 139, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature07", Scale = 0.1, Unit = "℃", },    // Inverter 내부온도7 (방열판)
-            new ModbusFieldSpec { Address = 140, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature08", Scale = 0.1, Unit = "℃", },    // Inverter 내부온도8 (방열판)
+            new ModbusFieldSpec { Address = 133, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature01", Scale = 1, Unit = "℃", },    // Inverter 내부온도1 (방열판)
+            new ModbusFieldSpec { Address = 134, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature02", Scale = 1, Unit = "℃", },    // Inverter 내부온도2 (방열판)
+            new ModbusFieldSpec { Address = 135, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature03", Scale = 1, Unit = "℃", },    // Inverter 내부온도3 (방열판)
+            new ModbusFieldSpec { Address = 136, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature04", Scale = 1, Unit = "℃", },    // Inverter 내부온도4 (방열판)
+            new ModbusFieldSpec { Address = 137, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature05", Scale = 1, Unit = "℃", },    // Inverter 내부온도5 (방열판)
+            new ModbusFieldSpec { Address = 138, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature06", Scale = 1, Unit = "℃", },    // Inverter 내부온도6 (방열판)
+            new ModbusFieldSpec { Address = 139, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature07", Scale = 1, Unit = "℃", },    // Inverter 내부온도7 (방열판)
+            new ModbusFieldSpec { Address = 140, DataType = ModbusDataType.S16, Name = "InvHeatsinkTemperature08", Scale = 1, Unit = "℃", },    // Inverter 내부온도8 (방열판)
                                                                          
             new ModbusFieldSpec { Address = 142, DataType = ModbusDataType.S16, Name = "BatteryInsulationResistance", Scale = 0.1, Unit = "kΩ", }, // Battery 절연 저항
             new ModbusFieldSpec { Address = 144, DataType = ModbusDataType.S16, Name = "BatteryInsulationVoltage", Scale = 0.1, Unit = "V", },     // Battery 절연 전압

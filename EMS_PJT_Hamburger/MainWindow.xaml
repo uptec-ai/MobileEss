@@ -11,9 +11,9 @@
     xmlns:Views="clr-namespace:EMS_PJT_Hamburger.Views"
     Title="Outside EMS PJT" 
     Height="768" Width="1024" Background="{DynamicResource Main.Background}"
-    WindowStartupLocation="CenterOwner"
-    WindowState="Maximized"
-    WindowStyle="None"
+    WindowStartupLocation="CenterScreen"
+    WindowState="Normal"
+    WindowStyle="ToolWindow"
     FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" Loaded="ThemedWindow_Loaded">
     <dx:ThemedWindow.Resources>
         <Style TargetType="{x:Type dxwui:HamburgerMenuNavigationButton}">
