@@ -10,6 +10,12 @@ using System.Windows.Media;
 
 namespace EMS_PJT_Hamburger.Models
 {
+    public enum HomeStatus
+    {
+        Charging,
+        Discharging,
+        Waiting,
+    }
     public class HomeModel : ViewModelBase, INotifyPropertyChanged
     {
         // 
@@ -21,13 +27,14 @@ namespace EMS_PJT_Hamburger.Models
         public Brush ChargeVihicle { get; set; } = Brushes.Gray;      // ems status is discharging. (t:orange, f:gray) 
         public Brush PcsBorderBrush { get; set; } = Brushes.Gray;
         public Brush BmsBorderBrush { get; set; } = Brushes.Gray;
+        public Brush OperationModeBrush { get; set; } = Brushes.Gray;
+        public string OperationModeText { get; set; } = "대기";
 
         /// <summary>
         /// UI flag
         /// </summary>
         public int emsMode { get; set; } = 0;
-        public bool _isCharging { get; set; }               // Charge Status
-        public bool _isDischarging { get; set; }            // Discharge Status
+        public HomeStatus ChargingStatus { get; set; }  // charge status
         public bool IsChargingOffGrid { get; set; }      // using Transformer to Off grid path
         public bool IsChargingVihicle { get; set; }      // using Transformer to vihicle path
 

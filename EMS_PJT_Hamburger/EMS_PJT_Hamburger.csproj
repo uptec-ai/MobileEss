@@ -447,8 +447,12 @@
     <Resource Include="Assets\BMS\온도.png" />
     <Resource Include="64xLogo.ico" />
     <Resource Include="Assets\BMS\Button1.png" />
-    <Resource Include="Assets\ESS.png" />
     <Resource Include="Assets\Home1.png" />
+    <Resource Include="Assets\Icon_128x128.png" />
+    <Resource Include="Assets\Home\Icon_128x128.png" />
+    <Resource Include="Assets\Home\Unified\capacitor.png" />
+    <Resource Include="Assets\Home\Unified\cell.png" />
+    <Resource Include="Assets\Home\Unified\Ongrid.png" />
     <Content Include="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -477,7 +481,6 @@
     <Resource Include="Assets\BMS01.png" />
     <Resource Include="Assets\Communication_White.png" />
     <Resource Include="Assets\ESS%28자동차%29.png" />
-    <Resource Include="Assets\EV 충전기.png" />
     <Resource Include="Assets\Logo.ico" />
     <Resource Include="Assets\PCS.png" />
     <Resource Include="Assets\PCS_White.png" />
@@ -500,6 +503,17 @@
     <Resource Include="Assets\Home\Warring neon.png" />
     <Resource Include="Assets\Home\Warring.png" />
     <Resource Include="Assets\Home\충전기.png" />
+    <Resource Include="Assets\Home\Unified\bms_ess.png" />
+    <Resource Include="Assets\Home\Unified\ev_charger.png" />
+    <Resource Include="Assets\Home\Unified\grid.png" />
+    <Resource Include="Assets\Home\Unified\off_grid_home.png" />
+    <Resource Include="Assets\Home\Unified\on_grid_architecture.png" />
+    <Resource Include="Assets\Home\Unified\pcs.png" />
+    <Resource Include="Assets\Home\Unified\pv_inverter.png" />
+    <Resource Include="Assets\Home\Unified\solar_array.png" />
+    <Resource Include="Assets\Home\Unified\transformer.png" />
+    <Resource Include="Assets\Home\Unified\vehicle.png" />
+    <Resource Include="Assets\Home\Unified\warning.png" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.8">

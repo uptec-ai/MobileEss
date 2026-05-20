@@ -404,6 +404,35 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
 
             LogSafe($"Connected to {_host}:{_port}");
         }
+        private void CloseConnection()
+        {
+            lock (_sync)
+            {
+                try { _client?.Close(); } catch { }
+                _master = null;
+                _client = null;
+            }
+        }
+        private void RaiseConnection(bool connected)
+        {
+            try { ConnectionStateChanged?.Invoke(connected); }
+            catch { }
+        }
+        public void Dispose()
+        {
+            if (_disposed) return;
+            _disposed = true;
+
+            try { StopAsync().GetAwaiter().GetResult(); }
+            catch { }
+
+            _startStopGate.Dispose();
+
+            ConnectionStateChanged = null;
+            KeepAliveHoldingReceived = null;
+            InputRegistersReceived = null;
+            Log = null;
+        }
 
         private void RaiseInputRegisters(ushort startAddress, ushort[] values)
         {
@@ -430,11 +459,6 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             catch { }
         }
 
-        private void RaiseConnection(bool connected)
-        {
-            try { ConnectionStateChanged?.Invoke(connected); }
-            catch { }
-        }
 
         private void LogSafe(string message)
         {
@@ -442,15 +466,6 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             catch { }
         }
 
-        private void CloseConnection()
-        {
-            lock (_sync)
-            {
-                try { _client?.Close(); } catch { }
-                _master = null;
-                _client = null;
-            }
-        }
 
         private void ThrowIfDisposed()
         {
@@ -458,20 +473,5 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 throw new ObjectDisposedException(nameof(ModbusService));
         }
 
-        public void Dispose()
-        {
-            if (_disposed) return;
-            _disposed = true;
-
-            try { StopAsync().GetAwaiter().GetResult(); }
-            catch { }
-
-            _startStopGate.Dispose();
-
-            ConnectionStateChanged = null;
-            KeepAliveHoldingReceived = null;
-            InputRegistersReceived = null;
-            Log = null;
-        }
     }
 }

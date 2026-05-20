@@ -11,6 +11,7 @@ using System.Windows.Media;
 
 namespace EMS_PJT_Hamburger.ViewModels
 {
+    
     public class HomeViewModel : HomeModel, IDisposable
     {
         private bool _disposed;
@@ -45,31 +46,34 @@ namespace EMS_PJT_Hamburger.ViewModels
                     {
                         case 0: // charge mode
                             // charge on
-                            _isCharging = true;
+                            ChargingStatus = HomeStatus.Charging;
+
                             PcsBorderBrush = Brushes.Lime;
                             BmsBorderBrush = Brushes.Lime;
-                            ChargeBorderBrush = _isCharging ? Brushes.Lime : Brushes.Gray;
+                            ChargeBorderBrush = Brushes.Lime;
+                            OperationModeText = "충전 중";
+                            OperationModeBrush = Brushes.Lime;
 
-                            // discharge off
-                            _isDischarging = false;
                             IsChargingOffGrid = false;
                             IsChargingVihicle = false;
                             ChargeOffGrid = Brushes.Gray;
                             ChargeVihicle = Brushes.Gray;
-                            DischargeBorderBrush = _isDischarging ? Brushes.Orange : Brushes.Gray;
+                            DischargeBorderBrush = Brushes.Gray;
 
                             emsMode = 2;
                             await Task.Delay(5000, ct);
                             break;
                         case 1: // discharge mode
                             // charge off
-                            _isCharging = false;
+                            ChargingStatus = HomeStatus.Discharging;
+
                             PcsBorderBrush = Brushes.Orange;
                             BmsBorderBrush = Brushes.Orange;
-                            ChargeBorderBrush = _isCharging ? Brushes.Lime : Brushes.Gray;
+                            ChargeBorderBrush = Brushes.Gray;
+                            OperationModeText = "방전 중";
+                            OperationModeBrush = Brushes.Orange;
 
                             // discharge on
-                            _isDischarging = true;
                             Random rand = new Random();
                             var random = rand.Next(0, 2);
                             if (random == 0)
@@ -84,25 +88,27 @@ namespace EMS_PJT_Hamburger.ViewModels
                             }
                             ChargeOffGrid = IsChargingOffGrid ? Brushes.Orange : Brushes.Gray;
                             ChargeVihicle = IsChargingVihicle ? Brushes.Orange : Brushes.Gray;
-                            DischargeBorderBrush = _isDischarging ? Brushes.Orange : Brushes.Gray;
+                            DischargeBorderBrush = Brushes.Orange;
 
                             emsMode = 0;
                             await Task.Delay(5000, ct);
                             break;
                         case 2: // none
                             // charge off
-                            _isCharging = false;
+                            ChargingStatus = HomeStatus.Waiting;
+
                             PcsBorderBrush = Brushes.Gray;
                             BmsBorderBrush = Brushes.Gray;
-                            ChargeBorderBrush = _isCharging ? Brushes.Lime : Brushes.Gray;
+                            ChargeBorderBrush = Brushes.Gray;
+                            OperationModeText = "대기";
+                            OperationModeBrush = Brushes.Gray;
 
                             // discharge off
-                            _isDischarging = false;
                             IsChargingOffGrid = false;
                             IsChargingVihicle = false;
                             ChargeOffGrid = Brushes.Gray;
                             ChargeVihicle = Brushes.Gray;
-                            DischargeBorderBrush = _isDischarging ? Brushes.Orange : Brushes.Gray;
+                            DischargeBorderBrush = Brushes.Gray;
 
                             emsMode = 1;
                             await Task.Delay(2000, ct);

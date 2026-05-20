@@ -6,9 +6,13 @@
              xmlns:local="clr-namespace:EMS_PJT_Hamburger.Views"
              xmlns:ViewModels="clr-namespace:EMS_PJT_Hamburger.ViewModels"
              xmlns:Managers="clr-namespace:EMS_PJT_Hamburger.Models.Managers"
+             xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
              mc:Ignorable="d" d:DesignHeight="704" d:DesignWidth="1000" Background="Transparent" 
              FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR">
     <UserControl.Resources>
+        <Managers:RelayConverter x:Key="RelayConverter"/>
+        <Managers:HomeStatusMatchConverter x:Key="HomeStatusMatchConverter"/>
+
         <Style TargetType="Border" x:Key="ChargeStoryBorderStyle">
             <Setter Property="CornerRadius" Value="5"/>
             <Setter Property="Margin" Value="0"/>
@@ -191,13 +195,222 @@
             <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
 
+        <Style TargetType="{x:Type dx:SimpleButton}" x:Key="HomeQuickActionButtonStyle">
+            <Setter Property="Width" Value="66"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#273642"/>
+            <Setter Property="BorderBrush" Value="#FFB0FCFC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+
+        <Style TargetType="{x:Type dx:SimpleButton}" x:Key="HomeChargeButtonStyle" BasedOn="{StaticResource HomeQuickActionButtonStyle}">
+            <Setter Property="Background" Value="#1E7154"/>
+            <Setter Property="BorderBrush" Value="#76F7A8"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#2FAF75"/>
+                    <Setter Property="BorderBrush" Value="#B6FFD0"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="{x:Type dx:SimpleButton}" x:Key="HomeDischargeButtonStyle" BasedOn="{StaticResource HomeQuickActionButtonStyle}">
+            <Setter Property="Background" Value="#8A5A1E"/>
+            <Setter Property="BorderBrush" Value="#FFE2A6"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#C07A25"/>
+                    <Setter Property="BorderBrush" Value="#FFF0C7"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="{x:Type dx:SimpleButton}" x:Key="HomeStopButtonStyle" BasedOn="{StaticResource HomeQuickActionButtonStyle}">
+            <Setter Property="Background" Value="#7B2525"/>
+            <Setter Property="BorderBrush" Value="#FF8C8C"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#B53636"/>
+                    <Setter Property="BorderBrush" Value="#FFC0C0"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="{x:Type dx:SimpleButton}" x:Key="HomeRelayButtonStyle" BasedOn="{StaticResource HomeQuickActionButtonStyle}">
+            <Setter Property="Width" Value="88"/>
+            <Setter Property="Background" Value="#244656"/>
+            <Setter Property="BorderBrush" Value="#87FFFF"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#2C6A7D"/>
+                    <Setter Property="BorderBrush" Value="#C9FFFF"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="HomeHeaderTitleTextStyle">
+            <Setter Property="Foreground" Value="#FFB0FCFC"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="HomeHeaderModeTextStyle">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
     </UserControl.Resources>
 
     <Viewbox>
         <Canvas Height="704" Width="1000" Margin="0" Background="{DynamicResource Main.Background}">
+            <StackPanel Orientation="Horizontal">
+                <Border Canvas.Left="22" Canvas.Top="14" Width="220" Height="46"
+                        CornerRadius="5"
+                        BorderThickness="1"
+                        BorderBrush="#334F5E"
+                        Background="#CC15181C" Margin="20,0,0,0">
+                    <Grid Margin="36,0" >
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock Grid.Column="0" Text="운전 모드"
+                                       Style="{StaticResource HomeHeaderTitleTextStyle}"/>
+                            <Ellipse Width="12"
+                                     Height="12"
+                                     Margin="20,0,10,0"
+                                     Fill="{Binding OperationModeBrush}">
+                                <Ellipse.Effect>
+                                    <DropShadowEffect BlurRadius="10"
+                                                      ShadowDepth="0"
+                                                      Direction="0"
+                                                      Color="Cyan"
+                                                      Opacity="0.8"/>
+                                </Ellipse.Effect>
+                                <Ellipse.Resources>
+                                    <Storyboard x:Key="BlinkStoryboard"
+                                                RepeatBehavior="Forever"
+                                                AutoReverse="True">
+
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                         From="1.0"
+                                                         To="0.25"
+                                                         Duration="0:0:0.6"/>
+
+                                        <DoubleAnimation Storyboard.TargetProperty="Effect.Opacity"
+                                                         From="0.9"
+                                                         To="0.1"
+                                                         Duration="0:0:0.6"/>
+                                    </Storyboard>
+                                </Ellipse.Resources>
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse">
+
+                                        <!-- 기본 상태 -->
+                                        <Setter Property="Opacity" Value="1"/>
+
+                                        <Style.Triggers>
+
+                                            <!-- Charging -->
+                                            <DataTrigger Binding="{Binding ChargingStatus}"
+                                                         Value="Charging">
+
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard Name="BlinkAnimation"
+                                             Storyboard="{StaticResource BlinkStoryboard}"/>
+                                                </DataTrigger.EnterActions>
+
+                                                <DataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="BlinkAnimation"/>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+
+                                            <!-- Discharging -->
+                                            <DataTrigger Binding="{Binding ChargingStatus}"
+                                                         Value="Discharging">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard Name="BlinkAnimation2"
+                                                                     Storyboard="{StaticResource BlinkStoryboard}"/>
+                                                </DataTrigger.EnterActions>
+
+                                                <DataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="BlinkAnimation2"/>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="{Binding OperationModeText}"
+                                       Style="{StaticResource HomeHeaderModeTextStyle}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                <Border Canvas.Left="22" Canvas.Top="14" Width="722" Height="46"
+                        CornerRadius="5"
+                        BorderThickness="1"
+                        BorderBrush="#334F5E"
+                        Background="#CC15181C" Margin="10,0,0,0">
+                    <Grid Margin="12,0" HorizontalAlignment="Left" Width="735">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="1"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="PCS" Foreground="#FFB0FCFC" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding ConnectPCS}" Foreground="White" FontSize="13" Margin="10,0,16,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,0">
+                                <dx:SimpleButton Content="충전"
+                                                 Style="{StaticResource HomeChargeButtonStyle}"
+                                                 Command="{Binding PcsVm.Cmd_StartCharge, Source={x:Static Application.Current}}"/>
+                                <dx:SimpleButton Content="방전"
+                                             Style="{StaticResource HomeDischargeButtonStyle}"
+                                             Command="{Binding PcsVm.Cmd_StartDischarge, Source={x:Static Application.Current}}"/>
+                                <dx:SimpleButton Content="정지"
+                                             Style="{StaticResource HomeStopButtonStyle}"
+                                             Command="{Binding PcsVm.Cmd_StopPcs, Source={x:Static Application.Current}}"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Grid.Column="1" Width="1" Height="28" Background="#334F5E" VerticalAlignment="Center"/>
+
+                        <Grid Grid.Column="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="BMS" Foreground="#FFB0FCFC" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding ConnectBMS}" Foreground="White" FontSize="13" Margin="10,0,16,0"/>
+                            </StackPanel>
+                            <dx:SimpleButton Grid.Column="1"
+                                             HorizontalAlignment="Left"
+                                             VerticalAlignment="Center"
+                                             Style="{StaticResource HomeRelayButtonStyle}"
+                                             ButtonKind="Toggle"
+                                             Content="{Binding BmsVm.RelayStatus, Source={x:Static Application.Current}, Converter={StaticResource RelayConverter}}"
+                                             IsChecked="{Binding BmsVm.RelayStatus, Source={x:Static Application.Current}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             Command="{Binding BmsVm.Cmd_RelayBtn, Source={x:Static Application.Current}}" Width="66" Margin="10,0,6,0"/>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </StackPanel>
             <!--#region 충전 Path -->
             <Path x:Name="Charge_PCS"
-                  Managers:AnimationManager.IsRunning="{Binding _isCharging}"
+                  Managers:AnimationManager.IsRunning="{Binding ChargingStatus, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Charging}"
                   Managers:AnimationManager.To="-15"
                   Managers:AnimationManager.From="0"
                   Managers:AnimationManager.Speed="1.2"
@@ -215,7 +428,7 @@
             </Path>
 
             <Path x:Name="Charge_BMS"
-                  Managers:AnimationManager.IsRunning="{Binding _isCharging}"
+                  Managers:AnimationManager.IsRunning="{Binding ChargingStatus, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Charging}"
                   Managers:AnimationManager.To="-15"
                   Managers:AnimationManager.From="0"
                   Managers:AnimationManager.Speed="1.2"
@@ -224,7 +437,7 @@
                   Style="{StaticResource ChargingPathStyle}" Canvas.Left="-6" Canvas.Top="47">
                 <Path.Data>
                     <PathGeometry>
-                        <PathFigure StartPoint="435,380" IsClosed="False">
+                        <PathFigure StartPoint="435,390" IsClosed="False">
                             <LineSegment Point="435,430"/>
                         </PathFigure>
                     </PathGeometry>
@@ -234,7 +447,7 @@
 
             <!--#region 방전 Path -->
             <Path x:Name="Discharge_PCS"
-                  Managers:AnimationManager.IsRunning="{Binding _isDischarging}"
+                  Managers:AnimationManager.IsRunning="{Binding ChargingStatus, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Discharging}"
                   Managers:AnimationManager.To="-15"
                   Managers:AnimationManager.From="0"
                   Managers:AnimationManager.Speed="1.2"
@@ -244,14 +457,14 @@
                 <Path.Data>
                     <PathGeometry>
                         <PathFigure StartPoint="435,430" IsClosed="False">
-                            <LineSegment Point="435,380"/>
+                            <LineSegment Point="435,390"/>
                         </PathFigure>
                     </PathGeometry>
                 </Path.Data>
             </Path>
 
             <Path x:Name="Discharge_Off"
-                  Managers:AnimationManager.IsRunning="{Binding _isDischarging}"
+                  Managers:AnimationManager.IsRunning="{Binding ChargingStatus, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Discharging}"
                   Managers:AnimationManager.To="-15"
                   Managers:AnimationManager.From="0"
                   Managers:AnimationManager.Speed="1.2"
@@ -271,9 +484,9 @@
                   Style="{StaticResource DisChargingPathStyle}" Canvas.Left="-40" Canvas.Top="5">
                 <Path.Data>
                     <PathGeometry>
-                        <PathFigure StartPoint="670,300" IsClosed="False">
+                        <PathFigure StartPoint="670,310" IsClosed="False">
                             <LineSegment Point="670,150"/>
-                            <LineSegment Point="820,150"/>
+                            <LineSegment Point="800,150"/>
                         </PathFigure>
                     </PathGeometry>
                 </Path.Data>
@@ -286,11 +499,11 @@
                   Managers:AnimationManager.Speed="1.2"
                   Managers:AnimationManager.StartDelaySec="1"
                   Visibility="Visible"
-                  Style="{StaticResource DisChargingPathStyle}" Canvas.Top="44.666" Canvas.Left="-2">
+                  Style="{StaticResource DisChargingPathStyle}" Canvas.Top="44.666" Canvas.Left="-40">
                 <Path.Data>
                     <PathGeometry>
-                        <PathFigure StartPoint="670,310" IsClosed="False">
-                            <LineSegment Point="730,310"/>
+                        <PathFigure StartPoint="700,310" IsClosed="False">
+                            <LineSegment Point="800,310"/>
                         </PathFigure>
                     </PathGeometry>
                 </Path.Data>
@@ -399,7 +612,7 @@
                     BorderBrush="{Binding ChargeBorderBrush}"
                     Style="{StaticResource ChargeStoryBorderStyle}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
-                    <TextBlock Text="ENERGY"
+                    <TextBlock Text="Energy"
                                Canvas.Left="4"
                                Style="{StaticResource DefaultTextBlockStyle}" Canvas.Top="3">
                     </TextBlock>
@@ -462,19 +675,19 @@
                     <Border Canvas.Left="109" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Capacitor neon.png" 
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/capacitor.png" 
                                    Height="25" 
                                    Width="25"
                                    Style="{StaticResource HeaderImageStyle}"/>
-                            <TextBlock Text="Warring"
+                            <TextBlock Text="Warning"
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="162" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Warring neon.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
-                            <TextBlock Text="Warring" 
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/warning.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <TextBlock Text="Warning" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
@@ -561,8 +774,8 @@
                     <Border Canvas.Left="162" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Warring neon.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
-                            <TextBlock Text="Warring" 
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/warning.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <TextBlock Text="Warning" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
@@ -576,7 +789,7 @@
                     BorderBrush="{Binding BmsBorderBrush}"
                     Style="{StaticResource ChargeStoryBorderStyle}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
-                    <TextBlock Text="BMS (ESS)" Canvas.Left="4"
+                    <TextBlock Text="BMS" Canvas.Left="4"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Top="3">
                     </TextBlock>
 
@@ -601,7 +814,7 @@
 
                     </Label>
 
-                    <Image Source="/EMS_PJT_Hamburger;component/Assets/ESS.png" 
+                    <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS01.png" 
                            Canvas.Left="45" Canvas.Top="24"
                            Style="{StaticResource DefaultImageStyle}" Width="119" Height="81" Stretch="Fill"/>
 
@@ -630,10 +843,10 @@
                     <Border Canvas.Left="109" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Icon_64x64.png"
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/cell.png"
                                    Height="25" 
                                    Width="25"
-                                   Style="{StaticResource HeaderImageStyle}"/>
+                                   Style="{StaticResource HeaderImageStyle}" Stretch="UniformToFill"/>
                             <TextBlock Text="Cell"
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
@@ -641,8 +854,8 @@
                     <Border Canvas.Left="162" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Warring neon.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
-                            <TextBlock Text="Warring" 
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/warning.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <TextBlock Text="Warning" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
@@ -699,11 +912,11 @@
                 </Canvas>
             </Border>
             <Border x:Name="ONGrid"
-                    Canvas.Left="725"
+                    Canvas.Left="752"
                     Canvas.Top="70"
                     Style="{StaticResource DischargeStoryBorderStyle}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
-                    <TextBlock Text="ON Grid" Padding="0,0,0,0"
+                    <TextBlock Text="On Grid" Padding="0,0,0,0"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Left="4" Canvas.Top="3"/>
 
                     <Label Canvas.Left="167" Canvas.Top="4"
@@ -733,8 +946,8 @@
                     </Label>
 
                     <Image 
-                           Canvas.Left="54" Canvas.Top="29"
-                           Style="{StaticResource DefaultImageStyle}" Width="110" Height="76" Stretch="Fill"/>
+                           Canvas.Left="54"
+                           Style="{StaticResource DefaultImageStyle}" Width="110" Height="133" Stretch="Fill" Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/Ongrid.png" Canvas.Top="1"/>
 
                     <Border Canvas.Top="112" Canvas.Left="4"
                             Style="{StaticResource ContentBorderStyle}">
@@ -755,19 +968,19 @@
                     <Border Canvas.Left="109" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Capacitor neon.png" 
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/capacitor.png" 
                                    Height="25" 
                                    Width="25"
                                    Style="{StaticResource HeaderImageStyle}"/>
-                            <TextBlock Text="Warring"
+                            <TextBlock Text="Cap"
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="162" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Warring neon.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
-                            <TextBlock Text="Warring" 
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/warning.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <TextBlock Text="Warning" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
@@ -775,12 +988,12 @@
                 </Canvas>
             </Border>
             <Border x:Name="OFFGrid"
-                    Canvas.Left="725" 
+                    Canvas.Left="752" 
                     Canvas.Top="271"
                     Style="{StaticResource DischargeStoryBorderStyle}"
                     BorderBrush="{Binding ChargeOffGrid}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
-                    <TextBlock Text="OFF Grid" Canvas.Left="4"
+                    <TextBlock Text="Off Grid" Canvas.Left="4"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Top="3"/>
 
                     <Label Canvas.Left="167" Canvas.Top="4"
@@ -811,7 +1024,7 @@
 
                     <Image 
                            Canvas.Left="22"
-                           Style="{StaticResource DefaultImageStyle}" Width="154" Height="135" Stretch="Fill" Canvas.Top="-12" Source="/EMS_PJT_Hamburger;component/Assets/Home1.png"/>
+                           Style="{StaticResource DefaultImageStyle}" Width="154" Height="122" Stretch="Fill" Canvas.Top="1" Source="/EMS_PJT_Hamburger;component/Assets/Home1.png"/>
 
                     <Border Canvas.Top="112" Canvas.Left="4"
                             Style="{StaticResource ContentBorderStyle}">
@@ -832,19 +1045,19 @@
                     <Border Canvas.Left="109" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Capacitor neon.png" 
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/capacitor.png" 
                                    Height="25" 
                                    Width="25"
                                    Style="{StaticResource HeaderImageStyle}"/>
-                            <TextBlock Text="Warring"
+                            <TextBlock Text="Warning"
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="162" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Warring neon.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
-                            <TextBlock Text="Warring" 
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/warning.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <TextBlock Text="Warning" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
@@ -852,12 +1065,12 @@
                 </Canvas>
             </Border>
             <Border x:Name="VIHICLE"
-                    Canvas.Left="725" 
+                    Canvas.Left="752" 
                     Canvas.Bottom="20"
                     Style="{StaticResource DischargeStoryBorderStyle}"
                     BorderBrush="{Binding ChargeVihicle}" Canvas.Top="470">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
-                    <TextBlock Text="VIHICLE" Padding="0,0,0,0"
+                    <TextBlock Text="Vehicle" Padding="0,0,0,0"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Left="4" Canvas.Top="3"/>
 
                     <Label Canvas.Left="167" Canvas.Top="4"
@@ -887,8 +1100,8 @@
                     </Label>
 
                     <Image Source="/EMS_PJT_Hamburger;component/Assets/ESS(자동차).png" 
-                           Canvas.Left="46" Canvas.Top="29"
-                           Style="{StaticResource DefaultImageStyle}" Width="118" Height="76"/>
+                           Canvas.Left="50" Canvas.Top="31"
+                           Style="{StaticResource DefaultImageStyle}" Width="108" Height="76"/>
 
                     <Border Canvas.Top="112" Canvas.Left="4"
                             Style="{StaticResource ContentBorderStyle}">
@@ -909,19 +1122,19 @@
                     <Border Canvas.Left="109" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Capacitor neon.png" 
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/capacitor.png" 
                                    Height="25" 
                                    Width="25"
                                    Style="{StaticResource HeaderImageStyle}"/>
-                            <TextBlock Text="Warring"
+                            <TextBlock Text="Warning"
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="162" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Warring neon.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
-                            <TextBlock Text="Warring" 
+                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/warning.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <TextBlock Text="Warning" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>

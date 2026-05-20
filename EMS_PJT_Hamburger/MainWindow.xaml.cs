@@ -31,14 +31,14 @@ namespace EMS_PJT_Hamburger
             InitializeComponent();
 
             app.MainWindow = this;
-            NaviFrame.Content = app.DashBoardView;
+            NaviFrame.Content = app.HomeView;
         }
 
-        //private void Btn_Home_Click(object sender, RoutedEventArgs e)
-        //{
-        //    app.MainWindow = this;
-        //    NaviFrame.Content = app.HomeView;
-        //}
+        private void Btn_Home_Click(object sender, RoutedEventArgs e)
+        {
+            app.MainWindow = this;
+            NaviFrame.Content = app.HomeView;
+        }
 
         private void Btn_Dashboard_Click(object sender, RoutedEventArgs e)
         {
