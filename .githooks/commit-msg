@@ -1,0 +1,10 @@
+#!/bin/sh
+MSG_FILE="$1"
+MSG="$(head -n 1 "$MSG_FILE")"
+echo "$MSG" | grep -Eq '^(feat|fix|docs|style|refactor|test|chore|build|ci)(\([A-Za-z0-9._-]+\))?: .{1,72}$'
+if [ $? -ne 0 ]; then
+  echo "Invalid commit message. Use: type(scope): subject, max 72 chars."
+  echo "Allowed types: feat, fix, docs, style, refactor, test, chore, build, ci"
+  exit 1
+fi
+exit 0

@@ -411,7 +411,7 @@ namespace EMS_PJT_Hamburger.ViewModels
                     minBackoff: TimeSpan.FromSeconds(1),
                     maxBackoff: TimeSpan.FromSeconds(15));
 
-                await InitializeDailyImportedEnergySummaryAsync();
+                //await InitializeDailyImportedEnergySummaryAsync();
 
                 await _client.StartAsync();
                 Conn_State.Status = "Connecting..";

@@ -193,257 +193,257 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         public string SystemMsg { get; set; } = string.Empty; // [Log] system msg
 
         // Chart
-        private DateTime _chartBaseDate = DateTime.Today;
-        private const int DailyEnergySummaryStartOffsetDays = -3;
-        private const int DailyEnergySummaryEndOffsetDays = 1;
-        private readonly Dictionary<DateTime, double> _dailyFinalImportedEnergyByDate = new Dictionary<DateTime, double>();
-        private readonly Dictionary<DateTime, double> _dailyFinalExportedEnergyByDate = new Dictionary<DateTime, double>();
-        private double _todayImportedEnergy = 0d;
-        private double _todayExportedEnergy = 0d;
+//        private DateTime _chartBaseDate = DateTime.Today;
+//        private const int DailyEnergySummaryStartOffsetDays = -3;
+//        private const int DailyEnergySummaryEndOffsetDays = 1;
+//        private readonly Dictionary<DateTime, double> _dailyFinalImportedEnergyByDate = new Dictionary<DateTime, double>();
+//        private readonly Dictionary<DateTime, double> _dailyFinalExportedEnergyByDate = new Dictionary<DateTime, double>();
+//        private double _todayImportedEnergy = 0d;
+//        private double _todayExportedEnergy = 0d;
 
-        public XyDataSeries<DateTime, double> DailyImportedEnergySummarySeries
-        {
-            get => GetProperty(() => DailyImportedEnergySummarySeries);
-            set => SetProperty(() => DailyImportedEnergySummarySeries, value);
-        }
-        public XyDataSeries<DateTime, double> DailyExportedEnergySummarySeries
-        {
-            get => GetProperty(() => DailyExportedEnergySummarySeries);
-            set => SetProperty(() => DailyExportedEnergySummarySeries, value);
-        }
-        public string DailyImportedYesterdayLabel
-        {
-            get => GetProperty(() => DailyImportedYesterdayLabel);
-            set => SetProperty(() => DailyImportedYesterdayLabel, value);
-        }
-        public DateTime DailyImportedYesterdayX
-        {
-            get => GetProperty(() => DailyImportedYesterdayX);
-            set => SetProperty(() => DailyImportedYesterdayX, value);
-        }
-        public double DailyImportedYesterdayY
-        {
-            get => GetProperty(() => DailyImportedYesterdayY);
-            set => SetProperty(() => DailyImportedYesterdayY, value);
-        }
-        public string DailyImportedTodayLabel
-        {
-            get => GetProperty(() => DailyImportedTodayLabel);
-            set => SetProperty(() => DailyImportedTodayLabel, value);
-        }
-        public DateTime DailyImportedTodayX
-        {
-            get => GetProperty(() => DailyImportedTodayX);
-            set => SetProperty(() => DailyImportedTodayX, value);
-        }
-        public double DailyImportedTodayY
-        {
-            get => GetProperty(() => DailyImportedTodayY);
-            set => SetProperty(() => DailyImportedTodayY, value);
-        }
-        public string DailyExportedYesterdayLabel
-        {
-            get => GetProperty(() => DailyExportedYesterdayLabel);
-            set => SetProperty(() => DailyExportedYesterdayLabel, value);
-        }
-        public DateTime DailyExportedYesterdayX
-        {
-            get => GetProperty(() => DailyExportedYesterdayX);
-            set => SetProperty(() => DailyExportedYesterdayX, value);
-        }
-        public double DailyExportedYesterdayY
-        {
-            get => GetProperty(() => DailyExportedYesterdayY);
-            set => SetProperty(() => DailyExportedYesterdayY, value);
-        }
-        public string DailyExportedTodayLabel
-        {
-            get => GetProperty(() => DailyExportedTodayLabel);
-            set => SetProperty(() => DailyExportedTodayLabel, value);
-        }
-        public DateTime DailyExportedTodayX
-        {
-            get => GetProperty(() => DailyExportedTodayX);
-            set => SetProperty(() => DailyExportedTodayX, value);
-        }
-        public double DailyExportedTodayY
-        {
-            get => GetProperty(() => DailyExportedTodayY);
-            set => SetProperty(() => DailyExportedTodayY, value);
-        }
-        public async Task InitializeDailyImportedEnergySummaryAsync()
-        {
-            _chartBaseDate = DateTime.Today;
-            await LoadDailyFinalGridEnergyAsync(_chartBaseDate.AddDays(DailyEnergySummaryStartOffsetDays), _chartBaseDate);
-            _todayImportedEnergy = 0d;
-            _todayExportedEnergy = 0d;
+//        public XyDataSeries<DateTime, double> DailyImportedEnergySummarySeries
+//        {
+//            get => GetProperty(() => DailyImportedEnergySummarySeries);
+//            set => SetProperty(() => DailyImportedEnergySummarySeries, value);
+//        }
+//        public XyDataSeries<DateTime, double> DailyExportedEnergySummarySeries
+//        {
+//            get => GetProperty(() => DailyExportedEnergySummarySeries);
+//            set => SetProperty(() => DailyExportedEnergySummarySeries, value);
+//        }
+//        public string DailyImportedYesterdayLabel
+//        {
+//            get => GetProperty(() => DailyImportedYesterdayLabel);
+//            set => SetProperty(() => DailyImportedYesterdayLabel, value);
+//        }
+//        public DateTime DailyImportedYesterdayX
+//        {
+//            get => GetProperty(() => DailyImportedYesterdayX);
+//            set => SetProperty(() => DailyImportedYesterdayX, value);
+//        }
+//        public double DailyImportedYesterdayY
+//        {
+//            get => GetProperty(() => DailyImportedYesterdayY);
+//            set => SetProperty(() => DailyImportedYesterdayY, value);
+//        }
+//        public string DailyImportedTodayLabel
+//        {
+//            get => GetProperty(() => DailyImportedTodayLabel);
+//            set => SetProperty(() => DailyImportedTodayLabel, value);
+//        }
+//        public DateTime DailyImportedTodayX
+//        {
+//            get => GetProperty(() => DailyImportedTodayX);
+//            set => SetProperty(() => DailyImportedTodayX, value);
+//        }
+//        public double DailyImportedTodayY
+//        {
+//            get => GetProperty(() => DailyImportedTodayY);
+//            set => SetProperty(() => DailyImportedTodayY, value);
+//        }
+//        public string DailyExportedYesterdayLabel
+//        {
+//            get => GetProperty(() => DailyExportedYesterdayLabel);
+//            set => SetProperty(() => DailyExportedYesterdayLabel, value);
+//        }
+//        public DateTime DailyExportedYesterdayX
+//        {
+//            get => GetProperty(() => DailyExportedYesterdayX);
+//            set => SetProperty(() => DailyExportedYesterdayX, value);
+//        }
+//        public double DailyExportedYesterdayY
+//        {
+//            get => GetProperty(() => DailyExportedYesterdayY);
+//            set => SetProperty(() => DailyExportedYesterdayY, value);
+//        }
+//        public string DailyExportedTodayLabel
+//        {
+//            get => GetProperty(() => DailyExportedTodayLabel);
+//            set => SetProperty(() => DailyExportedTodayLabel, value);
+//        }
+//        public DateTime DailyExportedTodayX
+//        {
+//            get => GetProperty(() => DailyExportedTodayX);
+//            set => SetProperty(() => DailyExportedTodayX, value);
+//        }
+//        public double DailyExportedTodayY
+//        {
+//            get => GetProperty(() => DailyExportedTodayY);
+//            set => SetProperty(() => DailyExportedTodayY, value);
+//        }
+//        public async Task InitializeDailyImportedEnergySummaryAsync()
+//        {
+//            _chartBaseDate = DateTime.Today;
+//            await LoadDailyFinalGridEnergyAsync(_chartBaseDate.AddDays(DailyEnergySummaryStartOffsetDays), _chartBaseDate);
+//            _todayImportedEnergy = 0d;
+//            _todayExportedEnergy = 0d;
 
-            DailyImportedEnergySummarySeries = new XyDataSeries<DateTime, double>
-            {
-                SeriesName = "Daily Imported Energy Summary"
-            };
-            DailyExportedEnergySummarySeries = new XyDataSeries<DateTime, double>
-            {
-                SeriesName = "Daily Exported Energy Summary"
-            };
-            RebuildDailyImportedEnergySummary();
-            RebuildDailyExportedEnergySummary();
-        }
+//            DailyImportedEnergySummarySeries = new XyDataSeries<DateTime, double>
+//            {
+//                SeriesName = "Daily Imported Energy Summary"
+//            };
+//            DailyExportedEnergySummarySeries = new XyDataSeries<DateTime, double>
+//            {
+//                SeriesName = "Daily Exported Energy Summary"
+//            };
+//            RebuildDailyImportedEnergySummary();
+//            RebuildDailyExportedEnergySummary();
+//        }
 
-        private async Task LoadDailyFinalGridEnergyAsync(DateTime fromDate, DateTime toDate)
-        {
-            await Task.Run(() =>
-            {
-                var app = Application.Current as App;
-                if (app?.DbManager == null) return;
+//        private async Task LoadDailyFinalGridEnergyAsync(DateTime fromDate, DateTime toDate)
+//        {
+//            await Task.Run(() =>
+//            {
+//                var app = Application.Current as App;
+//                if (app?.DbManager == null) return;
 
-                DataSet ds = app.DbManager.GetDataSetByQuery(@"
-select distinct on (collected_at::date)
-       collected_at::date as collected_day,
-       total_imported,
-       total_exported
-from public.tb_pcs_grid
-where collected_at >= @from_dt
-  and collected_at < @to_dt
-order by collected_at::date, collected_at desc;",
-                cmd =>
-                {
-                    cmd.Parameters.AddWithValue("@from_dt", fromDate.Date);
-                    cmd.Parameters.AddWithValue("@to_dt", toDate.Date);
-                });
+//                DataSet ds = app.DbManager.GetDataSetByQuery(@"
+//select distinct on (collected_at::date)
+//       collected_at::date as collected_day,
+//       total_imported,
+//       total_exported
+//from public.tb_pcs_grid
+//where collected_at >= @from_dt
+//  and collected_at < @to_dt
+//order by collected_at::date, collected_at desc;",
+//                cmd =>
+//                {
+//                    cmd.Parameters.AddWithValue("@from_dt", fromDate.Date);
+//                    cmd.Parameters.AddWithValue("@to_dt", toDate.Date);
+//                });
 
-                _dailyFinalImportedEnergyByDate.Clear();
-                _dailyFinalExportedEnergyByDate.Clear();
+//                _dailyFinalImportedEnergyByDate.Clear();
+//                _dailyFinalExportedEnergyByDate.Clear();
 
-                for (var date = fromDate.Date; date < toDate.Date; date = date.AddDays(1))
-                {
-                    _dailyFinalImportedEnergyByDate[date] = 0d;
-                    _dailyFinalExportedEnergyByDate[date] = 0d;
-                }
+//                for (var date = fromDate.Date; date < toDate.Date; date = date.AddDays(1))
+//                {
+//                    _dailyFinalImportedEnergyByDate[date] = 0d;
+//                    _dailyFinalExportedEnergyByDate[date] = 0d;
+//                }
 
-                if (ds.Tables.Count == 0 || ds.Tables[0].Rows.Count == 0) return;
+//                if (ds.Tables.Count == 0 || ds.Tables[0].Rows.Count == 0) return;
 
-                foreach (DataRow row in ds.Tables[0].Rows)
-                {
-                    var date = Convert.ToDateTime(row["collected_day"]).Date;
-                    _dailyFinalImportedEnergyByDate[date] = Convert.ToDouble(row["total_imported"]);
-                    _dailyFinalExportedEnergyByDate[date] = Convert.ToDouble(row["total_exported"]);
-                }
-            });
-        }
-        public void UpdateDailyImportedEnergySummary(double todayDailyImportedEnergy)
-        {
-            EnsureDailyEnergySummaryDate();
-            _todayImportedEnergy = todayDailyImportedEnergy;
-            RebuildDailyImportedEnergySummary();
-        }
+//                foreach (DataRow row in ds.Tables[0].Rows)
+//                {
+//                    var date = Convert.ToDateTime(row["collected_day"]).Date;
+//                    _dailyFinalImportedEnergyByDate[date] = Convert.ToDouble(row["total_imported"]);
+//                    _dailyFinalExportedEnergyByDate[date] = Convert.ToDouble(row["total_exported"]);
+//                }
+//            });
+//        }
+        //public void UpdateDailyImportedEnergySummary(double todayDailyImportedEnergy)
+        //{
+        //    EnsureDailyEnergySummaryDate();
+        //    _todayImportedEnergy = todayDailyImportedEnergy;
+        //    RebuildDailyImportedEnergySummary();
+        //}
 
-        public void UpdateDailyExportedEnergySummary(double todayDailyExportedEnergy)
-        {
-            EnsureDailyEnergySummaryDate();
-            _todayExportedEnergy = todayDailyExportedEnergy;
-            RebuildDailyExportedEnergySummary();
-        }
+        //public void UpdateDailyExportedEnergySummary(double todayDailyExportedEnergy)
+        //{
+        //    EnsureDailyEnergySummaryDate();
+        //    _todayExportedEnergy = todayDailyExportedEnergy;
+        //    RebuildDailyExportedEnergySummary();
+        //}
 
-        private void EnsureDailyEnergySummaryDate()
-        {
-            var today = DateTime.Today;
-            if (today == _chartBaseDate) return;
+        //private void EnsureDailyEnergySummaryDate()
+        //{
+        //    var today = DateTime.Today;
+        //    if (today == _chartBaseDate) return;
 
-            var previousBaseDate = _chartBaseDate.Date;
-            _chartBaseDate = today;
-            _dailyFinalImportedEnergyByDate[previousBaseDate] = _todayImportedEnergy;
-            _dailyFinalExportedEnergyByDate[previousBaseDate] = _todayExportedEnergy;
-            _todayImportedEnergy = 0d;
-            _todayExportedEnergy = 0d;
-            TrimDailyEnergySummaryCache();
-        }
+        //    var previousBaseDate = _chartBaseDate.Date;
+        //    _chartBaseDate = today;
+        //    _dailyFinalImportedEnergyByDate[previousBaseDate] = _todayImportedEnergy;
+        //    _dailyFinalExportedEnergyByDate[previousBaseDate] = _todayExportedEnergy;
+        //    _todayImportedEnergy = 0d;
+        //    _todayExportedEnergy = 0d;
+        //    TrimDailyEnergySummaryCache();
+        //}
 
-        private void RebuildDailyImportedEnergySummary()
-        {
-            DailyImportedEnergySummarySeries.Clear();
+        //private void RebuildDailyImportedEnergySummary()
+        //{
+        //    DailyImportedEnergySummarySeries.Clear();
 
-            for (int offset = DailyEnergySummaryStartOffsetDays; offset <= DailyEnergySummaryEndOffsetDays; offset++)
-            {
-                var date = _chartBaseDate.AddDays(offset);
-                DailyImportedEnergySummarySeries.Append(date, GetDailyImportedEnergyValue(date, offset));
-            }
+        //    for (int offset = DailyEnergySummaryStartOffsetDays; offset <= DailyEnergySummaryEndOffsetDays; offset++)
+        //    {
+        //        var date = _chartBaseDate.AddDays(offset);
+        //        DailyImportedEnergySummarySeries.Append(date, GetDailyImportedEnergyValue(date, offset));
+        //    }
 
-            var yesterday = _chartBaseDate.AddDays(-1);
-            var yesterdayValue = GetDailyFinalImportedEnergy(yesterday);
-            DailyImportedYesterdayLabel = yesterdayValue.ToString("0.0");
-            DailyImportedYesterdayX = _chartBaseDate.AddDays(-1);
-            DailyImportedYesterdayY = yesterdayValue;
-            DailyImportedTodayLabel = _todayImportedEnergy.ToString("0.0");
-            DailyImportedTodayX = _chartBaseDate;
-            DailyImportedTodayY = _todayImportedEnergy;
-        }
+        //    var yesterday = _chartBaseDate.AddDays(-1);
+        //    var yesterdayValue = GetDailyFinalImportedEnergy(yesterday);
+        //    DailyImportedYesterdayLabel = yesterdayValue.ToString("0.0");
+        //    DailyImportedYesterdayX = _chartBaseDate.AddDays(-1);
+        //    DailyImportedYesterdayY = yesterdayValue;
+        //    DailyImportedTodayLabel = _todayImportedEnergy.ToString("0.0");
+        //    DailyImportedTodayX = _chartBaseDate;
+        //    DailyImportedTodayY = _todayImportedEnergy;
+        //}
 
-        private void RebuildDailyExportedEnergySummary()
-        {
-            DailyExportedEnergySummarySeries.Clear();
+        //private void RebuildDailyExportedEnergySummary()
+        //{
+        //    DailyExportedEnergySummarySeries.Clear();
 
-            for (int offset = DailyEnergySummaryStartOffsetDays; offset <= DailyEnergySummaryEndOffsetDays; offset++)
-            {
-                var date = _chartBaseDate.AddDays(offset);
-                DailyExportedEnergySummarySeries.Append(date, GetDailyExportedEnergyValue(date, offset));
-            }
+        //    for (int offset = DailyEnergySummaryStartOffsetDays; offset <= DailyEnergySummaryEndOffsetDays; offset++)
+        //    {
+        //        var date = _chartBaseDate.AddDays(offset);
+        //        DailyExportedEnergySummarySeries.Append(date, GetDailyExportedEnergyValue(date, offset));
+        //    }
 
-            var yesterday = _chartBaseDate.AddDays(-1);
-            var yesterdayValue = GetDailyFinalExportedEnergy(yesterday);
-            DailyExportedYesterdayLabel = yesterdayValue.ToString("0.0");
-            DailyExportedYesterdayX = _chartBaseDate.AddDays(-1);
-            DailyExportedYesterdayY = yesterdayValue;
-            DailyExportedTodayLabel = _todayExportedEnergy.ToString("0.0");
-            DailyExportedTodayX = _chartBaseDate;
-            DailyExportedTodayY = _todayExportedEnergy;
-        }
+        //    var yesterday = _chartBaseDate.AddDays(-1);
+        //    var yesterdayValue = GetDailyFinalExportedEnergy(yesterday);
+        //    DailyExportedYesterdayLabel = yesterdayValue.ToString("0.0");
+        //    DailyExportedYesterdayX = _chartBaseDate.AddDays(-1);
+        //    DailyExportedYesterdayY = yesterdayValue;
+        //    DailyExportedTodayLabel = _todayExportedEnergy.ToString("0.0");
+        //    DailyExportedTodayX = _chartBaseDate;
+        //    DailyExportedTodayY = _todayExportedEnergy;
+        //}
 
-        private double GetDailyImportedEnergyValue(DateTime date, int offset)
-        {
-            if (offset == 0) return _todayImportedEnergy;
-            if (offset > 0) return 0d;
+        //private double GetDailyImportedEnergyValue(DateTime date, int offset)
+        //{
+        //    if (offset == 0) return _todayImportedEnergy;
+        //    if (offset > 0) return 0d;
 
-            return GetDailyFinalImportedEnergy(date);
-        }
+        //    return GetDailyFinalImportedEnergy(date);
+        //}
 
-        private double GetDailyExportedEnergyValue(DateTime date, int offset)
-        {
-            if (offset == 0) return _todayExportedEnergy;
-            if (offset > 0) return 0d;
+        //private double GetDailyExportedEnergyValue(DateTime date, int offset)
+        //{
+        //    if (offset == 0) return _todayExportedEnergy;
+        //    if (offset > 0) return 0d;
 
-            return GetDailyFinalExportedEnergy(date);
-        }
+        //    return GetDailyFinalExportedEnergy(date);
+        //}
 
-        private double GetDailyFinalImportedEnergy(DateTime date)
-        {
-            double value;
-            return _dailyFinalImportedEnergyByDate.TryGetValue(date.Date, out value) ? value : 0d;
-        }
+        //private double GetDailyFinalImportedEnergy(DateTime date)
+        //{
+        //    double value;
+        //    return _dailyFinalImportedEnergyByDate.TryGetValue(date.Date, out value) ? value : 0d;
+        //}
 
-        private double GetDailyFinalExportedEnergy(DateTime date)
-        {
-            double value;
-            return _dailyFinalExportedEnergyByDate.TryGetValue(date.Date, out value) ? value : 0d;
-        }
+        //private double GetDailyFinalExportedEnergy(DateTime date)
+        //{
+        //    double value;
+        //    return _dailyFinalExportedEnergyByDate.TryGetValue(date.Date, out value) ? value : 0d;
+        //}
 
-        private void TrimDailyEnergySummaryCache()
-        {
-            var fromDate = _chartBaseDate.AddDays(DailyEnergySummaryStartOffsetDays).Date;
-            var toDate = _chartBaseDate.Date;
+        //private void TrimDailyEnergySummaryCache()
+        //{
+        //    var fromDate = _chartBaseDate.AddDays(DailyEnergySummaryStartOffsetDays).Date;
+        //    var toDate = _chartBaseDate.Date;
 
-            foreach (var date in _dailyFinalImportedEnergyByDate.Keys.ToList())
-            {
-                if (date < fromDate || date >= toDate)
-                    _dailyFinalImportedEnergyByDate.Remove(date);
-            }
+        //    foreach (var date in _dailyFinalImportedEnergyByDate.Keys.ToList())
+        //    {
+        //        if (date < fromDate || date >= toDate)
+        //            _dailyFinalImportedEnergyByDate.Remove(date);
+        //    }
 
-            foreach (var date in _dailyFinalExportedEnergyByDate.Keys.ToList())
-            {
-                if (date < fromDate || date >= toDate)
-                    _dailyFinalExportedEnergyByDate.Remove(date);
-            }
-        }
+        //    foreach (var date in _dailyFinalExportedEnergyByDate.Keys.ToList())
+        //    {
+        //        if (date < fromDate || date >= toDate)
+        //            _dailyFinalExportedEnergyByDate.Remove(date);
+        //    }
+        //}
 
 
         #region [ Using Function ]
@@ -1002,10 +1002,10 @@ order by collected_at::date, collected_at desc;",
                     ChangeLoadData(snapshot);
                     ChangeEtcData(snapshot);
                     ChangeBatteryData(snapshot);
-                    if (TryGetDouble(snapshot, "GridTotalImportActivePower", out var totalImported))
-                        UpdateDailyImportedEnergySummary(totalImported);
-                    if (TryGetDouble(snapshot, "GridTotalExportedActivePower", out var totalExported))
-                        UpdateDailyExportedEnergySummary(totalExported);
+                    //if (TryGetDouble(snapshot, "GridTotalImportActivePower", out var totalImported))
+                    //    UpdateDailyImportedEnergySummary(totalImported);
+                    //if (TryGetDouble(snapshot, "GridTotalExportedActivePower", out var totalExported))
+                    //    UpdateDailyExportedEnergySummary(totalExported);
                 }
                 finally
                 {

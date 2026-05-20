@@ -1,0 +1,7 @@
+#!/bin/sh
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/harness/run-integration-tests.ps1 -AllowCompletedTask
+if [ $? -ne 0 ]; then exit 1; fi
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/harness/run-build.ps1 -AllowCompletedTask
+if [ $? -ne 0 ]; then exit 1; fi
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/harness/run-e2e.ps1 -AllowCompletedTask
+exit $?
