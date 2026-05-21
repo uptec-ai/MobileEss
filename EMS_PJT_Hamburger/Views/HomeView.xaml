@@ -410,7 +410,7 @@
             </StackPanel>
             <!--#region 충전 Path -->
             <Path x:Name="Charge_PCS"
-                  Managers:AnimationManager.IsRunning="{Binding ChargingStatus, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Charging}"
+                  Managers:AnimationManager.IsRunning="False"
                   Managers:AnimationManager.To="-15"
                   Managers:AnimationManager.From="0"
                   Managers:AnimationManager.Speed="1.2"
@@ -532,7 +532,7 @@
 
             <Border Canvas.Left="90" Canvas.Top="307"
                     Height="98" Width="82"
-                    BorderBrush="{Binding ChargeBorderBrush}"
+                    BorderBrush="Gray"
                     Style="{StaticResource ChargeStoryBorderStyle}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
                     <TextBlock Text="PV Inverter"
@@ -554,7 +554,7 @@
 
             <Border Canvas.Left="193" Canvas.Top="307"
                     Height="98" Width="82"
-                    BorderBrush="{Binding ChargeBorderBrush}"
+                    BorderBrush="Gray"
                     Style="{StaticResource ChargeStoryBorderStyle}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
                     <TextBlock Text="Transformer"
@@ -609,7 +609,7 @@
             <Border x:Name="ENERGY"
                     Canvas.Left="20"
                     Canvas.Top="70"
-                    BorderBrush="{Binding ChargeBorderBrush}"
+                    BorderBrush="Gray"
                     Style="{StaticResource ChargeStoryBorderStyle}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
                     <TextBlock Text="Energy"

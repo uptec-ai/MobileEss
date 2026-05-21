@@ -14,6 +14,7 @@ namespace EMS_PJT_Hamburger.ViewModels
     public class PcsViewModel : PcsModel, IDisposable
     {
         private bool _disposed;
+        private bool _controlInputsInitializedFromRead;
         private DateTime _lastKeepAliveReceivedUtc = DateTime.MinValue;
         private PcsFaultMessageWindow _faultMessageWindow;
 
@@ -39,6 +40,20 @@ namespace EMS_PJT_Hamburger.ViewModels
         public string ControlMaxDischargeCurrent { get => GetProperty(() => ControlMaxDischargeCurrent); set => SetProperty(() => ControlMaxDischargeCurrent, value); }
         public string ControlGridMaxImportPowerW { get => GetProperty(() => ControlGridMaxImportPowerW); set => SetProperty(() => ControlGridMaxImportPowerW, value); }
         public string ControlGridMaxExportPowerW { get => GetProperty(() => ControlGridMaxExportPowerW); set => SetProperty(() => ControlGridMaxExportPowerW, value); }
+        public string ControlOperationModeRead { get => GetProperty(() => ControlOperationModeRead); set => SetProperty(() => ControlOperationModeRead, value); }
+        public string ControlChargeModeRead { get => GetProperty(() => ControlChargeModeRead); set => SetProperty(() => ControlChargeModeRead, value); }
+        public string ControlMaxChargePowerPercentRead { get => GetProperty(() => ControlMaxChargePowerPercentRead); set => SetProperty(() => ControlMaxChargePowerPercentRead, value); }
+        public string ControlMaxDischargePowerPercentRead { get => GetProperty(() => ControlMaxDischargePowerPercentRead); set => SetProperty(() => ControlMaxDischargePowerPercentRead, value); }
+        public string ControlMaxChargePowerWRead { get => GetProperty(() => ControlMaxChargePowerWRead); set => SetProperty(() => ControlMaxChargePowerWRead, value); }
+        public string ControlMaxDischargePowerWRead { get => GetProperty(() => ControlMaxDischargePowerWRead); set => SetProperty(() => ControlMaxDischargePowerWRead, value); }
+        public string ControlMaxChargeSocRead { get => GetProperty(() => ControlMaxChargeSocRead); set => SetProperty(() => ControlMaxChargeSocRead, value); }
+        public string ControlMinDischargeSocRead { get => GetProperty(() => ControlMinDischargeSocRead); set => SetProperty(() => ControlMinDischargeSocRead, value); }
+        public string ControlMaxChargeVoltageRead { get => GetProperty(() => ControlMaxChargeVoltageRead); set => SetProperty(() => ControlMaxChargeVoltageRead, value); }
+        public string ControlMaxDischargeVoltageRead { get => GetProperty(() => ControlMaxDischargeVoltageRead); set => SetProperty(() => ControlMaxDischargeVoltageRead, value); }
+        public string ControlMaxChargeCurrentRead { get => GetProperty(() => ControlMaxChargeCurrentRead); set => SetProperty(() => ControlMaxChargeCurrentRead, value); }
+        public string ControlMaxDischargeCurrentRead { get => GetProperty(() => ControlMaxDischargeCurrentRead); set => SetProperty(() => ControlMaxDischargeCurrentRead, value); }
+        public string ControlGridMaxImportPowerWRead { get => GetProperty(() => ControlGridMaxImportPowerWRead); set => SetProperty(() => ControlGridMaxImportPowerWRead, value); }
+        public string ControlGridMaxExportPowerWRead { get => GetProperty(() => ControlGridMaxExportPowerWRead); set => SetProperty(() => ControlGridMaxExportPowerWRead, value); }
 
         public PcsViewModel()
         {
@@ -189,6 +204,91 @@ namespace EMS_PJT_Hamburger.ViewModels
             ControlMaxDischargeCurrent = "0";
             ControlGridMaxImportPowerW = "0";
             ControlGridMaxExportPowerW = "0";
+            ControlOperationModeRead = "-";
+            ControlChargeModeRead = "-";
+            ControlMaxChargePowerPercentRead = "-";
+            ControlMaxDischargePowerPercentRead = "-";
+            ControlMaxChargePowerWRead = "-";
+            ControlMaxDischargePowerWRead = "-";
+            ControlMaxChargeSocRead = "-";
+            ControlMinDischargeSocRead = "-";
+            ControlMaxChargeVoltageRead = "-";
+            ControlMaxDischargeVoltageRead = "-";
+            ControlMaxChargeCurrentRead = "-";
+            ControlMaxDischargeCurrentRead = "-";
+            ControlGridMaxImportPowerWRead = "-";
+            ControlGridMaxExportPowerWRead = "-";
+        }
+
+        protected override void OnControlProtocolReceived(ushort[] registers)
+        {
+            var operationMode = ReadControlU16(registers, "OperationMode");
+            var chargeMode = ReadControlU16(registers, "ChargeMode");
+            var maxChargePowerPercent = ReadControlU16(registers, "MaxChargePowerPercent");
+            var maxDischargePowerPercent = ReadControlU16(registers, "MaxDischargePowerPercent");
+            var maxChargePower = ReadControlU32(registers, "MaxChargePower");
+            var maxDischargePower = ReadControlU32(registers, "MaxDischargePower");
+            var maxChargeSoc = ReadControlU16(registers, "MaxChargeSOC");
+            var minDischargeSoc = ReadControlU16(registers, "MinDischargeSOC");
+            var maxChargeVoltage = ReadControlU16(registers, "MaxChargeVoltage");
+            var maxDischargeVoltage = ReadControlU16(registers, "MaxDischargeVoltage");
+            var maxChargeCurrent = ReadControlU16(registers, "MaxChargeCurrent");
+            var maxDischargeCurrent = ReadControlU16(registers, "MaxDischargeCurrent");
+            var gridMaxImportPower = ReadControlU32(registers, "GridMaxImportPower");
+            var gridMaxExportPower = ReadControlU32(registers, "GridMaxExportPower");
+
+            ControlOperationModeRead = FormatControlValue(operationMode);
+            ControlChargeModeRead = FormatControlValue(chargeMode);
+            ControlMaxChargePowerPercentRead = FormatControlValue(maxChargePowerPercent);
+            ControlMaxDischargePowerPercentRead = FormatControlValue(maxDischargePowerPercent);
+            ControlMaxChargePowerWRead = FormatControlValue(maxChargePower);
+            ControlMaxDischargePowerWRead = FormatControlValue(maxDischargePower);
+            ControlMaxChargeSocRead = FormatControlValue(maxChargeSoc);
+            ControlMinDischargeSocRead = FormatControlValue(minDischargeSoc);
+            ControlMaxChargeVoltageRead = FormatControlValue(maxChargeVoltage);
+            ControlMaxDischargeVoltageRead = FormatControlValue(maxDischargeVoltage);
+            ControlMaxChargeCurrentRead = FormatControlValue(maxChargeCurrent);
+            ControlMaxDischargeCurrentRead = FormatControlValue(maxDischargeCurrent);
+            ControlGridMaxImportPowerWRead = FormatControlValue(gridMaxImportPower);
+            ControlGridMaxExportPowerWRead = FormatControlValue(gridMaxExportPower);
+
+            if (_controlInputsInitializedFromRead) return;
+
+            ControlOperationMode = ControlOperationModeRead;
+            ControlChargeMode = ControlChargeModeRead;
+            ControlMaxChargePowerPercent = ControlMaxChargePowerPercentRead;
+            ControlMaxDischargePowerPercent = ControlMaxDischargePowerPercentRead;
+            ControlMaxChargePowerW = ControlMaxChargePowerWRead;
+            ControlMaxDischargePowerW = ControlMaxDischargePowerWRead;
+            ControlMaxChargeSoc = ControlMaxChargeSocRead;
+            ControlMinDischargeSoc = ControlMinDischargeSocRead;
+            ControlMaxChargeVoltage = ControlMaxChargeVoltageRead;
+            ControlMaxDischargeVoltage = ControlMaxDischargeVoltageRead;
+            ControlMaxChargeCurrent = ControlMaxChargeCurrentRead;
+            ControlMaxDischargeCurrent = ControlMaxDischargeCurrentRead;
+            ControlGridMaxImportPowerW = ControlGridMaxImportPowerWRead;
+            ControlGridMaxExportPowerW = ControlGridMaxExportPowerWRead;
+            _controlInputsInitializedFromRead = true;
+        }
+
+        private static double ReadControlU16(ushort[] registers, string ctrl)
+        {
+            var spec = PcsSpecs.ControlWrite[ctrl];
+            var index = spec.Address - ControlProtocolStartAddress;
+            return registers[index] * spec.Scale;
+        }
+
+        private static double ReadControlU32(ushort[] registers, string ctrl)
+        {
+            var spec = PcsSpecs.ControlWrite[ctrl];
+            var index = spec.Address - ControlProtocolStartAddress;
+            var raw = ((uint)registers[index] << 16) | registers[index + 1];
+            return raw * spec.Scale;
+        }
+
+        private static string FormatControlValue(double value)
+        {
+            return value.ToString("0.###", CultureInfo.CurrentCulture);
         }
 
         private void InitControlCommands()

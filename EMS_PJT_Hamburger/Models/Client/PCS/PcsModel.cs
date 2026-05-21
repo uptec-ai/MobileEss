@@ -110,6 +110,8 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         public ObservableCollection<PcsFaultItem> PcsFaultMessages { get; } = new ObservableCollection<PcsFaultItem>();
         protected const ushort PollStartAddress = 0;
         protected const ushort PollRegisterCount = 355;
+        protected const ushort ControlProtocolStartAddress = 1000;
+        protected const ushort ControlProtocolRegisterCount = 25;
         protected static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(500);
 
         // UI Data Init
@@ -641,6 +643,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             }
 
             ApplyParsedData(e.Values);
+            ReadControlProtocolSnapshot();
         }
 
         private void ApplyParsedData(ushort[] registers)
@@ -653,6 +656,42 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
 
             var parsed = ModbusParser.ParseRegisters(registers, PcsSpecs.All, PollStartAddress);
             ChangeInformation(parsed);
+        }
+
+        private void ReadControlProtocolSnapshot()
+        {
+            try
+            {
+                var registers = _client
+                    .ReadHoldingRegistersAsync(1, ControlProtocolStartAddress, ControlProtocolRegisterCount, CancellationToken.None)
+                    .ConfigureAwait(false)
+                    .GetAwaiter()
+                    .GetResult();
+
+                if (registers == null || registers.Length < ControlProtocolRegisterCount)
+                {
+                    SystemMsg = $"insufficient control registers: {registers?.Length ?? 0}/{ControlProtocolRegisterCount}";
+                    return;
+                }
+
+                var ui = Application.Current?.Dispatcher;
+                Action updateUi = () => OnControlProtocolReceived(registers);
+
+                if (ui?.CheckAccess() == true)
+                    updateUi();
+                else if (ui != null)
+                    ui.BeginInvoke(updateUi);
+                else
+                    updateUi();
+            }
+            catch (Exception ex)
+            {
+                SystemMsg = $"[E] control protocol read failed: {ex.Message}";
+            }
+        }
+
+        protected virtual void OnControlProtocolReceived(ushort[] registers)
+        {
         }
         protected async Task WriteControlU16Async(string ctrl, double input)
         {

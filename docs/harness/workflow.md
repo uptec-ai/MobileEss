@@ -1,66 +1,94 @@
 # Harness Workflow
 
-## 작업 시작
+## Task Start
 
 ```powershell
-.\scripts\harness\start-task.ps1 -Title "작업 제목"
+.\scripts\harness\start-task.ps1 -Title "Mobile Ess"
 ```
 
-생성물:
+Generated artifacts:
 
 - `current-task.json`
 - `plans/active/<task-id>.md`
 - `logs/harness/<task-id>.log`
 
-## 계획 작성
+## Plan Creation
 
-계획 문서에 다음 항목을 채운다.
+Fill the generated plan document with the following items:
 
-- 목표
-- 범위
-- 영향 파일
-- 테스트 전략
-- 롤백 방법
+- Goal
+- Scope
+- Impacted files
+- Test strategy
+- Rollback strategy
 
-## 코드 수정 전 가드
+## Automatic Harness Task Enforcement
+
+Even if the user gives only a simple feature request,
+the Agent must treat it as a Harness task.
+
+Examples:
+- "Add a button"
+- "Add a search filter"
+- "Modify a chart"
+- "Fix a bug"
+
+All of the above requests must enforce the following workflow:
+
+1. Review `AGENTS.md`
+2. Review related documents under `docs/harness`
+3. Execute `.\scripts\harness\start-task.ps1`
+4. Create the task plan document
+5. Pass `.\scripts\harness\guard-before-edit.ps1`
+6. Implement the feature
+7. Record logs
+8. Execute tests
+9. Execute build validation
+10. Recommend a commit message
+
+Application code modification is prohibited without:
+- an active plan document
+- an active log file
+
+## Guard Before Code Modification
 
 ```powershell
 .\scripts\harness\guard-before-edit.ps1
 ```
 
-다음이 없으면 실패한다.
+The guard must fail if any of the following are missing:
 
 - `current-task.json`
-- 활성 계획 파일
-- 활성 로그 파일
+- active plan file
+- active log file
 
-## 구현 로그
+## Implementation Logging
 
 ```powershell
-.\scripts\harness\write-log.ps1 -Message "변경 내용과 판단 근거"
+.\scripts\harness\write-log.ps1 -Message "Implementation details and reasoning"
 ```
 
-## 품질 게이트
+## Quality Gates
 
 ```powershell
 .\scripts\harness\run-quality-gates.ps1
 ```
 
-순서:
+Execution order:
 
-1. 단위 테스트
-2. 통합 테스트
-3. 린트/정적 분석
-4. 빌드
-5. E2E 검증
+1. Unit Tests
+2. Integration Tests
+3. Lint / Static Analysis
+4. Build
+5. E2E Validation
 
-## 완료
+## Completion
 
 ```powershell
 .\scripts\harness\suggest-commit-message.ps1
 .\scripts\harness\complete-task.ps1
 ```
 
-완료 시 계획 문서는 `plans/completed`로 이동하고 `current-task.json`은 제거된다.
-
-Git hooks are allowed to run quality gates after completion. In that case they use the latest completed plan/log as read-only task context. This does not relax edit safety: app code edits still require a live `current-task.json` and `guard-before-edit.ps1`.
+When completed:
+- the plan document is moved to `plans/completed`
+- `current-task.json` is removed
