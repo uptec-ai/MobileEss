@@ -186,7 +186,7 @@ namespace EMS_PJT_Hamburger.ViewModels
        
         private void StatusMsg02_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            OnPropertyChanged(nameof(Alarms));
+            RaisePropertyChanged(nameof(Alarms));
         }
 
         public void Dispose()

@@ -5,13 +5,16 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:EMS_PJT_Hamburger.Views"
              xmlns:ViewModels="clr-namespace:EMS_PJT_Hamburger.ViewModels"
+             xmlns:Models="clr-namespace:EMS_PJT_Hamburger.Models"
              xmlns:Managers="clr-namespace:EMS_PJT_Hamburger.Models.Managers"
              xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
              mc:Ignorable="d" d:DesignHeight="704" d:DesignWidth="1000" Background="Transparent" 
              FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR">
     <UserControl.Resources>
         <Managers:RelayConverter x:Key="RelayConverter"/>
+        <Managers:RunFaultStatusConverter x:Key="RunFaultStatusConverter"/>
         <Managers:HomeStatusMatchConverter x:Key="HomeStatusMatchConverter"/>
+        <Managers:ChargeToBrushConverter x:Key="ChargeToBrushConverter"/>
 
         <Style TargetType="Border" x:Key="ChargeStoryBorderStyle">
             <Setter Property="CornerRadius" Value="5"/>
@@ -101,6 +104,27 @@
             <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
         </Style>
 
+        <Style TargetType="Path" x:Key="NotusedPathStyle">
+            <Setter Property="StrokeDashOffset" Value="0"/>
+            <Setter Property="StrokeThickness" Value="3"/>
+            <Setter Property="StrokeLineJoin" Value="Round"/>
+            <Setter Property="StrokeStartLineCap" Value="Round"/>
+            <Setter Property="StrokeEndLineCap" Value="Round"/>
+            <Setter Property="Stroke" Value="#FF464646"/>
+            <Setter Property="Opacity" Value="1"/>
+            <Setter Property="Fill" Value="Transparent"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="10" 
+                                      ShadowDepth="0" 
+                                      Direction="0" 
+                                      Color="#FF0C1103" 
+                                      Opacity="1"
+                                      RenderingBias="Performance"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style TargetType="Path" x:Key="ChargingPathStyle">
             <Setter Property="StrokeDashOffset" Value="0"/>
             <Setter Property="StrokeThickness" Value="3"/>
@@ -155,11 +179,82 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="BorderBrush" Value="#87FFFF"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect BlurRadius="2" ShadowDepth="0" Direction="0" Color="Cyan" Opacity="1"/>
-                </Setter.Value>
-            </Setter>
+        </Style>
+
+        <Style TargetType="Label" x:Key="PLableStyle">
+            <Setter Property="Width" Value="65"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderBrush" Value="#87FFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="{x:Static Models:HomeStatus.Charging}">
+                    <Setter Property="Content" Value="Discharge"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="{x:Static Models:HomeStatus.Discharging}">
+                    <Setter Property="Content" Value="Convert"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="{x:Static Models:HomeStatus.Waiting}">
+                    <Setter Property="Foreground" Value="Gray"/>
+                    <Setter Property="Content" Value="Stop"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="Label" x:Key="BLableStyle">
+            <Setter Property="Width" Value="65"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderBrush" Value="#87FFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="{x:Static Models:HomeStatus.Charging}">
+                    <Setter Property="Content" Value="Charge"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="{x:Static Models:HomeStatus.Discharging}">
+                    <Setter Property="Content" Value="Discharge"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="{x:Static Models:HomeStatus.Waiting}">
+                    <Setter Property="Foreground" Value="Gray"/>
+                    <Setter Property="Content" Value="Stop"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="Label" x:Key="LoadLableStyle">
+            <Setter Property="Width" Value="65"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderBrush" Value="#87FFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
+                    <Setter Property="Foreground" Value="Orange"/>
+                    <Setter Property="Content" Value="Consume"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="False">
+                    <Setter Property="Foreground" Value="Gray"/>
+                    <Setter Property="Content" Value="Stop"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
 
         <Style TargetType="Label" x:Key="InfoLableStyle">
@@ -262,9 +357,21 @@
 
         <Style TargetType="TextBlock" x:Key="HomeHeaderModeTextStyle">
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontSize" Value="20"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="{x:Static Models:HomeStatus.Charging}">
+                    <Setter Property="Text" Value="충전 중"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="{x:Static Models:HomeStatus.Discharging}">
+                    <Setter Property="Text" Value="방전 중"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="{x:Static Models:HomeStatus.Waiting}">
+                    <Setter Property="Foreground" Value="Gray"/>
+                    <Setter Property="Text" Value="대기"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
 
     </UserControl.Resources>
@@ -277,8 +384,8 @@
                         BorderThickness="1"
                         BorderBrush="#334F5E"
                         Background="#CC15181C" Margin="20,0,0,0">
-                    <Grid Margin="36,0" >
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Grid Margin="0" Width="170" >
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="160">
                             <TextBlock Grid.Column="0" Text="운전 모드"
                                        Style="{StaticResource HomeHeaderTitleTextStyle}"/>
                             <Ellipse Width="12"
@@ -347,7 +454,7 @@
                                     </Style>
                                 </Ellipse.Style>
                             </Ellipse>
-                            <TextBlock Text="{Binding OperationModeText}"
+                            <TextBlock Tag="{Binding ChargingStatus}"
                                        Style="{StaticResource HomeHeaderModeTextStyle}"/>
                         </StackPanel>
                     </Grid>
@@ -364,13 +471,29 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Grid Grid.Column="0">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <TextBlock Text="PCS" Foreground="#FFB0FCFC" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding ConnectPCS}" Foreground="White" FontSize="13" Margin="10,0,16,0"/>
+                                <TextBlock Tag="{Binding PcsVm.IsConnected, Source={x:Static Application.Current}}" 
+                                           Margin="10,0,16,0" FontSize="13">
+                                    <TextBlock.Style>
+                                        <Style>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
+                                                    <Setter Property="TextBlock.Text" Value="Enable"/>
+                                                    <Setter Property="TextBlock.Foreground" Value="White"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="False">
+                                                    <Setter Property="TextBlock.Text" Value="Disable"/>
+                                                    <Setter Property="TextBlock.Foreground" Value="Gray"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,0">
                                 <dx:SimpleButton Content="충전"
@@ -394,7 +517,22 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <TextBlock Text="BMS" Foreground="#FFB0FCFC" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding ConnectBMS}" Foreground="White" FontSize="13" Margin="10,0,16,0"/>
+                                <TextBlock Tag="{Binding BmsVm.StatusMsg01.Ready, Source={x:Static Application.Current}}" FontSize="13" Margin="10,0,16,0">
+                                    <TextBlock.Style>
+                                        <Style>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="ON">
+                                                    <Setter Property="TextBlock.Text" Value="Enable"/>
+                                                    <Setter Property="TextBlock.Foreground" Value="White"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="OFF">
+                                                    <Setter Property="TextBlock.Text" Value="Disable"/>
+                                                    <Setter Property="TextBlock.Foreground" Value="Gray"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
                             </StackPanel>
                             <dx:SimpleButton Grid.Column="1"
                                              HorizontalAlignment="Left"
@@ -416,7 +554,7 @@
                   Managers:AnimationManager.Speed="1.2"
                   Managers:AnimationManager.StartDelaySec="1"
                   Visibility="Visible"
-                  Style="{StaticResource ChargingPathStyle}" Canvas.Top="45.639">
+                  Style="{StaticResource NotusedPathStyle}" Canvas.Top="45.639">
                 <Path.Data>
                     <PathGeometry>
                         <PathFigure StartPoint="131,190" IsClosed="False">
@@ -481,6 +619,12 @@
             </Path>
 
             <Path x:Name="Discharge_OnGrid"
+                  Managers:AnimationManager.IsRunning="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OnGrid}"
+                  Managers:AnimationManager.To="-15"
+                  Managers:AnimationManager.From="0"
+                  Managers:AnimationManager.Speed="1.2"
+                  Managers:AnimationManager.StartDelaySec="1"
+                  Visibility="Visible"
                   Style="{StaticResource DisChargingPathStyle}" Canvas.Left="-40" Canvas.Top="5">
                 <Path.Data>
                     <PathGeometry>
@@ -493,7 +637,7 @@
             </Path>
 
             <Path x:Name="Discharge_OffGrid"
-                  Managers:AnimationManager.IsRunning="{Binding IsChargingOffGrid}"
+                  Managers:AnimationManager.IsRunning="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OffGrid}"
                   Managers:AnimationManager.To="-15"
                   Managers:AnimationManager.From="0"
                   Managers:AnimationManager.Speed="1.2"
@@ -510,7 +654,7 @@
             </Path>
 
             <Path x:Name="Discharge_Vihicle"
-                  Managers:AnimationManager.IsRunning="{Binding IsChargingVihicle}"
+                  Managers:AnimationManager.IsRunning="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Vehicle}"
                   Managers:AnimationManager.To="-15"
                   Managers:AnimationManager.From="0"
                   Managers:AnimationManager.Speed="1.2"
@@ -542,8 +686,8 @@
                     </TextBlock>
 
                     <Label Canvas.Left="17" Canvas.Top="68"
-                           Content="Enable"
-                           Style="{StaticResource ConnLableStyle}" Width="44"/>
+                           Content="Stop" Foreground="Gray"
+                           Style="{StaticResource ConnLableStyle}" Width="55"/>
 
                     <Image Source="/EMS_PJT_Hamburger;component/Assets/인버터02.png" 
                            Canvas.Left="14" Canvas.Top="18"
@@ -554,7 +698,7 @@
 
             <Border Canvas.Left="193" Canvas.Top="307"
                     Height="98" Width="82"
-                    BorderBrush="Gray"
+                    BorderBrush="Gray" 
                     Style="{StaticResource ChargeStoryBorderStyle}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
                     <TextBlock Text="Transformer"
@@ -564,8 +708,8 @@
                     </TextBlock>
 
                     <Label Canvas.Left="17" Canvas.Top="68"
-                           Content="Enable"
-                           Style="{StaticResource ConnLableStyle}" Width="44"/>
+                           Content="Stop" Foreground="Gray"
+                           Style="{StaticResource ConnLableStyle}" Width="55"/>
 
                     <Image Source="/EMS_PJT_Hamburger;component/Assets/Transformer.png" 
                            Canvas.Left="14" Canvas.Top="18"
@@ -617,9 +761,9 @@
                                Style="{StaticResource DefaultTextBlockStyle}" Canvas.Top="3">
                     </TextBlock>
 
-                    <Label Canvas.Left="167" Canvas.Top="4"
-                           Content="Enable"
-                           Style="{StaticResource ConnLableStyle}"/>
+                    <Label Canvas.Left="157" Canvas.Top="4"
+                           Content="Stop" Foreground="Gray"
+                           Style="{StaticResource ConnLableStyle}" Width="55"/>
 
                     <Label Canvas.Left="172" Canvas.Top="28"
                            Style="{StaticResource InfoLableStyle}">
@@ -695,42 +839,33 @@
                 </Canvas>
             </Border>
 
-            <Border x:Name="PCS1"
+            <Border x:Name="PCS"
                     Canvas.Left="318" 
                     Canvas.Top="271"                   
                     Style="{StaticResource ChargeStoryBorderStyle}"
-                    BorderBrush="{Binding PcsBorderBrush}">
+                    BorderBrush="{Binding PcsBorderBrush}" MouseLeftButtonDown="PCS_MouseLeftButtonDown" TouchDown="PCS_TouchDown">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
                     <TextBlock Text="PCS" Padding="0,0,0,0"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Left="4" Canvas.Top="3">
                     </TextBlock>
 
-                    <Label Canvas.Left="167" Canvas.Top="4"
-                           Content="{Binding ConnectPCS}"
-                           Style="{StaticResource ConnLableStyle}"/>
+                    <Label Canvas.Left="147" Canvas.Top="4"
+                           Tag="{Binding ChargingStatus}"
+                           Style="{StaticResource PLableStyle}"/>
 
                     <Label Canvas.Left="172" Canvas.Top="28"
                            Style="{StaticResource InfoLableStyle}">
-                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                            <TextBlock Text="역률"/>
-                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="{Binding ChargeStatus}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0">
+                            <TextBlock Text="충전" FontSize="8"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="{Binding PChargeBorderBrush}"/>
                         </StackPanel>
                     </Label>
 
                     <Label Canvas.Left="172" Canvas.Top="47"
                            Style="{StaticResource InfoLableStyle}">
-                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                            <TextBlock Text="유효"/>
-                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="{Binding ChargeStatus}"/>
-                        </StackPanel>
-
-                    </Label>
-
-                    <Label Canvas.Left="172" Canvas.Top="66"
-                           Style="{StaticResource InfoLableStyle}">
-                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                            <TextBlock Text="무효"/>
-                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="{Binding ChargeStatus}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0">
+                            <TextBlock Text="방전" FontSize="8"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="{Binding PDischargeBorderBrush}"/>
                         </StackPanel>
                     </Label>
 
@@ -741,10 +876,10 @@
                     <Border Canvas.Top="112" Canvas.Left="4"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Label Content="Input" 
+                            <Label Content="AC Volt" 
                                    Style="{StaticResource HeaderLableStyle}"/>
                             <TextBlock Style="{StaticResource ContentTextBlockStyle}">
-                                <Run Text="24"/>
+                                <Run Text="{Binding PcsVm.InvAveAcVoltage, Source={x:Static Application.Current}, StringFormat=F1}"/>
                                 <Run Text="V"/>
                             </TextBlock>
                         </StackPanel>
@@ -755,7 +890,7 @@
                             <Label Content="Curr." 
                                    Style="{StaticResource HeaderLableStyle}"/>
                             <TextBlock Style="{StaticResource ContentTextBlockStyle}">
-                                <Run Text="61"/>
+                                <Run Text="{Binding PcsVm.InvAveCurrent, Source={x:Static Application.Current}, StringFormat=F1}"/>
                                 <Run Text="A"/>
                             </TextBlock>
                         </StackPanel>
@@ -766,7 +901,7 @@
                             <Label Content="Freq." 
                                    Style="{StaticResource HeaderLableStyle}"/>
                             <TextBlock Style="{StaticResource ContentTextBlockStyle}">
-                                <Run Text="100"/>
+                                <Run Text="{Binding PcsVm.InvItems[15].Value, StringFormat=F1, Source={x:Static Application.Current}}"/>
                                 <Run Text="Hz"/>
                             </TextBlock>
                         </StackPanel>
@@ -787,34 +922,33 @@
                     Canvas.Left="318"
                     Canvas.Top="470"
                     BorderBrush="{Binding BmsBorderBrush}"
-                    Style="{StaticResource ChargeStoryBorderStyle}">
+                    Style="{StaticResource ChargeStoryBorderStyle}" MouseLeftButtonDown="BMS_MouseLeftButtonDown" TouchDown="BMS_TouchDown">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
                     <TextBlock Text="BMS" Canvas.Left="4"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Top="3">
                     </TextBlock>
 
-                    <Label Canvas.Left="167" Canvas.Top="4"
-                           Content="{Binding ConnectBMS}"
-                           Style="{StaticResource ConnLableStyle}"/>
+                    <Label Canvas.Left="147" Canvas.Top="4"
+                           Tag="{Binding ChargingStatus}"
+                           Style="{StaticResource BLableStyle}"/>
 
                     <Label Canvas.Left="172" Canvas.Top="28"
                            Style="{StaticResource InfoLableStyle}">
-                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                            <TextBlock Text="충전"/>
-                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="{Binding ChargeBorderBrush}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0">
+                            <TextBlock Text="충전" FontSize="8"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="{Binding BChargeBorderBrush}"/>
                         </StackPanel>
                     </Label>
 
                     <Label Canvas.Left="172" Canvas.Top="47"
                            Style="{StaticResource InfoLableStyle}">
-                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                            <TextBlock Text="방전"/>
-                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="{Binding DischargeBorderBrush}"/>
+                        <StackPanel Orientation="Horizontal" Margin="0">
+                            <TextBlock Text="방전" FontSize="8"/>
+                            <Ellipse Width="5" Height="5" Margin="4,1,0,0" Fill="{Binding BDischargeBorderBrush}"/>
                         </StackPanel>
-
                     </Label>
 
-                    <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS01.png" 
+                    <Image x:Name="BmsImage" Source="/EMS_PJT_Hamburger;component/Assets/BMS01.png" 
                            Canvas.Left="45" Canvas.Top="24"
                            Style="{StaticResource DefaultImageStyle}" Width="119" Height="81" Stretch="Fill"/>
 
@@ -914,14 +1048,15 @@
             <Border x:Name="ONGrid"
                     Canvas.Left="752"
                     Canvas.Top="70"
+                    BorderBrush="{Binding ChargeOnGrid}"
                     Style="{StaticResource DischargeStoryBorderStyle}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
                     <TextBlock Text="On Grid" Padding="0,0,0,0"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Left="4" Canvas.Top="3"/>
 
-                    <Label Canvas.Left="167" Canvas.Top="4"
-                           Content="Enable"
-                           Style="{StaticResource ConnLableStyle}"/>
+                    <Label Canvas.Left="147" Canvas.Top="4"
+                          Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OnGrid}"
+                           Style="{StaticResource LoadLableStyle}"/>
 
                     <Label Canvas.Left="172" Canvas.Top="28"
                            Style="{StaticResource InfoLableStyle}">
@@ -996,9 +1131,9 @@
                     <TextBlock Text="Off Grid" Canvas.Left="4"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Top="3"/>
 
-                    <Label Canvas.Left="167" Canvas.Top="4"
-                           Content="Enable"
-                           Style="{StaticResource ConnLableStyle}"/>
+                    <Label Canvas.Left="147" Canvas.Top="4"
+                           Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OffGrid}"
+                           Style="{StaticResource LoadLableStyle}"/>
 
                     <Label Canvas.Left="172" Canvas.Top="28"
                            Style="{StaticResource InfoLableStyle}">
@@ -1073,9 +1208,9 @@
                     <TextBlock Text="Vehicle" Padding="0,0,0,0"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Left="4" Canvas.Top="3"/>
 
-                    <Label Canvas.Left="167" Canvas.Top="4"
-                           Content="Enable"
-                           Style="{StaticResource ConnLableStyle}"/>
+                    <Label Canvas.Left="147" Canvas.Top="4"
+                           Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Vehicle}"
+                           Style="{StaticResource LoadLableStyle}"/>
 
                     <Label Canvas.Left="172" Canvas.Top="28"
                            Style="{StaticResource InfoLableStyle}">

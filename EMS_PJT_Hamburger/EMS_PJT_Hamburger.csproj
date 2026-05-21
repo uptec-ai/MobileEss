@@ -504,15 +504,6 @@
     <Resource Include="Assets\Home\Warring.png" />
     <Resource Include="Assets\Home\충전기.png" />
     <Resource Include="Assets\Home\Unified\bms_ess.png" />
-    <Resource Include="Assets\Home\Unified\ev_charger.png" />
-    <Resource Include="Assets\Home\Unified\grid.png" />
-    <Resource Include="Assets\Home\Unified\off_grid_home.png" />
-    <Resource Include="Assets\Home\Unified\on_grid_architecture.png" />
-    <Resource Include="Assets\Home\Unified\pcs.png" />
-    <Resource Include="Assets\Home\Unified\pv_inverter.png" />
-    <Resource Include="Assets\Home\Unified\solar_array.png" />
-    <Resource Include="Assets\Home\Unified\transformer.png" />
-    <Resource Include="Assets\Home\Unified\vehicle.png" />
     <Resource Include="Assets\Home\Unified\warning.png" />
   </ItemGroup>
   <ItemGroup>

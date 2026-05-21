@@ -133,17 +133,35 @@ function Invoke-HarnessProcess {
     param(
         [Parameter(Mandatory = $true)][string]$FilePath,
         [Parameter(Mandatory = $true)][string[]]$Arguments,
-        [Parameter(Mandatory = $true)][string]$StepName
+        [Parameter(Mandatory = $true)][string]$StepName,
+        $State = $null
     )
 
-    Write-HarnessLog "$StepName started: $FilePath $($Arguments -join ' ')"
+    if ($null -ne $State) {
+        Write-HarnessLogForState $State "$StepName started: $FilePath $($Arguments -join ' ')"
+    }
+    else {
+        Write-HarnessLog "$StepName started: $FilePath $($Arguments -join ' ')"
+    }
+
     & $FilePath @Arguments
     $exitCode = $LASTEXITCODE
     if ($exitCode -ne 0) {
-        Write-HarnessLog "$StepName failed with exit code $exitCode" "ERROR"
+        if ($null -ne $State) {
+            Write-HarnessLogForState $State "$StepName failed with exit code $exitCode" "ERROR"
+        }
+        else {
+            Write-HarnessLog "$StepName failed with exit code $exitCode" "ERROR"
+        }
         exit $exitCode
     }
-    Write-HarnessLog "$StepName passed"
+
+    if ($null -ne $State) {
+        Write-HarnessLogForState $State "$StepName passed"
+    }
+    else {
+        Write-HarnessLog "$StepName passed"
+    }
 }
 
 function Invoke-HarnessStepScript {

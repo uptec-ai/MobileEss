@@ -26,7 +26,7 @@ namespace EMS_PJT_Hamburger.ViewModels
             if (_loopCts == null) _loopCts = new CancellationTokenSource();
             
             _ = WaitChangeAsync(_loopCts.Token); // fire-and-forget
-            _ = ConnectDataAsync(_loopCts.Token);
+            //_ = ConnectDataAsync(_loopCts.Token);
         }
         public void StopLoop()
         {
@@ -47,18 +47,18 @@ namespace EMS_PJT_Hamburger.ViewModels
                         case 0: // charge mode
                             // charge on
                             ChargingStatus = HomeStatus.Charging;
+                            LoadTarget = LoadStatus.Waiting;
 
                             PcsBorderBrush = Brushes.Lime;
                             BmsBorderBrush = Brushes.Lime;
-                            ChargeBorderBrush = Brushes.Lime;
-                            OperationModeText = "충전 중";
+                            PChargeBorderBrush = Brushes.Gray; // PCS charge ellipse
+                            BChargeBorderBrush = Brushes.Lime; // BMS charge ellipse
                             OperationModeBrush = Brushes.Lime;
 
-                            IsChargingOffGrid = false;
-                            IsChargingVihicle = false;
                             ChargeOffGrid = Brushes.Gray;
                             ChargeVihicle = Brushes.Gray;
-                            DischargeBorderBrush = Brushes.Gray;
+                            PDischargeBorderBrush = Brushes.Orange; // PCS Discharge ellipse
+                            BDischargeBorderBrush = Brushes.Gray; // BMS discharge ellipse
 
                             emsMode = 2;
                             await Task.Delay(5000, ct);
@@ -67,28 +67,33 @@ namespace EMS_PJT_Hamburger.ViewModels
                             // charge off
                             ChargingStatus = HomeStatus.Discharging;
 
-                            PcsBorderBrush = Brushes.Orange;
+                            PcsBorderBrush = Brushes.Lime;
                             BmsBorderBrush = Brushes.Orange;
-                            ChargeBorderBrush = Brushes.Gray;
-                            OperationModeText = "방전 중";
+                            PChargeBorderBrush = Brushes.Lime; // PCS charge ellipse
+                            BChargeBorderBrush = Brushes.Gray; // BMS charge ellipse
                             OperationModeBrush = Brushes.Orange;
 
                             // discharge on
                             Random rand = new Random();
-                            var random = rand.Next(0, 2);
+                            var random = rand.Next(0, 3);
                             if (random == 0)
                             {
-                                IsChargingOffGrid = false;
-                                IsChargingVihicle = true;
+                                LoadTarget = LoadStatus.OnGrid;
+                            }
+                            else if(random == 1)
+                            {
+                                LoadTarget = LoadStatus.OffGrid;
                             }
                             else
                             {
-                                IsChargingOffGrid = true;
-                                IsChargingVihicle = false;
+                                LoadTarget = LoadStatus.Vehicle;
                             }
-                            ChargeOffGrid = IsChargingOffGrid ? Brushes.Orange : Brushes.Gray;
-                            ChargeVihicle = IsChargingVihicle ? Brushes.Orange : Brushes.Gray;
-                            DischargeBorderBrush = Brushes.Orange;
+                            ChargeOnGrid = (LoadTarget == LoadStatus.OnGrid) ? Brushes.Orange : Brushes.Gray;
+                            ChargeOffGrid = (LoadTarget == LoadStatus.OffGrid) ? Brushes.Orange : Brushes.Gray;
+                            ChargeVihicle = (LoadTarget == LoadStatus.Vehicle) ? Brushes.Orange : Brushes.Gray;
+
+                            PDischargeBorderBrush = Brushes.Orange; // PCS Discharge ellipse
+                            BDischargeBorderBrush = Brushes.Orange; // BMS discharge ellipse
 
                             emsMode = 0;
                             await Task.Delay(5000, ct);
@@ -96,19 +101,19 @@ namespace EMS_PJT_Hamburger.ViewModels
                         case 2: // none
                             // charge off
                             ChargingStatus = HomeStatus.Waiting;
+                            LoadTarget = LoadStatus.Waiting;
 
                             PcsBorderBrush = Brushes.Gray;
                             BmsBorderBrush = Brushes.Gray;
-                            ChargeBorderBrush = Brushes.Gray;
-                            OperationModeText = "대기";
+                            PChargeBorderBrush = Brushes.Gray; // PCS charge ellipse
+                            BChargeBorderBrush = Brushes.Gray; // BMS charge ellipse
                             OperationModeBrush = Brushes.Gray;
 
                             // discharge off
-                            IsChargingOffGrid = false;
-                            IsChargingVihicle = false;
                             ChargeOffGrid = Brushes.Gray;
                             ChargeVihicle = Brushes.Gray;
-                            DischargeBorderBrush = Brushes.Gray;
+                            PDischargeBorderBrush = Brushes.Gray; // PCS Discharge ellipse
+                            BDischargeBorderBrush = Brushes.Gray; // BMS discharge ellipse
 
                             emsMode = 1;
                             await Task.Delay(2000, ct);
@@ -125,18 +130,18 @@ namespace EMS_PJT_Hamburger.ViewModels
                 _isLoopRunning = false;
             }
         }
-        public async Task ConnectDataAsync(CancellationToken ct)
-        {
-            while (!ct.IsCancellationRequested)
-            {
-                App app = Application.Current as App;
+        //public async Task ConnectDataAsync(CancellationToken ct)
+        //{
+        //    while (!ct.IsCancellationRequested)
+        //    {
+        //        App app = Application.Current as App;
 
-                ConnectPCS = app.PcsVm.IsConnected ? "Enable" : "Disable";
-                ConnectBMS = app.BmsVm.StatusMsg01.Ready == "Open" ? "Enable" : "Disable";
+        //        ConnectPCS = app.PcsVm.IsConnected ? "Enable" : "Disable";
+        //        ConnectBMS = app.BmsVm.StatusMsg01.Ready == "Open" ? "Enable" : "Disable";
 
-                await Task.Delay(200, ct);
-            }
-        }
+        //        await Task.Delay(200, ct);
+        //    }
+        //}
 
         public void Dispose()
         {

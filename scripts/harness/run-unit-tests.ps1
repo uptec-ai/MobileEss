@@ -15,7 +15,7 @@ try {
     if (!$dotnet) { throw "dotnet CLI not found for test execution." }
 
     foreach ($project in $projects) {
-        Invoke-HarnessProcess -FilePath $dotnet.Source -Arguments @("test", $project.FullName, "--no-restore") -StepName "Unit tests $($project.Name)"
+        Invoke-HarnessProcess -FilePath $dotnet.Source -Arguments @("test", $project.FullName, "--no-restore") -StepName "Unit tests $($project.Name)" -State $state
     }
     exit 0
 }

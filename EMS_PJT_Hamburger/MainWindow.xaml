@@ -71,21 +71,23 @@
         <dxwui:HamburgerMenu Grid.Row="0" Grid.Column="0" AvailableViewStates="Overlay" 
                              Background="{DynamicResource Main.Background}" 
                              PaneBackground="{DynamicResource Main.Panel.Background}" 
+                             OpenPaneWidth="150"
                              FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR Thin" >
             <dxwui:HamburgerMenu.Content>
                 <dxwui:NavigationFrame x:Name="NaviFrame" BorderThickness="1,0,0,0"/>
             </dxwui:HamburgerMenu.Content>
-            <!--Home-->
+            <!--System-->
             <dxwui:HamburgerMenuNavigationButton x:Name="Btn_Home" 
                                                  Content="SYSTEM" 
-                                                 ToolTip="HOME VIEW" 
+                                                 ToolTip="SYSTEM VIEW" 
                                                  IsSelected="True"
-                                                 Glyph="{dx:DXImage 'SvgImages/XAF/Action_EditModel.svg'}" Click="Btn_Home_Click"/>
+                                                 Glyph="{dx:DXImage 'SvgImages/XAF/Action_EditModel.svg'}" 
+                                                 Click="Btn_Home_Click"/>
 
-            <!-- Dashboard -->
-            <dxwui:HamburgerMenuNavigationButton x:Name="Btn_Dashboard"
-                                                 Content="DASHBOARD" 
-                                                 ToolTip="DASHBOARD VIEW" 
+            <!-- Integrate -->
+            <dxwui:HamburgerMenuNavigationButton x:Name="Btn_Integrate"
+                                                 Content="INTEGRATE" 
+                                                 ToolTip="INTEGRATE VIEW" 
                                                  IsSelected="False"
                                                  Glyph="{dx:DXImage SvgImages/Icon Builder/Electronics_DesktopMac.svg}" Click="Btn_Dashboard_Click"/>
 

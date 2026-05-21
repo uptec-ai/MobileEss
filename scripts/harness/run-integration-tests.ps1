@@ -20,7 +20,7 @@ try {
     if (!$dotnet) { throw "dotnet CLI not found for integration test execution." }
 
     foreach ($project in $projects) {
-        Invoke-HarnessProcess -FilePath $dotnet.Source -Arguments @("test", $project.FullName, "--no-restore") -StepName "Integration tests $($project.Name)"
+        Invoke-HarnessProcess -FilePath $dotnet.Source -Arguments @("test", $project.FullName, "--no-restore") -StepName "Integration tests $($project.Name)" -State $state
     }
     exit 0
 }

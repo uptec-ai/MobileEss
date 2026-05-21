@@ -20,7 +20,7 @@ try {
         "/p:Configuration=$Configuration",
         "/p:Platform=$Platform",
         "/v:minimal"
-    ) -StepName "MSBuild $Configuration|$Platform"
+    ) -StepName "MSBuild $Configuration|$Platform" -State $state
     exit 0
 }
 catch {

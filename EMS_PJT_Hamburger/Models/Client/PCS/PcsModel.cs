@@ -184,6 +184,8 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 OnPropertyChanged(nameof(EtcItems));
             }
         }
+        public double InvAveAcVoltage { get; set; } = 0.0d;
+        public double InvAveCurrent { get; set; } = 0.0d;
 
         // 상태
         protected IDispatcherService Dispatcher => GetService<IDispatcherService>();
@@ -960,6 +962,9 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
 
             if (TryGetDouble(parsed, "InvFrequency", out var freq)) InvItems[15].Value = freq.ToString("0.0");
             if (TryGetDouble(parsed, "InvPowerFactor", out var pf)) InvItems[16].Value = pf.ToString("0.00");
+
+            InvAveAcVoltage = (vAn + vBn + vCn) / 3;
+            InvAveCurrent = (cAn + cBn + cCn) / 3;
         }
         void ChangeLoadData(Dictionary<string, object> parsed)
         {
