@@ -42,8 +42,8 @@ namespace EMS_PJT_Hamburger
 
         private void Btn_Dashboard_Click(object sender, RoutedEventArgs e)
         {
-            app.MainWindow = this;
-            NaviFrame.Content = app.DashBoardView;
+            //app.MainWindow = this;
+            //NaviFrame.Content = app.DashBoardView;
         }
 
         private void Btn_PcsStatus_Click(object sender, RoutedEventArgs e)

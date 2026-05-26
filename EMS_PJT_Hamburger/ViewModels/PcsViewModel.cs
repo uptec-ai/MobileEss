@@ -16,7 +16,7 @@ namespace EMS_PJT_Hamburger.ViewModels
         private bool _disposed;
         private bool _controlInputsInitializedFromRead;
         private DateTime _lastKeepAliveReceivedUtc = DateTime.MinValue;
-        private PcsFaultMessageWindow _faultMessageWindow;
+        private AlarmDetailWindow _faultMessageWindow;
 
         public DelegateCommand Cmd_StartCharge { get; private set; }
         public DelegateCommand Cmd_StartDischarge { get; private set; }
@@ -305,9 +305,9 @@ namespace EMS_PJT_Hamburger.ViewModels
         {
             if (_faultMessageWindow != null) return;
 
-            _faultMessageWindow = new PcsFaultMessageWindow
+            _faultMessageWindow = new AlarmDetailWindow
             {
-                DataContext = this,
+                DataContext = new AlarmDetailWindowViewModel("PCS", null, CurrentPcsFaultMessages.Count, CurrentPcsFaultMessages),
                 Owner = Application.Current.MainWindow,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };

@@ -12,19 +12,10 @@ namespace EMS_PJT_Hamburger.ViewModels
         public App app = Application.Current as App;
 
         public ICommand Cmd_Test { get; set; }
-        public bool IsTouchKeyboardEnabled
-        {
-            get => GetProperty(() => IsTouchKeyboardEnabled);
-            set
-            {
-                SetProperty(() => IsTouchKeyboardEnabled, value);
-                TouchKeyboardService.SetEnabled(value);
-            }
-        }
+        
 
         public DashBoardViewModel()
         {
-            IsTouchKeyboardEnabled = TouchKeyboardService.IsEnabled;
             FillVariable();
         }
 

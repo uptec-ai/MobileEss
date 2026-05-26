@@ -108,6 +108,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         public ConnectionState Conn_State { get; set; }
         public ObservableCollection<RegisterItem> KeepAliveRegisters { get; } = new ObservableCollection<RegisterItem>();
         public ObservableCollection<PcsFaultItem> PcsFaultMessages { get; } = new ObservableCollection<PcsFaultItem>();
+        public ObservableCollection<PcsFaultItem> CurrentPcsFaultMessages { get; } = new ObservableCollection<PcsFaultItem>();
         protected const ushort PollStartAddress = 0;
         protected const ushort PollRegisterCount = 355;
         protected const ushort ControlProtocolStartAddress = 1000;
@@ -494,6 +495,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 if (!isFault)
                 {
                     _activePcsFaultKeys.Remove(key);
+                    RemoveCurrentPcsFaultMessage(category, bit);
                     continue;
                 }
 
@@ -518,6 +520,21 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 PcsFaultMessages.Insert(0, fault);
                 if (PcsFaultMessages.Count > 500)
                     PcsFaultMessages.RemoveAt(PcsFaultMessages.Count - 1);
+
+                CurrentPcsFaultMessages.Insert(0, fault);
+
+                var app = Application.Current as App;
+                app?.DbManager?.InsertEmsAlarmData(
+                    "PCS",
+                    fault.Category,
+                    fault.Bit,
+                    fault.Bit,
+                    fault.Message,
+                    fault.Message,
+                    fault.RawValue.ToString(),
+                    string.Empty,
+                    fault.OccurredAt,
+                    false);
             }
 
             var ui = Application.Current?.Dispatcher;
@@ -528,6 +545,27 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             }
 
             ui.BeginInvoke((Action)Add);
+        }
+
+        private void RemoveCurrentPcsFaultMessage(string category, int bit)
+        {
+            void Remove()
+            {
+                var target = CurrentPcsFaultMessages
+                    .FirstOrDefault(x => x.Category == category && x.Bit == bit);
+
+                if (target != null)
+                    CurrentPcsFaultMessages.Remove(target);
+            }
+
+            var ui = Application.Current?.Dispatcher;
+            if (ui == null || ui.CheckAccess())
+            {
+                Remove();
+                return;
+            }
+
+            ui.BeginInvoke((Action)Remove);
         }
 
         private static int ToBitValue(ushort bits, int bit)

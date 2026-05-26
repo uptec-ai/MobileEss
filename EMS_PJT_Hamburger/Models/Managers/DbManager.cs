@@ -24,7 +24,8 @@ namespace EMS_PJT_Hamburger.Models.Managers
         private static readonly HashSet<string> TruncateWhitelist = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "tb_bms",
-            "tb_bms_alarm"
+            "tb_bms_alarm",
+            "tb_ems_alarm"
         };
 
         private readonly string _connectionString;
@@ -214,6 +215,7 @@ namespace EMS_PJT_Hamburger.Models.Managers
                             cmd.Parameters.AddWithValue("@code", fault.code);
                             cmd.Parameters.AddWithValue("@name", fault.name ?? string.Empty);
                         });
+                    InsertEmsAlarmData("BMS", "BMS", fault.code, fault.code, fault.name, fault.name, string.Empty, string.Empty, DateTime.Now, false);
                     break;
 
                 default:
@@ -236,6 +238,118 @@ namespace EMS_PJT_Hamburger.Models.Managers
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(set), set, "Unsupported BMS alarm select mode.");
+            }
+        }
+
+        public void EnsureEmsAlarmTable()
+        {
+            ExecuteNonQuery(@"
+create table if not exists public.tb_ems_alarm
+(
+    alarm_id bigserial primary key,
+    occurred_at timestamp without time zone not null default now(),
+    source varchar(16) not null,
+    category varchar(64) null,
+    bit integer null,
+    alarm_code integer null,
+    alarm_name text null,
+    fault_message text null,
+    raw_value text null,
+    duration_hour text null,
+    reset_at timestamp without time zone null,
+    is_reset boolean not null default false
+);
+
+create index if not exists ix_tb_ems_alarm_source_time
+    on public.tb_ems_alarm(source, occurred_at desc);
+
+create index if not exists ix_tb_ems_alarm_source_reset
+    on public.tb_ems_alarm(source, is_reset, occurred_at desc);");
+        }
+
+        public void InsertEmsAlarmData(
+            string source,
+            string category,
+            int bit,
+            int alarmCode,
+            string alarmName,
+            string faultMessage,
+            string rawValue,
+            string durationHour,
+            DateTime occurredAt,
+            bool isReset)
+        {
+            EnsureEmsAlarmTable();
+
+            ExecuteNonQuery(@"
+insert into public.tb_ems_alarm
+(
+    occurred_at,
+    source,
+    category,
+    bit,
+    alarm_code,
+    alarm_name,
+    fault_message,
+    raw_value,
+    duration_hour,
+    is_reset
+)
+values
+(
+    @occurred_at,
+    @source,
+    @category,
+    @bit,
+    @alarm_code,
+    @alarm_name,
+    @fault_message,
+    @raw_value,
+    @duration_hour,
+    @is_reset
+);",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@occurred_at", occurredAt == default(DateTime) ? DateTime.Now : occurredAt);
+                    cmd.Parameters.AddWithValue("@source", source ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@category", (object)category ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@bit", bit);
+                    cmd.Parameters.AddWithValue("@alarm_code", alarmCode);
+                    cmd.Parameters.AddWithValue("@alarm_name", (object)alarmName ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@fault_message", (object)faultMessage ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@raw_value", (object)rawValue ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@duration_hour", (object)durationHour ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@is_reset", isReset);
+                });
+        }
+
+        public DataSet SelectEmsAlarmData(string source, int set, int cnt)
+        {
+            EnsureEmsAlarmTable();
+
+            switch (set)
+            {
+                case 0:
+                    return GetDataSetByQuery(
+                        "select * from public.tb_ems_alarm where source = @source order by occurred_at desc",
+                        cmd => cmd.Parameters.AddWithValue("@source", source ?? string.Empty));
+
+                case 1:
+                    return GetDataSetByQuery(
+                        "select * from public.tb_ems_alarm where source = @source and is_reset = false order by occurred_at desc",
+                        cmd => cmd.Parameters.AddWithValue("@source", source ?? string.Empty));
+
+                case 2:
+                    return GetDataSetByQuery(
+                        "select * from public.tb_ems_alarm where source = @source order by occurred_at desc limit @cnt",
+                        cmd =>
+                        {
+                            cmd.Parameters.AddWithValue("@source", source ?? string.Empty);
+                            cmd.Parameters.AddWithValue("@cnt", Math.Max(0, cnt));
+                        });
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(set), set, "Unsupported EMS alarm select mode.");
             }
         }
 

@@ -227,7 +227,7 @@
                                                  Grid.Column="0"
                                                  Grid.ColumnSpan="4"
                                                  Margin="2,4"
-                                                 Content="Fault Message"
+                                                 Content="PCS Fault Message"
                                                  Command="{Binding Cmd_OpenFaultMessage}"
                                                  Glyph="{dx:DXImage 'SvgImages/Icon Builder/Security_Warning.svg'}"/>
                             </Grid>

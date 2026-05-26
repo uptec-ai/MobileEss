@@ -196,10 +196,10 @@
 
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="{x:Static Models:HomeStatus.Charging}">
-                    <Setter Property="Content" Value="Discharge"/>
+                    <Setter Property="Content" Value="Charge"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="{x:Static Models:HomeStatus.Discharging}">
-                    <Setter Property="Content" Value="Convert"/>
+                    <Setter Property="Content" Value="Discharge"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="{x:Static Models:HomeStatus.Waiting}">
                     <Setter Property="Foreground" Value="Gray"/>
@@ -374,18 +374,63 @@
             </Style.Triggers>
         </Style>
 
+        <Style TargetType="{x:Type ToggleButton}" x:Key="TouchKeyboardToggleStyle">
+            <Setter Property="Width" Value="72"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="Background" Value="#FF3D4654"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Border x:Name="Track"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="16">
+                            <Grid Margin="3">
+                                <TextBlock x:Name="SwitchText"
+                                           Text="OFF"
+                                           Foreground="#FFC3C3C3"
+                                           FontSize="11"
+                                           FontWeight="Bold"
+                                           VerticalAlignment="Center"
+                                           HorizontalAlignment="Right"
+                                           Margin="0,0,8,0"/>
+                                <Ellipse x:Name="Thumb"
+                                         Width="26"
+                                         Height="26"
+                                         Fill="White"
+                                         HorizontalAlignment="Left"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Track" Property="Background" Value="#FF2D8F75"/>
+                                <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
+                                <Setter TargetName="SwitchText" Property="Text" Value="ON"/>
+                                <Setter TargetName="SwitchText" Property="Foreground" Value="White"/>
+                                <Setter TargetName="SwitchText" Property="HorizontalAlignment" Value="Left"/>
+                                <Setter TargetName="SwitchText" Property="Margin" Value="8,0,0,0"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Track" Property="Opacity" Value="0.5"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Viewbox>
         <Canvas Height="704" Width="1000" Margin="0" Background="{DynamicResource Main.Background}">
             <StackPanel Orientation="Horizontal">
-                <Border Canvas.Left="22" Canvas.Top="14" Width="220" Height="46"
+                <Border Canvas.Left="22" Canvas.Top="14" Width="185" Height="46"
                         CornerRadius="5"
                         BorderThickness="1"
                         BorderBrush="#334F5E"
                         Background="#CC15181C" Margin="20,0,0,0">
-                    <Grid Margin="0" Width="170" >
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="160">
+                    <Grid Margin="0" Width="169" HorizontalAlignment="Left" >
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="160" Margin="10,0,0,0">
                             <TextBlock Grid.Column="0" Text="운전 모드"
                                        Style="{StaticResource HomeHeaderTitleTextStyle}"/>
                             <Ellipse Width="12"
@@ -429,7 +474,7 @@
 
                                                 <DataTrigger.EnterActions>
                                                     <BeginStoryboard Name="BlinkAnimation"
-                                             Storyboard="{StaticResource BlinkStoryboard}"/>
+                                                                     Storyboard="{StaticResource BlinkStoryboard}"/>
                                                 </DataTrigger.EnterActions>
 
                                                 <DataTrigger.ExitActions>
@@ -459,12 +504,13 @@
                         </StackPanel>
                     </Grid>
                 </Border>
-                <Border Canvas.Left="22" Canvas.Top="14" Width="722" Height="46"
+                
+                <Border Canvas.Left="22" Canvas.Top="14" Width="526" Height="46"
                         CornerRadius="5"
                         BorderThickness="1"
                         BorderBrush="#334F5E"
                         Background="#CC15181C" Margin="10,0,0,0">
-                    <Grid Margin="12,0" HorizontalAlignment="Left" Width="735">
+                    <Grid Margin="10,0" HorizontalAlignment="Left" Width="635">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="1"/>
@@ -472,10 +518,10 @@
                         </Grid.ColumnDefinitions>
                         <Grid Grid.Column="0">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="90"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0">
                                 <TextBlock Text="PCS" Foreground="#FFB0FCFC" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <TextBlock Tag="{Binding PcsVm.IsConnected, Source={x:Static Application.Current}}" 
                                            Margin="10,0,16,0" FontSize="13">
@@ -495,7 +541,7 @@
                                     </TextBlock.Style>
                                 </TextBlock>
                             </StackPanel>
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,0">
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0">
                                 <dx:SimpleButton Content="충전"
                                                  Style="{StaticResource HomeChargeButtonStyle}"
                                                  Command="{Binding PcsVm.Cmd_StartCharge, Source={x:Static Application.Current}}"/>
@@ -512,10 +558,10 @@
 
                         <Grid Grid.Column="2">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="100"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="15,0,0,0">
                                 <TextBlock Text="BMS" Foreground="#FFB0FCFC" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 <TextBlock Tag="{Binding BmsVm.StatusMsg01.Ready, Source={x:Static Application.Current}}" FontSize="13" Margin="10,0,16,0">
                                     <TextBlock.Style>
@@ -543,6 +589,25 @@
                                              IsChecked="{Binding BmsVm.RelayStatus, Source={x:Static Application.Current}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                              Command="{Binding BmsVm.Cmd_RelayBtn, Source={x:Static Application.Current}}" Width="66" Margin="10,0,6,0"/>
                         </Grid>
+                    </Grid>
+                </Border>
+
+                <Border Canvas.Left="22" Canvas.Top="14" Width="220" Height="46"
+                        CornerRadius="5"
+                        BorderThickness="1"
+                        BorderBrush="#334F5E"
+                        Background="#CC15181C" Margin="10,0,0,0">
+                    <Grid Margin="0" HorizontalAlignment="Left" >
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="200" Margin="10,0,0,0">
+                            <TextBlock Text="Touch Keyboard"
+                                   Foreground="#FFC3C3C3"
+                                   FontSize="13"
+                                   FontWeight="Bold"
+                                   VerticalAlignment="Center"
+                                   Margin="10,0"/>
+                            <ToggleButton IsChecked="{Binding IsTouchKeyboardEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          Style="{StaticResource TouchKeyboardToggleStyle}"/>
+                        </StackPanel>
                     </Grid>
                 </Border>
             </StackPanel>
@@ -887,7 +952,7 @@
                     <Border Canvas.Left="57" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Label Content="Curr." 
+                            <Label Content="Curr" 
                                    Style="{StaticResource HeaderLableStyle}"/>
                             <TextBlock Style="{StaticResource ContentTextBlockStyle}">
                                 <Run Text="{Binding PcsVm.InvAveCurrent, Source={x:Static Application.Current}, StringFormat=F1}"/>
@@ -898,7 +963,7 @@
                     <Border Canvas.Left="109" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Label Content="Freq." 
+                            <Label Content="Freq" 
                                    Style="{StaticResource HeaderLableStyle}"/>
                             <TextBlock Style="{StaticResource ContentTextBlockStyle}">
                                 <Run Text="{Binding PcsVm.InvItems[15].Value, StringFormat=F1, Source={x:Static Application.Current}}"/>
@@ -910,7 +975,7 @@
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
                             <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/warning.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
-                            <TextBlock Text="Warning" 
+                            <TextBlock Text="Normal" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
@@ -924,13 +989,13 @@
                     BorderBrush="{Binding BmsBorderBrush}"
                     Style="{StaticResource ChargeStoryBorderStyle}" MouseLeftButtonDown="BMS_MouseLeftButtonDown" TouchDown="BMS_TouchDown">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
-                    <TextBlock Text="BMS" Canvas.Left="4"
+                    <TextBlock Text="Battery" Canvas.Left="4"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Top="3">
                     </TextBlock>
 
                     <Label Canvas.Left="147" Canvas.Top="4"
                            Tag="{Binding ChargingStatus}"
-                           Style="{StaticResource BLableStyle}"/>
+                           Style="{StaticResource PLableStyle}"/>
 
                     <Label Canvas.Left="172" Canvas.Top="28"
                            Style="{StaticResource InfoLableStyle}">
@@ -958,38 +1023,38 @@
                             <Label Content="SoC" 
                                    Style="{StaticResource HeaderLableStyle}"/>
                             <TextBlock Style="{StaticResource ContentTextBlockStyle}">
-                                <Run Text="24"/>
-                                <Run Text="kW" />
+                                <Run Text="100"/>
+                                <Run Text="%" />
                             </TextBlock>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="57" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Label Content="SoH" 
+                            <Label Content="Volt" 
                                    Style="{StaticResource HeaderLableStyle}"/>
                             <TextBlock Style="{StaticResource ContentTextBlockStyle}">
-                                <Run Text="61"/>
-                                <Run Text="kW" />
+                                <Run Text="{Binding BmsVm.StatusMsg01.TotalVoltage, Source={x:Static Application.Current}, StringFormat=F2}"/>
+                                <Run Text="V" />
                             </TextBlock>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="109" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/cell.png"
-                                   Height="25" 
-                                   Width="25"
-                                   Style="{StaticResource HeaderImageStyle}" Stretch="UniformToFill"/>
-                            <TextBlock Text="Cell"
-                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                            <Label Content="Curr" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="{Binding BmsVm.StatusMsg01.TotalCurrent, Source={x:Static Application.Current}, StringFormat=F2}"/>
+                                <Run Text="A" />
+                            </TextBlock>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="162" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
                             <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/warning.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
-                            <TextBlock Text="Warning" 
+                            <TextBlock Text="Normal" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>

@@ -84,12 +84,12 @@
                                                  Glyph="{dx:DXImage 'SvgImages/XAF/Action_EditModel.svg'}" 
                                                  Click="Btn_Home_Click"/>
 
-            <!-- Integrate -->
+            <!-- Integrate --><!--
             <dxwui:HamburgerMenuNavigationButton x:Name="Btn_Integrate"
                                                  Content="INTEGRATE" 
                                                  ToolTip="INTEGRATE VIEW" 
                                                  IsSelected="False"
-                                                 Glyph="{dx:DXImage SvgImages/Icon Builder/Electronics_DesktopMac.svg}" Click="Btn_Dashboard_Click"/>
+                                                 Glyph="{dx:DXImage SvgImages/Icon Builder/Electronics_DesktopMac.svg}" Click="Btn_Dashboard_Click"/>-->
 
             <!-- PCS Status -->
             <dxwui:HamburgerMenuNavigationButton x:Name="Btn_PcsStatus" 

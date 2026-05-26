@@ -1,4 +1,5 @@
 ﻿using DevExpress.Mvvm;
+using EMS_PJT_Hamburger.Behaviors;
 using EMS_PJT_Hamburger.Models;
 using System;
 using System.Collections.Generic;
@@ -15,9 +16,18 @@ namespace EMS_PJT_Hamburger.ViewModels
     public class HomeViewModel : HomeModel, IDisposable
     {
         private bool _disposed;
-
+        public bool IsTouchKeyboardEnabled
+        {
+            get => GetProperty(() => IsTouchKeyboardEnabled);
+            set
+            {
+                SetProperty(() => IsTouchKeyboardEnabled, value);
+                TouchKeyboardService.SetEnabled(value);
+            }
+        }
         public HomeViewModel()
         {
+            IsTouchKeyboardEnabled = TouchKeyboardService.IsEnabled;
             StartLoop();
         }
         public void StartLoop()
@@ -51,13 +61,13 @@ namespace EMS_PJT_Hamburger.ViewModels
 
                             PcsBorderBrush = Brushes.Lime;
                             BmsBorderBrush = Brushes.Lime;
-                            PChargeBorderBrush = Brushes.Gray; // PCS charge ellipse
+                            PChargeBorderBrush = Brushes.Lime; // PCS charge ellipse
                             BChargeBorderBrush = Brushes.Lime; // BMS charge ellipse
                             OperationModeBrush = Brushes.Lime;
 
                             ChargeOffGrid = Brushes.Gray;
                             ChargeVihicle = Brushes.Gray;
-                            PDischargeBorderBrush = Brushes.Orange; // PCS Discharge ellipse
+                            PDischargeBorderBrush = Brushes.Gray; // PCS Discharge ellipse
                             BDischargeBorderBrush = Brushes.Gray; // BMS discharge ellipse
 
                             emsMode = 2;
@@ -69,7 +79,7 @@ namespace EMS_PJT_Hamburger.ViewModels
 
                             PcsBorderBrush = Brushes.Lime;
                             BmsBorderBrush = Brushes.Orange;
-                            PChargeBorderBrush = Brushes.Lime; // PCS charge ellipse
+                            PChargeBorderBrush = Brushes.Gray; // PCS charge ellipse
                             BChargeBorderBrush = Brushes.Gray; // BMS charge ellipse
                             OperationModeBrush = Brushes.Orange;
 

@@ -265,14 +265,6 @@
                                 HorizontalAlignment="Right"
                                 VerticalAlignment="Center"
                                 Margin="0,0,15,15">
-                        <TextBlock Text="Touch Keyboard"
-                                   Foreground="#FFC3C3C3"
-                                   FontSize="13"
-                                   FontWeight="Bold"
-                                   VerticalAlignment="Center"
-                                   Margin="0,0,10,0"/>
-                        <ToggleButton IsChecked="{Binding IsTouchKeyboardEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                      Style="{StaticResource TouchKeyboardToggleStyle}"/>
                     </StackPanel>
 
                     <!--Run/Stop + Charge/Discharge-->
