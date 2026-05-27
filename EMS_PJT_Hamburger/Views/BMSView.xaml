@@ -109,7 +109,6 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="0"/>
                             <ColumnDefinition/>
-                            <ColumnDefinition Width="80"/>
                             <ColumnDefinition Width="0"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
@@ -155,8 +154,8 @@
                             <Label Grid.Column="0" Grid.Row="2"                      
                                    Style="{StaticResource HeadLableStyle}" Background="{x:Null}">
                                 <TextBlock FontSize="28" Margin="0,0,0,20" Style="{StaticResource MonitorTextBlock}">
-                                    <Run Text="{Binding StatusMsg01.Ready, Converter={StaticResource OpenConverter}}" 
-                             Foreground="{Binding StatusMsg01.Ready, Converter={StaticResource ValueToBrushConverter}}"/>
+                                    <Run Text="{Binding StatusMsg01.Ready}" 
+                                         Foreground="{Binding StatusMsg01.Ready, Converter={StaticResource ValueToBrushConverter}}"/>
                                 </TextBlock>
                             </Label>
                             <Label Grid.Column="1" Grid.Row="2" Background="{x:Null}"
@@ -229,7 +228,7 @@
                             <Label Grid.Column="0" Grid.Row="2"                      
                                    Style="{StaticResource HeadLableStyle}">
                                 <TextBlock FontSize="28" Margin="0,0,0,20" Style="{StaticResource MonitorTextBlock}">
-                                    <Run Text="{Binding StatusMsg03.MbmsReady, Converter={StaticResource ReadyConverter}}" 
+                                    <Run Text="{Binding StatusMsg03.MbmsReady}" 
                                          Foreground="{Binding StatusMsg03.MbmsReady, Converter={StaticResource ValueToBrushConverter}}"/>
                                 </TextBlock>
                             </Label>

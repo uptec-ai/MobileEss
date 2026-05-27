@@ -33,6 +33,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
     }
     public class PcsModel : ViewModelBase, INotifyPropertyChanged
     {
+        public bool OccurredFault { get; set; } = false;
         private static readonly string[] GridFaultMessages =
         {
             "Line Frequency Fault",
@@ -532,7 +533,6 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                     fault.Message,
                     fault.Message,
                     fault.RawValue.ToString(),
-                    string.Empty,
                     fault.OccurredAt,
                     false);
             }
@@ -831,45 +831,53 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 PanelData.CommReady = (readyBits & (1 << 5)) != 0;
                 PanelData.BypassReady = (readyBits & (1 << 6)) != 0;
             }
+            if (TryGetDouble(parsed, "FaultStatus", out var occurredFault))
+            {
+                if (occurredFault > 0)
+                {
+                    OccurredFault = true;
+                    int alarmCnt = 0;
 
-            int alarmCnt = 0;
-            if (TryGetDouble(parsed, "GridFault", out var gridFault))
-            {
-                var bits = Convert.ToUInt16(gridFault);
-                alarmCnt += CountSetBits(bits);
-                UpdatePcsFaultMessages("Grid", bits, GridFaultMessages);
+                    if (TryGetDouble(parsed, "GridFault", out var gridFault))
+                    {
+                        var bits = Convert.ToUInt16(gridFault);
+                        alarmCnt += CountSetBits(bits);
+                        UpdatePcsFaultMessages("Grid", bits, GridFaultMessages);
+                    }
+                    if (TryGetDouble(parsed, "InvFault", out var invFault))
+                    {
+                        var bits = Convert.ToUInt16(invFault);
+                        alarmCnt += CountSetBits(bits);
+                        UpdatePcsFaultMessages("Inverter", bits, InvFaultMessages);
+                    }
+                    if (TryGetDouble(parsed, "LoadFault", out var loadFault))
+                    {
+                        var bits = Convert.ToUInt16(loadFault);
+                        alarmCnt += CountSetBits(bits);
+                        UpdatePcsFaultMessages("Load", bits, LoadFaultMessages);
+                    }
+                    if (TryGetDouble(parsed, "BatteryFault", out var batteryFault))
+                    {
+                        var bits = Convert.ToUInt16(batteryFault);
+                        alarmCnt += CountSetBits(bits);
+                        UpdatePcsFaultMessages("Battery", bits, BatteryFaultMessages);
+                    }
+                    if (TryGetDouble(parsed, "SystemFault", out var systemFault))
+                    {
+                        var bits = Convert.ToUInt16(systemFault);
+                        alarmCnt += CountSetBits(bits);
+                        UpdatePcsFaultMessages("System", bits, SystemFaultMessages);
+                    }
+                    if (TryGetDouble(parsed, "CommunicationFault", out var communicationFault))
+                    {
+                        var bits = Convert.ToUInt16(communicationFault);
+                        alarmCnt += CountSetBits(bits);
+                        UpdatePcsFaultMessages("Communication", bits, CommunicationFaultMessages);
+                    }
+                    PanelData.AlarmCnt = alarmCnt.ToString();
+                }
+                else { OccurredFault = false; }
             }
-            if (TryGetDouble(parsed, "InvFault", out var invFault))
-            {
-                var bits = Convert.ToUInt16(invFault);
-                alarmCnt += CountSetBits(bits);
-                UpdatePcsFaultMessages("Inverter", bits, InvFaultMessages);
-            }
-            if (TryGetDouble(parsed, "LoadFault", out var loadFault))
-            {
-                var bits = Convert.ToUInt16(loadFault);
-                alarmCnt += CountSetBits(bits);
-                UpdatePcsFaultMessages("Load", bits, LoadFaultMessages);
-            }
-            if (TryGetDouble(parsed, "BatteryFault", out var batteryFault))
-            {
-                var bits = Convert.ToUInt16(batteryFault);
-                alarmCnt += CountSetBits(bits);
-                UpdatePcsFaultMessages("Battery", bits, BatteryFaultMessages);
-            }
-            if (TryGetDouble(parsed, "SystemFault", out var systemFault))
-            {
-                var bits = Convert.ToUInt16(systemFault);
-                alarmCnt += CountSetBits(bits);
-                UpdatePcsFaultMessages("System", bits, SystemFaultMessages);
-            }
-            if (TryGetDouble(parsed, "CommunicationFault", out var communicationFault))
-            {
-                var bits = Convert.ToUInt16(communicationFault);
-                alarmCnt += CountSetBits(bits);
-                UpdatePcsFaultMessages("Communication", bits, CommunicationFaultMessages);
-            }
-            PanelData.AlarmCnt = alarmCnt.ToString();
 
 
             if (TryGetDouble(parsed, "GridTotalImportActivePower", out var tImport))

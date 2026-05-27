@@ -375,7 +375,7 @@
                                     <TextBlock Text="수전 누적 전력(총합)"  
                                                Style="{StaticResource HeadTextBlock}"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <Label Content="{Binding PanelData.T_Import_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="55"/>
+                                        <Label Content="{Binding PanelData.T_Import_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="70" Margin="0,-3,5,0"/>
                                         <TextBlock Text="MWh" Foreground="White" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
                                     </StackPanel>
                                 </StackPanel>
@@ -401,7 +401,7 @@
                                     <TextBlock Text="송전 누적 전력(총합)"
                                                Style="{StaticResource HeadTextBlock}"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <Label Content="{Binding PanelData.T_Export_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="55"/>
+                                        <Label Content="{Binding PanelData.T_Export_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="70" Margin="0,-3,5,0"/>
                                         <TextBlock Text="MWh" Foreground="White" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
                                     </StackPanel>
                                 </StackPanel>

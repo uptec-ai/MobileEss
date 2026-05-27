@@ -15,6 +15,7 @@
         <Managers:RunFaultStatusConverter x:Key="RunFaultStatusConverter"/>
         <Managers:HomeStatusMatchConverter x:Key="HomeStatusMatchConverter"/>
         <Managers:ChargeToBrushConverter x:Key="ChargeToBrushConverter"/>
+        <Managers:FaultConverter x:Key="FaultConverter"/>
 
         <Style TargetType="Border" x:Key="ChargeStoryBorderStyle">
             <Setter Property="CornerRadius" Value="5"/>
@@ -202,7 +203,6 @@
                     <Setter Property="Content" Value="Discharge"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="{x:Static Models:HomeStatus.Waiting}">
-                    <Setter Property="Foreground" Value="Gray"/>
                     <Setter Property="Content" Value="Stop"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -228,7 +228,6 @@
                     <Setter Property="Content" Value="Discharge"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="{x:Static Models:HomeStatus.Waiting}">
-                    <Setter Property="Foreground" Value="Gray"/>
                     <Setter Property="Content" Value="Stop"/>
                 </DataTrigger>
             </Style.Triggers>
@@ -243,16 +242,58 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderBrush" Value="#87FFFF"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
-                    <Setter Property="Foreground" Value="Orange"/>
                     <Setter Property="Content" Value="Consume"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="False">
-                    <Setter Property="Foreground" Value="Gray"/>
                     <Setter Property="Content" Value="Stop"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="Label" x:Key="CouplingLableStyle">
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Foreground" Value="#87FFFF"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderBrush" Value="#87FFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
+                    <Setter Property="Content" Value="Active"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="False">
+                    <Setter Property="Content" Value="Standby"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="Label" x:Key="EVChargerLableStyle">
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Foreground" Value="#87FFFF"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderBrush" Value="#87FFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="True">
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="Content" Value="Active"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource Self}}" Value="False">
+                    <Setter Property="Content" Value="Standby"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -375,8 +416,8 @@
         </Style>
 
         <Style TargetType="{x:Type ToggleButton}" x:Key="TouchKeyboardToggleStyle">
-            <Setter Property="Width" Value="72"/>
-            <Setter Property="Height" Value="32"/>
+            <Setter Property="Width" Value="65"/>
+            <Setter Property="Height" Value="25"/>
             <Setter Property="Background" Value="#FF3D4654"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
@@ -385,7 +426,7 @@
                     <ControlTemplate TargetType="{x:Type ToggleButton}">
                         <Border x:Name="Track"
                                 Background="{TemplateBinding Background}"
-                                CornerRadius="16">
+                                CornerRadius="12">
                             <Grid Margin="3">
                                 <TextBlock x:Name="SwitchText"
                                            Text="OFF"
@@ -396,10 +437,10 @@
                                            HorizontalAlignment="Right"
                                            Margin="0,0,8,0"/>
                                 <Ellipse x:Name="Thumb"
-                                         Width="26"
-                                         Height="26"
+                                         Width="19"
+                                         Height="19"
                                          Fill="White"
-                                         HorizontalAlignment="Left"/>
+                                         HorizontalAlignment="Left" Margin="0"/>
                             </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -409,7 +450,7 @@
                                 <Setter TargetName="SwitchText" Property="Text" Value="ON"/>
                                 <Setter TargetName="SwitchText" Property="Foreground" Value="White"/>
                                 <Setter TargetName="SwitchText" Property="HorizontalAlignment" Value="Left"/>
-                                <Setter TargetName="SwitchText" Property="Margin" Value="8,0,0,0"/>
+                                <Setter TargetName="SwitchText" Property="Margin" Value="8,0,4,0"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="Track" Property="Opacity" Value="0.5"/>
@@ -510,7 +551,7 @@
                         BorderThickness="1"
                         BorderBrush="#334F5E"
                         Background="#CC15181C" Margin="10,0,0,0">
-                    <Grid Margin="10,0" HorizontalAlignment="Left" Width="635">
+                    <Grid Margin="10,0" HorizontalAlignment="Left" Width="640">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="1"/>
@@ -597,7 +638,7 @@
                         BorderThickness="1"
                         BorderBrush="#334F5E"
                         Background="#CC15181C" Margin="10,0,0,0">
-                    <Grid Margin="0" HorizontalAlignment="Left" >
+                    <Grid Margin="0" >
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="200" Margin="10,0,0,0">
                             <TextBlock Text="Touch Keyboard"
                                    Foreground="#FFC3C3C3"
@@ -751,7 +792,7 @@
                     </TextBlock>
 
                     <Label Canvas.Left="17" Canvas.Top="68"
-                           Content="Stop" Foreground="Gray"
+                           Content="Stop" Foreground="White"
                            Style="{StaticResource ConnLableStyle}" Width="55"/>
 
                     <Image Source="/EMS_PJT_Hamburger;component/Assets/인버터02.png" 
@@ -773,7 +814,7 @@
                     </TextBlock>
 
                     <Label Canvas.Left="17" Canvas.Top="68"
-                           Content="Stop" Foreground="Gray"
+                           Content="Stop" Foreground="White"
                            Style="{StaticResource ConnLableStyle}" Width="55"/>
 
                     <Image Source="/EMS_PJT_Hamburger;component/Assets/Transformer.png" 
@@ -788,15 +829,15 @@
                     Style="{StaticResource DischargeStoryBorderStyle}"
                     BorderBrush="{Binding DischargeBorderBrush}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
-                    <TextBlock Text="Transformer"
+                    <TextBlock Text="AC Coupling"
                                Canvas.Left="4"
                                Style="{StaticResource DefaultTextBlockStyle}" FontSize="12" Width="70" Canvas.Top="3">
 
                     </TextBlock>
 
-                    <Label Canvas.Left="17" Canvas.Top="68"
-                           Content="Enable"
-                           Style="{StaticResource ConnLableStyle}" Width="44"/>
+                    <Label Canvas.Left="15" Canvas.Top="68"
+                           Tag="{Binding CouplingStatus}"
+                           Style="{StaticResource CouplingLableStyle}" Width="50"/>
 
                     <Image Source="/EMS_PJT_Hamburger;component/Assets/Transformer.png" 
                            Canvas.Left="14" Canvas.Top="18"
@@ -827,7 +868,7 @@
                     </TextBlock>
 
                     <Label Canvas.Left="157" Canvas.Top="4"
-                           Content="Stop" Foreground="Gray"
+                           Content="Stop" Foreground="White"
                            Style="{StaticResource ConnLableStyle}" Width="55"/>
 
                     <Label Canvas.Left="172" Canvas.Top="28"
@@ -862,10 +903,10 @@
                     <Border Canvas.Top="112" Canvas.Left="4"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Label Content="SOC" 
+                            <Label Content="Power" 
                                    Style="{StaticResource HeaderLableStyle}"/>
                             <TextBlock Style="{StaticResource ContentTextBlockStyle}">
-                                <Run Text="24"/>
+                                <Run Text="-"/>
                                 <Run Text="kW" />
                             </TextBlock>
                         </StackPanel>
@@ -873,23 +914,23 @@
                     <Border Canvas.Left="57" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Label Content="SOH" 
+                            <Label Content="Volt" 
                                    Style="{StaticResource HeaderLableStyle}"/>
                             <TextBlock Style="{StaticResource ContentTextBlockStyle}">
-                                <Run Text="61"/>
-                                <Run Text="kW" />
+                                <Run Text="-"/>
+                                <Run Text="V" />
                             </TextBlock>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="109" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/capacitor.png" 
-                                   Height="25" 
-                                   Width="25"
-                                   Style="{StaticResource HeaderImageStyle}"/>
-                            <TextBlock Text="Warning"
-                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                            <Label Content="Curr" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="-"/>
+                                <Run Text="A" />
+                            </TextBlock>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="162" Canvas.Top="112"
@@ -974,8 +1015,9 @@
                     <Border Canvas.Left="162" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/warning.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
-                            <TextBlock Text="Normal" 
+                            <Image Source="{dx:DXImage 'SvgImages/Status/Warning.svg'}" Style="{StaticResource DefaultImageStyle}" Margin="9,5,9,0"
+                                   Height="25" Width="20"/>
+                            <TextBlock Text="{Binding PcsVm.OccurredFault, Source={x:Static Application.Current}, Converter={StaticResource FaultConverter}}" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
@@ -1053,8 +1095,9 @@
                     <Border Canvas.Left="162" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/warning.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
-                            <TextBlock Text="Normal" 
+                            <Image Source="{dx:DXImage 'SvgImages/Status/Warning.svg'}" Style="{StaticResource DefaultImageStyle}" Margin="9,5,9,0"
+                                   Height="25"  Width="20"/>
+                            <TextBlock Text="{Binding BmsVm.OccurredFault, Source={x:Static Application.Current}, Converter={StaticResource FaultConverter}}" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
@@ -1100,12 +1143,12 @@
                         </StackPanel>
                     </Label>
 
-                    <Label Canvas.Left="42" Canvas.Top="106"
-                           Content="Enable"
-                           Style="{StaticResource ConnLableStyle}" Width="44"/>
+                    <Label Canvas.Left="36" Canvas.Top="106"
+                           Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Vehicle}"
+                           Style="{StaticResource EVChargerLableStyle}" Width="50"/>
 
                     <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/충전기.png" 
-                           Canvas.Left="29" Canvas.Top="9"
+                           Canvas.Left="25" Canvas.Top="9"
                            Style="{StaticResource DefaultImageStyle}" Width="70" Height="96" Stretch="Fill"/>
 
                 </Canvas>
@@ -1152,34 +1195,41 @@
                     <Border Canvas.Top="112" Canvas.Left="4"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Label Content="SOC" 
+                            <Label Content="Volt" 
                                    Style="{StaticResource HeaderLableStyle}"/>
-                            <TextBlock Style="{StaticResource ContentTextBlockStyle}"><Run Text="24"/><Run Text=" "/><Run Text="kW" /></TextBlock>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="{Binding PcsVm.InvAveAcVoltage, Source={x:Static Application.Current}, StringFormat=F1}"/>
+                                <Run Text="V"/>
+                            </TextBlock>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="57" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Label Content="SOH" 
+                            <Label Content="Curr" 
                                    Style="{StaticResource HeaderLableStyle}"/>
-                            <TextBlock Style="{StaticResource ContentTextBlockStyle}"><Run Text="61"/><Run Text=" "/><Run Text="kW" /></TextBlock>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="{Binding PcsVm.InvAveCurrent, Source={x:Static Application.Current}, StringFormat=F1}"/>
+                                <Run Text="A"/>
+                            </TextBlock>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="109" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/capacitor.png" 
-                                   Height="25" 
-                                   Width="25"
-                                   Style="{StaticResource HeaderImageStyle}"/>
-                            <TextBlock Text="Cap"
-                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                            <Label Content="Freq" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="{Binding PcsVm.InvItems[15].Value, StringFormat=F1, Source={x:Static Application.Current}}"/>
+                                <Run Text="Hz"/>
+                            </TextBlock>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="162" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/warning.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <Image Source="{dx:DXImage 'SvgImages/Status/Warning.svg'}" Style="{StaticResource DefaultImageStyle}" Margin="9,5,9,0"
+                                   Height="25" Width="20"/>
                             <TextBlock Text="Warning" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
@@ -1229,34 +1279,41 @@
                     <Border Canvas.Top="112" Canvas.Left="4"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Label Content="SOC" 
+                            <Label Content="Volt" 
                                    Style="{StaticResource HeaderLableStyle}"/>
-                            <TextBlock Style="{StaticResource ContentTextBlockStyle}"><Run Text="24"/><Run Text=" "/><Run Text="kW" /></TextBlock>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="{Binding PcsVm.InvAveAcVoltage, Source={x:Static Application.Current}, StringFormat=F1}"/>
+                                <Run Text="V"/>
+                            </TextBlock>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="57" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Label Content="SOH" 
+                            <Label Content="Curr" 
                                    Style="{StaticResource HeaderLableStyle}"/>
-                            <TextBlock Style="{StaticResource ContentTextBlockStyle}"><Run Text="61"/><Run Text=" "/><Run Text="kW" /></TextBlock>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="{Binding PcsVm.InvAveCurrent, Source={x:Static Application.Current}, StringFormat=F1}"/>
+                                <Run Text="A"/>
+                            </TextBlock>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="109" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/capacitor.png" 
-                                   Height="25" 
-                                   Width="25"
-                                   Style="{StaticResource HeaderImageStyle}"/>
-                            <TextBlock Text="Warning"
-                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                            <Label Content="Freq" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="{Binding PcsVm.InvItems[15].Value, StringFormat=F1, Source={x:Static Application.Current}}"/>
+                                <Run Text="Hz"/>
+                            </TextBlock>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="162" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/warning.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <Image Source="{dx:DXImage 'SvgImages/Status/Warning.svg'}" Style="{StaticResource DefaultImageStyle}" Margin="9,5,9,0"
+                                   Height="25" Width="20"/>
                             <TextBlock Text="Warning" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
@@ -1306,34 +1363,41 @@
                     <Border Canvas.Top="112" Canvas.Left="4"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Label Content="SOC" 
+                            <Label Content="Power" 
                                    Style="{StaticResource HeaderLableStyle}"/>
-                            <TextBlock Style="{StaticResource ContentTextBlockStyle}"><Run Text="24"/><Run Text=" "/><Run Text="kW" /></TextBlock>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="{Binding PcsVm.InvAveAcVoltage, Source={x:Static Application.Current}, StringFormat=F1}"/>
+                                <Run Text="W"/>
+                            </TextBlock>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="57" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Label Content="SOH" 
+                            <Label Content="Curr" 
                                    Style="{StaticResource HeaderLableStyle}"/>
-                            <TextBlock Style="{StaticResource ContentTextBlockStyle}"><Run Text="61"/><Run Text=" "/><Run Text="kW" /></TextBlock>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="{Binding PcsVm.InvAveCurrent, Source={x:Static Application.Current}, StringFormat=F1}"/>
+                                <Run Text="A"/>
+                            </TextBlock>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="109" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/capacitor.png" 
-                                   Height="25" 
-                                   Width="25"
-                                   Style="{StaticResource HeaderImageStyle}"/>
-                            <TextBlock Text="Warning"
-                                       Style="{StaticResource ContentTextBlockStyle}"/>
+                            <Label Content="Volt" 
+                                   Style="{StaticResource HeaderLableStyle}"/>
+                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
+                                <Run Text="{Binding PcsVm.InvItems[15].Value, StringFormat=F1, Source={x:Static Application.Current}}"/>
+                                <Run Text="V"/>
+                            </TextBlock>
                         </StackPanel>
                     </Border>
                     <Border Canvas.Left="162" Canvas.Top="112"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
-                            <Image Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/warning.png" Style="{StaticResource DefaultImageStyle}" Height="25" Margin="9,5,9,0" Width="25"/>
+                            <Image Source="{dx:DXImage 'SvgImages/Status/Warning.svg'}" Style="{StaticResource DefaultImageStyle}" Margin="9,5,9,0"
+                                   Height="25" Width="20"/>
                             <TextBlock Text="Warning" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>

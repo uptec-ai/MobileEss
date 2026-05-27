@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace EMS_PJT_Hamburger.Models.Managers
 {
@@ -66,6 +67,32 @@ namespace EMS_PJT_Hamburger.Models.Managers
             return "ON";
         }
         public object ConvertBack(object v, Type t, object p, CultureInfo c) => throw new NotImplementedException();
+    }
+    public class FaultConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            bool isFault = value is bool b && b;
+            string mode = parameter as string;
+
+            if (mode == "Image")
+            {
+                string uri = isFault
+                    ? "pack://application:,,,/DevExpress.Images.v23.1;component/SvgImages/Status/Warning.svg"
+                    : "pack://application:,,,/DevExpress.Images.v23.1;component/SvgImages/XAF/State_Validation_Valid.svg";
+
+                return new SvgImageSourceExtension
+                {
+                    Uri = new Uri(uri, UriKind.Absolute),
+                    Size = new Size(20, 20)
+                }.ProvideValue(null);
+            }
+
+            return isFault ? "Warring" : "Normal";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
     }
     public class RunFaultStatusConverter : IMultiValueConverter
     {

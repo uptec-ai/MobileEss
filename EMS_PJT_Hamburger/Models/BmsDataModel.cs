@@ -53,10 +53,12 @@ namespace EMS_PJT_Hamburger.Models
         public DispatcherTimer _uiTimer; // time마다 snap shot 동기화
         // [ Alarm ]
         public AlarmService AlarmService { get; set; }
+        public bool OccurredFault { get; set; } = false;
         public int Alarms
         {
             get
             {
+
                 return StatusMsg02.GetType().GetProperties().Where(p => p.PropertyType == typeof(bool)).Count(p => (bool)p.GetValue(StatusMsg02));
             }
         }
@@ -79,7 +81,7 @@ namespace EMS_PJT_Hamburger.Models
 
         public PcanRxService _rx;
         public CancellationTokenSource _canCts;
-        public bool RelayStatus { get; set; } = false;
+        public bool RelayStatus { get => GetProperty(() => RelayStatus); set { SetProperty(() => RelayStatus, value); } }
         // 바인딩 프로퍼티
         public string ReadyStatus { get => GetProperty(() => ReadyStatus); set { SetProperty(() => ReadyStatus, value); } }
 

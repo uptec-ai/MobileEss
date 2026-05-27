@@ -24,8 +24,16 @@ namespace EMS_PJT_Hamburger.ViewModels
         public string SourceName
         {
             get => GetProperty(() => SourceName);
-            set => SetProperty(() => SourceName, value);
+            set
+            {
+                SetProperty(() => SourceName, value);
+                RaisePropertyChanged(nameof(IsPcsAlarm));
+                RaisePropertyChanged(nameof(IsBmsAlarm));
+            }
         }
+
+        public bool IsPcsAlarm => string.Equals(SourceName, SourcePcs, StringComparison.OrdinalIgnoreCase);
+        public bool IsBmsAlarm => string.Equals(SourceName, SourceBms, StringComparison.OrdinalIgnoreCase);
 
         public bool SelectAll
         {
@@ -96,8 +104,6 @@ namespace EMS_PJT_Hamburger.ViewModels
             CommandInit();
         }
 
-        private bool IsPcs => string.Equals(SourceName, SourcePcs, StringComparison.OrdinalIgnoreCase);
-
         private void Init()
         {
             Alarms = new ObservableCollection<AlarmItems>();
@@ -134,7 +140,7 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private void LoadCurrentAlarms()
         {
-            if (IsPcs)
+            if (IsPcsAlarm)
             {
                 if (_pcsCurrentFaults == null) return;
 
@@ -170,7 +176,6 @@ namespace EMS_PJT_Hamburger.ViewModels
                     Alarm = ReadString(row, "alarm_name"),
                     FaultMessage = ReadString(row, "fault_message"),
                     RawValue = ReadString(row, "raw_value"),
-                    Hour = ReadString(row, "duration_hour"),
                 });
             }
         }
@@ -186,7 +191,7 @@ namespace EMS_PJT_Hamburger.ViewModels
             if (dialog.ShowDialog() != true) return;
 
             var sb = new StringBuilder();
-            sb.AppendLine("Time\tSource\tCategory\tBit\tCode\tFault Message\tRaw\tHour");
+            sb.AppendLine("Time\tSource\tCategory\tBit\tCode\tFault Message\tRaw");
 
             foreach (var item in Alarms)
             {
@@ -199,7 +204,6 @@ namespace EMS_PJT_Hamburger.ViewModels
                     item.Code.ToString(),
                     item.FaultMessage ?? item.Alarm ?? string.Empty,
                     item.RawValue ?? string.Empty,
-                    item.Hour ?? string.Empty
                 }));
             }
 

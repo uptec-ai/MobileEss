@@ -319,6 +319,11 @@ namespace EMS_PJT_Hamburger.ViewModels
         private async Task ExecuteControlSequenceAsync(string name, Func<Task> sequence)
         {
             if (IsControlBusy) return;
+            if (!ControlConfirmationService.Confirm("PCS", name))
+            {
+                SystemMsg = $"[PCS] {name} sequence canceled.";
+                return;
+            }
 
             try
             {

@@ -58,6 +58,7 @@ namespace EMS_PJT_Hamburger.ViewModels
                             // charge on
                             ChargingStatus = HomeStatus.Charging;
                             LoadTarget = LoadStatus.Waiting;
+                            CouplingStatus = false;
 
                             PcsBorderBrush = Brushes.Lime;
                             BmsBorderBrush = Brushes.Lime;
@@ -65,8 +66,10 @@ namespace EMS_PJT_Hamburger.ViewModels
                             BChargeBorderBrush = Brushes.Lime; // BMS charge ellipse
                             OperationModeBrush = Brushes.Lime;
 
+                            ChargeOnGrid = Brushes.Gray;
                             ChargeOffGrid = Brushes.Gray;
                             ChargeVihicle = Brushes.Gray;
+                            DischargeBorderBrush = Brushes.Gray;
                             PDischargeBorderBrush = Brushes.Gray; // PCS Discharge ellipse
                             BDischargeBorderBrush = Brushes.Gray; // BMS discharge ellipse
 
@@ -77,8 +80,9 @@ namespace EMS_PJT_Hamburger.ViewModels
                             // charge off
                             ChargingStatus = HomeStatus.Discharging;
 
-                            PcsBorderBrush = Brushes.Lime;
+                            PcsBorderBrush = Brushes.Orange;
                             BmsBorderBrush = Brushes.Orange;
+                            DischargeBorderBrush = Brushes.Orange;
                             PChargeBorderBrush = Brushes.Gray; // PCS charge ellipse
                             BChargeBorderBrush = Brushes.Gray; // BMS charge ellipse
                             OperationModeBrush = Brushes.Orange;
@@ -86,6 +90,7 @@ namespace EMS_PJT_Hamburger.ViewModels
                             // discharge on
                             Random rand = new Random();
                             var random = rand.Next(0, 3);
+                            CouplingStatus = true;
                             if (random == 0)
                             {
                                 LoadTarget = LoadStatus.OnGrid;
@@ -102,7 +107,8 @@ namespace EMS_PJT_Hamburger.ViewModels
                             ChargeOffGrid = (LoadTarget == LoadStatus.OffGrid) ? Brushes.Orange : Brushes.Gray;
                             ChargeVihicle = (LoadTarget == LoadStatus.Vehicle) ? Brushes.Orange : Brushes.Gray;
 
-                            PDischargeBorderBrush = Brushes.Orange; // PCS Discharge ellipse
+                            DischargeBorderBrush = Brushes.Orange;
+                            PDischargeBorderBrush = Brushes.Orange; // PCS discharge ellipse
                             BDischargeBorderBrush = Brushes.Orange; // BMS discharge ellipse
 
                             emsMode = 0;
@@ -112,14 +118,17 @@ namespace EMS_PJT_Hamburger.ViewModels
                             // charge off
                             ChargingStatus = HomeStatus.Waiting;
                             LoadTarget = LoadStatus.Waiting;
+                            CouplingStatus = false;
 
                             PcsBorderBrush = Brushes.Gray;
                             BmsBorderBrush = Brushes.Gray;
+                            DischargeBorderBrush = Brushes.Gray; // discharge
                             PChargeBorderBrush = Brushes.Gray; // PCS charge ellipse
                             BChargeBorderBrush = Brushes.Gray; // BMS charge ellipse
                             OperationModeBrush = Brushes.Gray;
 
                             // discharge off
+                            ChargeOnGrid = Brushes.Gray;
                             ChargeOffGrid = Brushes.Gray;
                             ChargeVihicle = Brushes.Gray;
                             PDischargeBorderBrush = Brushes.Gray; // PCS Discharge ellipse

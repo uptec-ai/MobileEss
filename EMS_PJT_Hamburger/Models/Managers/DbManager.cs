@@ -215,7 +215,7 @@ namespace EMS_PJT_Hamburger.Models.Managers
                             cmd.Parameters.AddWithValue("@code", fault.code);
                             cmd.Parameters.AddWithValue("@name", fault.name ?? string.Empty);
                         });
-                    InsertEmsAlarmData("BMS", "BMS", fault.code, fault.code, fault.name, fault.name, string.Empty, string.Empty, DateTime.Now, false);
+                    InsertEmsAlarmData("BMS", "BMS", fault.code, fault.code, fault.name, fault.name, string.Empty, DateTime.Now, false);
                     break;
 
                 default:
@@ -255,7 +255,6 @@ create table if not exists public.tb_ems_alarm
     alarm_name text null,
     fault_message text null,
     raw_value text null,
-    duration_hour text null,
     reset_at timestamp without time zone null,
     is_reset boolean not null default false
 );
@@ -275,7 +274,6 @@ create index if not exists ix_tb_ems_alarm_source_reset
             string alarmName,
             string faultMessage,
             string rawValue,
-            string durationHour,
             DateTime occurredAt,
             bool isReset)
         {
@@ -292,7 +290,6 @@ insert into public.tb_ems_alarm
     alarm_name,
     fault_message,
     raw_value,
-    duration_hour,
     is_reset
 )
 values
@@ -305,7 +302,6 @@ values
     @alarm_name,
     @fault_message,
     @raw_value,
-    @duration_hour,
     @is_reset
 );",
                 cmd =>
@@ -318,7 +314,6 @@ values
                     cmd.Parameters.AddWithValue("@alarm_name", (object)alarmName ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@fault_message", (object)faultMessage ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@raw_value", (object)rawValue ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@duration_hour", (object)durationHour ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@is_reset", isReset);
                 });
         }

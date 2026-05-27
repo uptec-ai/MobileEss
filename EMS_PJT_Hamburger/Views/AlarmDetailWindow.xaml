@@ -85,14 +85,17 @@
                 <dxg:GridColumn FieldName="Category"
                                 Header="Category"
                                 Width="100"
+                                Visible="{Binding IsPcsAlarm}"
                                 AllowEditing="False"/>
                 <dxg:GridColumn FieldName="Bit"
                                 Header="Bit"
                                 Width="45"
+                                Visible="{Binding IsPcsAlarm}"
                                 AllowEditing="False"/>
                 <dxg:GridColumn FieldName="Code"
                                 Header="Code"
                                 Width="55"
+                                Visible="{Binding IsBmsAlarm}"
                                 AllowEditing="False"/>
                 <dxg:GridColumn FieldName="FaultMessage"
                                 Header="Fault Message"
@@ -101,11 +104,8 @@
                 <dxg:GridColumn FieldName="RawValue"
                                 Header="Raw"
                                 Width="70"
+                                Visible="{Binding IsPcsAlarm}"
                                 AllowEditing="False"/>
-                <dxg:GridColumn FieldName="Hour"
-                                Header="Hour"
-                                AllowEditing="False"
-                                Width="70"/>
             </dxg:GridControl.Columns>
 
             <dxg:GridControl.View>
