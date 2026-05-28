@@ -105,8 +105,10 @@ namespace EMS_PJT_Hamburger.ViewModels
             _uiTimer.Interval = TimeSpan.FromMilliseconds(500);
             _uiTimer.Tick += Snapshot_Tick;
 
-            StatusMsg01.Ready = "OFF";
-            StatusMsg01.DispSOC = 20d;
+            StatusMsg01.Ready = "Not Ready";
+            StatusMsg01.DispSOC = 0d;
+
+            StatusMsg03.MbmsReady = "Not Ready";
         }
         private void Snapshot_Tick(object sender, EventArgs e)
         {
@@ -140,6 +142,15 @@ namespace EMS_PJT_Hamburger.ViewModels
         }
         private void Relay()
         {
+            var relayOn = RelayStatus;
+            var action = relayOn ? "Relay ON" : "Relay OFF";
+
+            if (!ControlConfirmationService.Confirm("BMS", action))
+            {
+                RelayStatus = !relayOn;
+                return;
+            }
+
             if (RelayStatus) // Relay ON
             {
                 SendRelayCommand(true);
@@ -186,7 +197,7 @@ namespace EMS_PJT_Hamburger.ViewModels
        
         private void StatusMsg02_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            OnPropertyChanged(nameof(Alarms));
+            RaisePropertyChanged(nameof(Alarms));
         }
 
         public void Dispose()

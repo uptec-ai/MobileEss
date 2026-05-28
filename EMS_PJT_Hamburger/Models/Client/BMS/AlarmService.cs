@@ -63,9 +63,14 @@ namespace EMS_PJT_Hamburger.Models.Client.BMS
 
     public class AlarmItems : ViewModelBase
     {
+        public DateTime OccurredAt { get; set; }
+        public string Source { get; set; }
+        public string Category { get; set; }
+        public int Bit { get; set; }
         public int Code { get; set; } // 알람 Code
         public string Alarm { get; set; } // 알람 내용
-        public string Hour { get; set; } // 알람 발생 시간
+        public string FaultMessage { get; set; }
+        public string RawValue { get; set; }
 
     }
 }

@@ -11,13 +11,13 @@
     xmlns:Views="clr-namespace:EMS_PJT_Hamburger.Views"
     Title="Outside EMS PJT" 
     Height="768" Width="1024" Background="{DynamicResource Main.Background}"
-    WindowStartupLocation="CenterOwner"
-    WindowState="Maximized"
-    WindowStyle="None"
+    WindowStartupLocation="CenterScreen"
+    WindowState="Normal"
+    WindowStyle="ToolWindow"
     FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" Loaded="ThemedWindow_Loaded">
     <dx:ThemedWindow.Resources>
         <Style TargetType="{x:Type dxwui:HamburgerMenuNavigationButton}">
-            <Setter Property="FontFamily" Value="/EMS_PJT_Hamburger;component/Fonts/#Jalnan 2"/>
+            <Setter Property="FontFamily" Value="/EMS_PJT_Hamburger;component/Fonts/#NanumSquareRound Bold"/>
             <Setter Property="FontWeight" Value="Normal"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Padding" Value="0,10,10,10"/>
@@ -71,23 +71,25 @@
         <dxwui:HamburgerMenu Grid.Row="0" Grid.Column="0" AvailableViewStates="Overlay" 
                              Background="{DynamicResource Main.Background}" 
                              PaneBackground="{DynamicResource Main.Panel.Background}" 
-                             FontFamily="/EMS_PJT_Hamburger;component/Fonts/#NanumSquareRound ExtraBold" >
+                             OpenPaneWidth="150"
+                             FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR Thin" >
             <dxwui:HamburgerMenu.Content>
                 <dxwui:NavigationFrame x:Name="NaviFrame" BorderThickness="1,0,0,0"/>
             </dxwui:HamburgerMenu.Content>
-            <!--Home--><!--
+            <!--System-->
             <dxwui:HamburgerMenuNavigationButton x:Name="Btn_Home" 
-                                                 Content="HOME" 
-                                                 ToolTip="HOME VIEW" 
+                                                 Content="SYSTEM" 
+                                                 ToolTip="SYSTEM VIEW" 
                                                  IsSelected="True"
-                                                 Glyph="{dx:DXImage GrayScaleImages/Navigation/Home_32x32.png}" Click="Btn_Home_Click"/>-->
+                                                 Glyph="{dx:DXImage 'SvgImages/XAF/Action_EditModel.svg'}" 
+                                                 Click="Btn_Home_Click"/>
 
-            <!-- Dashboard -->
-            <dxwui:HamburgerMenuNavigationButton x:Name="Btn_Dashboard"
-                                                 Content="DASHBOARD" 
-                                                 ToolTip="DASHBOARD VIEW" 
-                                                 IsSelected="True"
-                                                 Glyph="{dx:DXImage SvgImages/Icon Builder/Electronics_DesktopMac.svg}" Click="Btn_Dashboard_Click"/>
+            <!-- Integrate --><!--
+            <dxwui:HamburgerMenuNavigationButton x:Name="Btn_Integrate"
+                                                 Content="INTEGRATE" 
+                                                 ToolTip="INTEGRATE VIEW" 
+                                                 IsSelected="False"
+                                                 Glyph="{dx:DXImage SvgImages/Icon Builder/Electronics_DesktopMac.svg}" Click="Btn_Dashboard_Click"/>-->
 
             <!-- PCS Status -->
             <dxwui:HamburgerMenuNavigationButton x:Name="Btn_PcsStatus" 

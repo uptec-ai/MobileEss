@@ -89,8 +89,8 @@
         </Style>
 
         <Style TargetType="{x:Type Grid}" x:Key="MonitoringGrid">
-            <Setter Property="Width" Value="235"/>
-            <Setter Property="Height" Value="140"/>
+            <Setter Property="Width" Value="280"/>
+            <Setter Property="Height" Value="180"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="VerticalAlignment" Value="Stretch"/>
             <Setter Property="Background">
@@ -109,7 +109,6 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="0"/>
                             <ColumnDefinition/>
-                            <ColumnDefinition Width="80"/>
                             <ColumnDefinition Width="0"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
@@ -120,8 +119,9 @@
                             <RowDefinition Height="0"/>
                         </Grid.RowDefinitions>
 
-                        <Grid Grid.Column="1" Grid.Row="1" Background="Transparent">
+                        <Grid Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" Background="Transparent">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -151,76 +151,51 @@
                             <Label Grid.Column="4" Grid.Row="1" 
                                    Content="SOC"
                                    Style="{StaticResource HeadLableStyle}"/>
+                            <Label Grid.Column="5" Grid.Row="1" 
+                                   Content="SOH"
+                                   Style="{StaticResource HeadLableStyle}"/>
 
                             <Label Grid.Column="0" Grid.Row="2"                      
                                    Style="{StaticResource HeadLableStyle}" Background="{x:Null}">
-                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
-                                    <Run Text="{Binding StatusMsg01.Ready, Converter={StaticResource OpenConverter}}" 
-                             Foreground="{Binding StatusMsg01.Ready, Converter={StaticResource ValueToBrushConverter}}"/>
+                                <TextBlock FontSize="28" Margin="0,0,0,20" Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="{Binding StatusMsg01.Ready}" 
+                                         Foreground="{Binding StatusMsg01.Ready, Converter={StaticResource ValueToBrushConverter}}"/>
                                 </TextBlock>
                             </Label>
                             <Label Grid.Column="1" Grid.Row="2" Background="{x:Null}"
                                    Style="{StaticResource HeadLableStyle}">
-                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                <TextBlock FontSize="28" Margin="0,0,0,20" Style="{StaticResource MonitorTextBlock}">
                                     <Run Text="{Binding StatusMsg01.TotalCurrent, StringFormat=F2}" Foreground="Lime"/>
-                                    <Run Text="A" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    <Run Text="A" FontSize="16" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
                                 </TextBlock>
                             </Label>
                             <Label Grid.Column="2" Grid.Row="2" Background="{x:Null}"
                                    Style="{StaticResource HeadLableStyle}">
-                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                <TextBlock FontSize="28" Margin="0,0,0,20" Style="{StaticResource MonitorTextBlock}">
                                     <Run Text="{Binding StatusMsg01.TotalVoltage, StringFormat=F2}" Foreground="Lime"/>
-                                    <Run Text="V" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    <Run Text="V" FontSize="16" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
                                 </TextBlock>
                             </Label>
                             <Label Grid.Column="3" Grid.Row="2" Background="{x:Null}"
                                    Style="{StaticResource HeadLableStyle}">
-                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                <TextBlock FontSize="28" Margin="0,0,0,20" Style="{StaticResource MonitorTextBlock}">
                                     <Run Text="{Binding StatusMsg01.MbmsState, StringFormat=0x{0:X2}}" Foreground="Lime"/>
                                 </TextBlock>
                             </Label>
                             <Label Grid.Column="4" Grid.Row="2" Background="Transparent"
                                    Style="{StaticResource HeadLableStyle}">
-                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                <TextBlock FontSize="28" Margin="0,0,0,20" Style="{StaticResource MonitorTextBlock}">
                                     <Run Text="{Binding StatusMsg01.DispSOC}" Foreground="Lime"/>
-                                    <Run Text="%" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    <Run Text="%" FontSize="16" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
                                 </TextBlock>
                             </Label>
-                        </Grid>
-
-                        <Grid Grid.Column="2" Grid.Row="1" Background="Transparent">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height=".6*"/>
-                                <RowDefinition Height="30"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <Border Grid.ColumnSpan="8" Grid.RowSpan="3" 
-                                    Style="{StaticResource MainBorderStyle}">
-                            </Border>
-
-                            <TextBlock Grid.ColumnSpan="8" 
-                                       Grid.Row="0"
-                                       Text="Alarm"
-                                       Style="{StaticResource HeadTextBlockStyle}"
-                                       HorizontalAlignment="Center"
-                                       VerticalAlignment="Center" 
-                                       TextDecorations="Underline"/>
-
-                            <dx:SimpleButton Grid.Row="1" Grid.RowSpan="2" Width="40" Height="40"
-                                             CornerRadius="5"
-                                             BorderBrush="Transparent"
-                                             FontSize="24" FontWeight="Bold" Padding="0" 
-                                             Content="{Binding Alarms}" 
-                                             IsEnabled="{Binding AlarmWindowOpen}"
-                                             Command="{Binding Cmd_AlarmsPopupBtn}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,5">
-                                <dx:SimpleButton.Background>
-                                    <ImageBrush ImageSource="/EMS_PJT_Hamburger;component/Assets/BMS/Button1.png" Stretch="UniformToFill"/>
-                                </dx:SimpleButton.Background>
-                            </dx:SimpleButton>
-
+                            <Label Grid.Column="5" Grid.Row="2" Background="Transparent"
+                                   Style="{StaticResource HeadLableStyle}">
+                                <TextBlock FontSize="28" Margin="0,0,0,20" Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="{Binding StatusMsg01.DispSOC}" Foreground="Lime"/>
+                                    <Run Text="%" FontSize="16" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                </TextBlock>
+                            </Label>
                         </Grid>
 
                         <Grid Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" Background="Transparent">
@@ -263,9 +238,9 @@
 
                             <Label Grid.Column="0" Grid.Row="2"                      
                                    Style="{StaticResource HeadLableStyle}">
-                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
-                                    <Run Text="{Binding StatusMsg03.MbmsReady, Converter={StaticResource ReadyConverter}}" 
-                             Foreground="{Binding StatusMsg03.MbmsReady, Converter={StaticResource ValueToBrushConverter}}"/>
+                                <TextBlock FontSize="28" Margin="0,0,0,20" Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="{Binding StatusMsg03.MbmsReady}" 
+                                         Foreground="{Binding StatusMsg03.MbmsReady, Converter={StaticResource ValueToBrushConverter}}"/>
                                 </TextBlock>
                             </Label>
                             <Grid Grid.Column="1" Grid.Row="2">
@@ -289,34 +264,34 @@
                             </Grid>
                             <Label Grid.Column="2" Grid.Row="2"                      
                                    Style="{StaticResource HeadLableStyle}">
-                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                <TextBlock FontSize="28" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
                                     <Run Text="{Binding StatusMsg03.CurrentPackCount}" Foreground="Lime"/>
                                 </TextBlock>
                             </Label>
                             <Label Grid.Column="3" Grid.Row="2"                      
                                    Style="{StaticResource HeadLableStyle}">
-                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                <TextBlock FontSize="28" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
                                     <Run Text="{Binding StatusMsg04.CellMinVoltage, StringFormat={}{0:F2}}" Foreground="Lime"/>
-                                    <Run Text="V" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
-                                    <Run Text="" Foreground="White" FontSize="15" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    <Run Text="V" FontSize="16" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    <Run Text="/" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" FontSize="20"/>
                                     <Run Text="{Binding StatusMsg04.CellMinPackNumber, StringFormat=#{0:D2}}" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
                                 </TextBlock>
                             </Label>
                             <Label Grid.Column="4" Grid.Row="2"                      
                                    Style="{StaticResource HeadLableStyle}">
-                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                <TextBlock FontSize="28" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
                                     <Run Text="{Binding StatusMsg04.MaxTemperature}" Foreground="Lime"/>
-                                    <Run Text="℃" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
-                                    <Run Text=" "/>
+                                    <Run Text="℃" FontSize="16" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    <Run Text="/" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" FontSize="20"/>
                                     <Run Text="{Binding StatusMsg04.MaxTemperaturePackNumber, StringFormat=#{0:D2}}" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
                                 </TextBlock>
                             </Label>
                             <Label Grid.Column="5" Grid.Row="2"                      
                                    Style="{StaticResource HeadLableStyle}">
-                                <TextBlock FontSize="24" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
+                                <TextBlock FontSize="28" Margin="0,0,0,10" Style="{StaticResource MonitorTextBlock}">
                                     <Run Text="{Binding StatusMsg04.MinTemperature}" Foreground="Lime"/>
-                                    <Run Text="℃" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
-                                    <Run Text=" "/>
+                                    <Run Text="℃" FontSize="16" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                    <Run Text="/" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR" FontSize="20"/>
                                     <Run Text="{Binding StatusMsg04.MinTemperaturePackNumber, StringFormat=#{0:D2}}" FontSize="18" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
                                 </TextBlock>
                             </Label>
@@ -336,11 +311,11 @@
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="140"/>
-                                        <RowDefinition Height="140"/>
-                                        <RowDefinition Height="140"/>
-                                        <RowDefinition Height="140"/>
-                                        <RowDefinition Height="140"/>
+                                        <RowDefinition Height="170"/>
+                                        <RowDefinition Height="170"/>
+                                        <RowDefinition Height="170"/>
+                                        <RowDefinition Height="170"/>
+                                        <RowDefinition Height="170"/>
                                     </Grid.RowDefinitions>
 
                                     <ItemsControl ItemsSource="{Binding Packs}" Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="0" Grid.RowSpan="5">
@@ -357,7 +332,7 @@
                                                 <Grid Style="{StaticResource MonitoringGrid}">
                                                     <TextBlock Text="{Binding PackNo, StringFormat=Pack #{0}}"
                                                                Foreground="Lime"
-                                                               Margin="20,13,0,0"
+                                                               Margin="25,15,0,0"
                                                                HorizontalAlignment="Left"
                                                                VerticalAlignment="Top"
                                                                FontWeight="Bold"
@@ -367,7 +342,7 @@
                                                     <Ellipse Width="5" Height="5"
                                                              HorizontalAlignment="Left"
                                                              VerticalAlignment="Top"
-                                                             Margin="131,17,0,0">
+                                                             Margin="161,22,0,0">
                                                         <Ellipse.Style>
                                                             <Style TargetType="Ellipse">
                                                                 <Setter Property="Fill" Value="#FFA5A5A5"/>
@@ -379,7 +354,7 @@
                                                             </Style>
                                                         </Ellipse.Style>
                                                     </Ellipse>
-                                                    <Grid Margin="8,24,12,18">
+                                                    <Grid Margin="8,35,12,18">
                                                         <Grid.ColumnDefinitions>
                                                             <ColumnDefinition Width="*"/>
                                                             <ColumnDefinition Width="*"/>
@@ -391,7 +366,7 @@
 
                                                         <!-- Max Volt -->
                                                         <StackPanel Grid.Column="0" Orientation="Vertical">
-                                                            <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                                                                 <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS/volt.png"
                                                                        Style="{StaticResource ImageStyle}"/>
                                                                 <TextBlock Text="Max Volt." FontSize="14"
@@ -405,7 +380,7 @@
 
                                                         <!-- Min Volt -->
                                                         <StackPanel Grid.Column="0" Grid.Row="1" Orientation="Vertical">
-                                                            <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
                                                                 <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS/volt.png"
                                                                        Style="{StaticResource ImageStyle}"/>
                                                                 <TextBlock Text="Min Volt." FontSize="14"
@@ -419,7 +394,7 @@
 
                                                         <!-- Max Temp -->
                                                         <StackPanel Grid.Column="1" Orientation="Vertical">
-                                                            <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                            <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                                                                 <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS/온도.png"
                                                                        Style="{StaticResource ImageStyle}"/>
                                                                 <TextBlock Text="Max Temp." FontSize="14"
@@ -433,7 +408,7 @@
 
                                                         <!-- Min Temp -->
                                                         <StackPanel Grid.Column="1" Grid.Row="1" Orientation="Vertical">
-                                                            <StackPanel Orientation="Horizontal" Margin="0,3,0,0">
+                                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
                                                                 <Image Source="/EMS_PJT_Hamburger;component/Assets/BMS/온도.png"
                                                                        Style="{StaticResource ImageStyle}"/>
                                                                 <TextBlock Text="Min Temp." FontSize="14"
@@ -537,8 +512,7 @@
             </dxdo:LayoutGroup>
 
             <dxdo:DockLayoutManager.AutoHideGroups>
-                <dxdo:AutoHideGroup DockType="Left"
-                                    >
+                <dxdo:AutoHideGroup DockType="Left">
                     <dxdo:LayoutPanel x:Name="CtrlSetPanel"
                                       Caption="Control" 
                                       AllowClose="False" 
@@ -553,6 +527,8 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="10"/>
                                 <RowDefinition Height="40"/>
+                                <RowDefinition Height="40"/>
+                                <RowDefinition Height="40"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
                             <Label Content="Relay 제어" Grid.Column="0" Grid.Row="1"
@@ -560,11 +536,29 @@
                                    Style="{StaticResource HeadLableStyle}"/>
                             <dx:SimpleButton Grid.Column="1" Grid.Row="1"
                                              Padding="0"
-                                             Margin="5"
+                                             Margin="5,5,10,5"
                                              ButtonKind="Toggle"
                                              Content="{Binding RelayStatus, Converter={StaticResource RelayConverter}}" 
                                              IsChecked="{Binding RelayStatus}"
-                                             Command="{Binding Cmd_RelayBtn}" Width="110" HorizontalAlignment="Left"/>
+                                             Command="{Binding Cmd_RelayBtn}"/>
+                            <Label Content="Alarm"
+                                   Grid.Column="0"
+                                   Grid.Row="2"
+                                   Foreground="Black"
+                                   Style="{StaticResource HeadLableStyle}"/>
+                            <Label Content="{Binding Alarms}"
+                                   Grid.Column="1"
+                                   Grid.Row="2"
+                                   Foreground="Black"
+                                   Style="{StaticResource HeadLableStyle}"/>
+                            <dx:SimpleButton Grid.Column="0" Grid.ColumnSpan="2"
+                                             Grid.Row="3"
+                                             Padding="0"
+                                             Margin="10,5"
+                                             Content="BMS Fault Message"
+                                             IsEnabled="{Binding AlarmWindowOpen}"
+                                             Command="{Binding Cmd_AlarmsPopupBtn}"
+                                             Glyph="{dx:DXImage 'SvgImages/Icon Builder/Security_Warning.svg'}"/>
                         </Grid>
                     </dxdo:LayoutPanel>
                 </dxdo:AutoHideGroup>

@@ -27,15 +27,15 @@ namespace EMS_PJT_Hamburger
     /// </summary>
     public partial class App : Application
     {
-        //public HomeView HomeView { get; private set; }
-        public DashBoardView DashBoardView { get; private set; }
+        public HomeView HomeView { get; private set; }
+        //public DashBoardView DashBoardView { get; private set; }
         public PCSView PCSView { get; private set; }
         public BMSView BMSView { get; private set; }
         //public SystemView SystemView { get; private set; }
         public HistoryView HistoryView { get; private set; }
 
-        //public HomeViewModel HomeVm { get; private set; }
-        public DashBoardViewModel DashVm { get; private set; }
+        public HomeViewModel HomeVm { get; private set; }
+        //public DashBoardViewModel DashVm { get; private set; }
         public PcsViewModel PcsVm { get; private set; }
         public BMSViewModel BmsVm { get; private set; }
 
@@ -110,7 +110,7 @@ namespace EMS_PJT_Hamburger
             ConvertManager = new ConvertManager();
             StatusManager = new StatusManager();
             StatusManager.Init();
-            //DbManager = new DbManager();
+            DbManager = new DbManager();
 
             // Communication Code
             //CommonSetDataModel = new CommonSetDataModel();
@@ -140,13 +140,13 @@ namespace EMS_PJT_Hamburger
             BMSView = new BMSView();
             BMSView.DataContext = BmsVm;
 
-            //HomeVm = new HomeViewModel();
-            //HomeView = new HomeView();
-            //HomeView.DataContext = HomeVm;
+            HomeVm = new HomeViewModel();
+            HomeView = new HomeView();
+            HomeView.DataContext = HomeVm;
 
-            DashVm = new DashBoardViewModel();
-            DashBoardView = new DashBoardView();
-            DashBoardView.DataContext = DashVm;
+            //DashVm = new DashBoardViewModel();
+            //DashBoardView = new DashBoardView();
+            //DashBoardView.DataContext = DashVm;
 
             //SystemView = new SystemView();
             HistoryView = new HistoryView();
@@ -185,8 +185,8 @@ namespace EMS_PJT_Hamburger
         {
             Debug.WriteLine("App Exit Called");
 
-            //DisposeViewDataContext(HomeView);
-            DisposeViewDataContext(DashBoardView);
+            DisposeViewDataContext(HomeView);
+            //DisposeViewDataContext(DashBoardView);
             DisposeViewDataContext(PCSView);
             DisposeViewDataContext(BMSView);
             //DisposeViewDataContext(SystemView);

@@ -125,9 +125,9 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
 
         public static readonly IList<ModbusFieldSpec> StatusData = new List<ModbusFieldSpec>
         {
-            new ModbusFieldSpec { Address = 148, DataType = ModbusDataType.U16, Name = "ReadyStatus", Scale = 1, Unit = "", },                     // 준비 상태
-            new ModbusFieldSpec { Address = 149, DataType = ModbusDataType.U16, Name = "FaultStatus", Scale = 1, Unit = "", },                     // 폴트 Status
+            new ModbusFieldSpec { Address = 148, DataType = ModbusDataType.U16, Name = "ReadyStatus", Scale = 1, Unit = "", },                     // bit 1:batt, 2:Inv, 3:Grid, 5:Comm, 6:Bypass
 
+            new ModbusFieldSpec { Address = 149, DataType = ModbusDataType.U16, Name = "FaultStatus", Scale = 1, Unit = "", },                     // Fault Status
             new ModbusFieldSpec { Address = 150, DataType = ModbusDataType.U16, Name = "GridFault", Scale = 1, Unit = "", },                       // Grid Fault
             new ModbusFieldSpec { Address = 151, DataType = ModbusDataType.U16, Name = "InvFault", Scale = 1, Unit = "", },                        // Inverter Fault
             new ModbusFieldSpec { Address = 152, DataType = ModbusDataType.U16, Name = "LoadFault", Scale = 1, Unit = "", },                       // Load Fault

@@ -13,9 +13,19 @@ namespace EMS_PJT_Hamburger.ViewModels
 {
     public class PcsViewModel : PcsModel, IDisposable
     {
+        private enum PcsBmsPolicyMode
+        {
+            BeforeCharge,
+            BeforeDischarge,
+            Monitor
+        }
+
         private bool _disposed;
+        private bool _controlInputsInitializedFromRead;
+        private bool _bmsGuardPolicyRunning;
+        private ushort _lastChargeDischargeStart;
         private DateTime _lastKeepAliveReceivedUtc = DateTime.MinValue;
-        private PcsFaultMessageWindow _faultMessageWindow;
+        private AlarmDetailWindow _faultMessageWindow;
 
         public DelegateCommand Cmd_StartCharge { get; private set; }
         public DelegateCommand Cmd_StartDischarge { get; private set; }
@@ -39,6 +49,20 @@ namespace EMS_PJT_Hamburger.ViewModels
         public string ControlMaxDischargeCurrent { get => GetProperty(() => ControlMaxDischargeCurrent); set => SetProperty(() => ControlMaxDischargeCurrent, value); }
         public string ControlGridMaxImportPowerW { get => GetProperty(() => ControlGridMaxImportPowerW); set => SetProperty(() => ControlGridMaxImportPowerW, value); }
         public string ControlGridMaxExportPowerW { get => GetProperty(() => ControlGridMaxExportPowerW); set => SetProperty(() => ControlGridMaxExportPowerW, value); }
+        public string ControlOperationModeRead { get => GetProperty(() => ControlOperationModeRead); set => SetProperty(() => ControlOperationModeRead, value); }
+        public string ControlChargeModeRead { get => GetProperty(() => ControlChargeModeRead); set => SetProperty(() => ControlChargeModeRead, value); }
+        public string ControlMaxChargePowerPercentRead { get => GetProperty(() => ControlMaxChargePowerPercentRead); set => SetProperty(() => ControlMaxChargePowerPercentRead, value); }
+        public string ControlMaxDischargePowerPercentRead { get => GetProperty(() => ControlMaxDischargePowerPercentRead); set => SetProperty(() => ControlMaxDischargePowerPercentRead, value); }
+        public string ControlMaxChargePowerWRead { get => GetProperty(() => ControlMaxChargePowerWRead); set => SetProperty(() => ControlMaxChargePowerWRead, value); }
+        public string ControlMaxDischargePowerWRead { get => GetProperty(() => ControlMaxDischargePowerWRead); set => SetProperty(() => ControlMaxDischargePowerWRead, value); }
+        public string ControlMaxChargeSocRead { get => GetProperty(() => ControlMaxChargeSocRead); set => SetProperty(() => ControlMaxChargeSocRead, value); }
+        public string ControlMinDischargeSocRead { get => GetProperty(() => ControlMinDischargeSocRead); set => SetProperty(() => ControlMinDischargeSocRead, value); }
+        public string ControlMaxChargeVoltageRead { get => GetProperty(() => ControlMaxChargeVoltageRead); set => SetProperty(() => ControlMaxChargeVoltageRead, value); }
+        public string ControlMaxDischargeVoltageRead { get => GetProperty(() => ControlMaxDischargeVoltageRead); set => SetProperty(() => ControlMaxDischargeVoltageRead, value); }
+        public string ControlMaxChargeCurrentRead { get => GetProperty(() => ControlMaxChargeCurrentRead); set => SetProperty(() => ControlMaxChargeCurrentRead, value); }
+        public string ControlMaxDischargeCurrentRead { get => GetProperty(() => ControlMaxDischargeCurrentRead); set => SetProperty(() => ControlMaxDischargeCurrentRead, value); }
+        public string ControlGridMaxImportPowerWRead { get => GetProperty(() => ControlGridMaxImportPowerWRead); set => SetProperty(() => ControlGridMaxImportPowerWRead, value); }
+        public string ControlGridMaxExportPowerWRead { get => GetProperty(() => ControlGridMaxExportPowerWRead); set => SetProperty(() => ControlGridMaxExportPowerWRead, value); }
 
         public PcsViewModel()
         {
@@ -78,19 +102,43 @@ namespace EMS_PJT_Hamburger.ViewModels
                 new DataItem { Name="상전류 (BN)", Value=$"0.0", Factor="A"},       // 10
                 new DataItem { Name="상전류 (CN)", Value=$"0.0", Factor="A"},       // 11
 
-                new DataItem { Name="선간 전압 (AB)", Value=$"0.0", Factor="A"},    // 12
-                new DataItem { Name="선간 전압 (BC)", Value=$"0.0", Factor="A"},    // 13
-                new DataItem { Name="선간 전압 (CA)", Value=$"0.0", Factor="A"},    // 14
+                new DataItem { Name="선간 전압 (AB)", Value=$"0", Factor="V"},    // 12
+                new DataItem { Name="선간 전압 (BC)", Value=$"0", Factor="V"},    // 13
+                new DataItem { Name="선간 전압 (CA)", Value=$"0", Factor="V"},    // 14
 
-                new DataItem { Name="주파수", Value=$"0.00", Factor="Hz"},          // 15
+                new DataItem { Name="주파수", Value=$"0.0", Factor="Hz"},          // 15
                 new DataItem { Name="역률", Value=$"0.00", Factor="%"},             // 16
                 new DataItem { Name="Sourge Count", Value=$"0", Factor="Cyc"},     // 17
+            };
+
+            InvItems = new ObservableCollection<DataItem>
+            {
+                new DataItem { Header="----------------------- 상태 -----------------------"},
+                new DataItem { Name="Fault 상태", Value=$"0"},            // 1
+                new DataItem { Header="----------------------- 정보 -----------------------"},
+                new DataItem { Name="Total 송전 전력량", Value=$"0.0", Factor="MWh"},  // 3
+                new DataItem { Name="Total 수전 전력량", Value=$"0.0", Factor="MWh"},  // 4
+                new DataItem { Name="유효 전력", Value=$"0", Factor="kWh"},       // 5
+
+                new DataItem { Name="상전압 (AN)", Value=$"0.0", Factor="V"}, // 6
+                new DataItem { Name="상전압 (BN)", Value=$"0.0", Factor="V"}, // 7
+                new DataItem { Name="상전압 (CN)", Value=$"0.0", Factor="V"}, // 8
+
+                new DataItem { Name="상전류 (AN)", Value=$"0.0", Factor="A"}, // 9
+                new DataItem { Name="상전류 (BN)", Value=$"0.0", Factor="A"}, // 10
+                new DataItem { Name="상전류 (CN)", Value=$"0.0", Factor="A"}, // 11
+
+                new DataItem { Name="선간 전압 (AB)", Value=$"0", Factor="V"}, // 12
+                new DataItem { Name="선간 전압 (BC)", Value=$"0", Factor="V"}, // 13
+                new DataItem { Name="선간 전압 (CA)", Value=$"0", Factor="V"}, // 14
+
+                new DataItem { Name="주파수", Value=$"0.0", Factor="Hz"},      // 15
+                new DataItem { Name="역률", Value=$"0.00", Factor="%"},        // 16
             };
 
             LoadItems = new ObservableCollection<DataItem>
             {
                 new DataItem { Header="----------------------- 상태 -----------------------"},
-                //new DataItem { Name="운전 상태", Value=$"off"}, // 1
                 new DataItem { Name="Fault 상태", Value=$"0"},            // 1
                 new DataItem { Header="----------------------- 정보 -----------------------"},
                 new DataItem { Name="Total 송전 전력량", Value=$"0.0", Factor="MWh"},  // 3
@@ -107,11 +155,11 @@ namespace EMS_PJT_Hamburger.ViewModels
                 new DataItem { Name="상전류 (BN)", Value=$"0.0", Factor="A"}, // 12
                 new DataItem { Name="상전류 (CN)", Value=$"0.0", Factor="A"}, // 13
 
-                new DataItem { Name="선간 전압 (AB)", Value=$"0.0", Factor="A"}, // 14
-                new DataItem { Name="선간 전압 (BC)", Value=$"0.0", Factor="A"}, // 15
-                new DataItem { Name="선간 전압 (CA)", Value=$"0.0", Factor="A"}, // 16
+                new DataItem { Name="선간 전압 (AB)", Value=$"0", Factor="V"}, // 14
+                new DataItem { Name="선간 전압 (BC)", Value=$"0", Factor="V"}, // 15
+                new DataItem { Name="선간 전압 (CA)", Value=$"0", Factor="V"}, // 16
 
-                new DataItem { Name="주파수", Value=$"0.00", Factor="Hz"},       // 17
+                new DataItem { Name="주파수", Value=$"0.0", Factor="Hz"},       // 17
                 new DataItem { Name="역률", Value=$"0.00", Factor="%"},          // 18
                 //new DataItem { Name="수전 누적 전력량(일간)", Value="124.4", Factor="kWh"},
                 //new DataItem { Name="송전 누적 전력량(일간)", Value="5.4", Factor="kWh"},
@@ -121,30 +169,29 @@ namespace EMS_PJT_Hamburger.ViewModels
                 //new DataItem { Name="선간전류 CA", Value="31.1", Factor="A"},
             };
 
+            EtcItems = new ObservableCollection<DataItem>
+            {
+                new DataItem { Header="----------------------- 정보 -----------------------"},
+                new DataItem { Name="내부온도 (주위)", Value=$"0", Factor="℃"},      // 1
+                new DataItem { Name="내부온도1 (방열판)", Value=$"0", Factor="℃"},   // 2
+                new DataItem { Name="내부온도2 (방열판)", Value=$"0", Factor="℃"},   // 3
+                new DataItem { Name="내부온도3 (방열판)", Value=$"0", Factor="℃"},   // 4
+                new DataItem { Name="내부온도4 (방열판)", Value=$"0", Factor="℃"},   // 5
+                new DataItem { Name="내부온도5 (방열판)", Value=$"0", Factor="℃"},   // 6
+                new DataItem { Name="내부온도6 (방열판)", Value=$"0", Factor="℃"},   // 7
+                new DataItem { Name="내부온도7 (방열판)", Value=$"0", Factor="℃"},   // 8
+                new DataItem { Name="내부온도8 (방열판)", Value=$"0", Factor="℃"},   // 9
+                new DataItem { Name="누설 전류(RCMU)", Value=$"0", Factor="mA"},     // 10
+                new DataItem { Name="Heart Beat 카운트", Value=$"0", Factor="Cyc"},  // 11
+            }; 
+            
             BattItems = new ObservableCollection<DataItem>
             {
                 new DataItem { Name="Battery 총 충전량", Value=$"0.0", Factor="kWh"},   // 0
                 new DataItem { Name="Battery 총 방전량", Value=$"0.0", Factor="kWh"},   // 1
-                new DataItem { Name="Battery 전력", Value=$"0", Factor="kWh"},   // 2
-                new DataItem { Name="Battery 전압", Value=$"0.0", Factor="kWh"},   // 3
+                new DataItem { Name="Battery 전력", Value=$"0.0", Factor="kW"},   // 2
+                new DataItem { Name="Battery 전압", Value=$"0", Factor="kWh"},   // 3
                 new DataItem { Name="Battery 전류", Value=$"0.0", Factor="kWh"},   // 4
-            };
-
-            EtcItems = new ObservableCollection<DataItem>
-            {
-                new DataItem { Header="----------------------- 정보 -----------------------"},
-                new DataItem { Name="내부온도 (주위)", Value=$"0.0", Factor="℃"},      //1
-                new DataItem { Name="내부온도1 (방열판)", Value=$"0.0", Factor="℃"},   // 2
-                new DataItem { Name="내부온도2 (방열판)", Value=$"0.0", Factor="℃"},   // 3
-                new DataItem { Name="내부온도3 (방열판)", Value=$"0.0", Factor="℃"},   // 4
-                new DataItem { Name="내부온도4 (방열판)", Value=$"0.0", Factor="℃"},   // 5
-                new DataItem { Name="내부온도5 (방열판)", Value=$"0.0", Factor="℃"},   // 6
-                new DataItem { Name="내부온도6 (방열판)", Value=$"0.0", Factor="℃"},   // 7
-                new DataItem { Name="내부온도7 (방열판)", Value=$"0.0", Factor="℃"},   // 8
-                new DataItem { Name="내부온도8 (방열판)", Value=$"0.0", Factor="℃"},   // 9
-                new DataItem { Name="누설 전류(RCMU)", Value=$"0", Factor="mA"},       // 10
-                new DataItem { Name="Heart Beat 카운트", Value=$"0", Factor="Cyc"},    // 11
-                
             };
 
             _ = ConnectAsync();
@@ -166,6 +213,96 @@ namespace EMS_PJT_Hamburger.ViewModels
             ControlMaxDischargeCurrent = "0";
             ControlGridMaxImportPowerW = "0";
             ControlGridMaxExportPowerW = "0";
+            ControlOperationModeRead = "-";
+            ControlChargeModeRead = "-";
+            ControlMaxChargePowerPercentRead = "-";
+            ControlMaxDischargePowerPercentRead = "-";
+            ControlMaxChargePowerWRead = "-";
+            ControlMaxDischargePowerWRead = "-";
+            ControlMaxChargeSocRead = "-";
+            ControlMinDischargeSocRead = "-";
+            ControlMaxChargeVoltageRead = "-";
+            ControlMaxDischargeVoltageRead = "-";
+            ControlMaxChargeCurrentRead = "-";
+            ControlMaxDischargeCurrentRead = "-";
+            ControlGridMaxImportPowerWRead = "-";
+            ControlGridMaxExportPowerWRead = "-";
+        }
+
+        protected override void OnControlProtocolReceived(ushort[] registers)
+        {
+            var operationMode = ReadControlU16(registers, "OperationMode");
+            var chargeMode = ReadControlU16(registers, "ChargeMode");
+            var chargeDischargeStart = ReadControlU16(registers, "ChargeDischargeStart");
+            var maxChargePowerPercent = ReadControlU16(registers, "MaxChargePowerPercent");
+            var maxDischargePowerPercent = ReadControlU16(registers, "MaxDischargePowerPercent");
+            var maxChargePower = ReadControlU32(registers, "MaxChargePower");
+            var maxDischargePower = ReadControlU32(registers, "MaxDischargePower");
+            var maxChargeSoc = ReadControlU16(registers, "MaxChargeSOC");
+            var minDischargeSoc = ReadControlU16(registers, "MinDischargeSOC");
+            var maxChargeVoltage = ReadControlU16(registers, "MaxChargeVoltage");
+            var maxDischargeVoltage = ReadControlU16(registers, "MaxDischargeVoltage");
+            var maxChargeCurrent = ReadControlU16(registers, "MaxChargeCurrent");
+            var maxDischargeCurrent = ReadControlU16(registers, "MaxDischargeCurrent");
+            var gridMaxImportPower = ReadControlU32(registers, "GridMaxImportPower");
+            var gridMaxExportPower = ReadControlU32(registers, "GridMaxExportPower");
+
+            ControlOperationModeRead = FormatControlValue(operationMode);
+            ControlChargeModeRead = FormatControlValue(chargeMode);
+            _lastChargeDischargeStart = (ushort)chargeDischargeStart;
+            ControlMaxChargePowerPercentRead = FormatControlValue(maxChargePowerPercent);
+            ControlMaxDischargePowerPercentRead = FormatControlValue(maxDischargePowerPercent);
+            ControlMaxChargePowerWRead = FormatControlValue(maxChargePower);
+            ControlMaxDischargePowerWRead = FormatControlValue(maxDischargePower);
+            ControlMaxChargeSocRead = FormatControlValue(maxChargeSoc);
+            ControlMinDischargeSocRead = FormatControlValue(minDischargeSoc);
+            ControlMaxChargeVoltageRead = FormatControlValue(maxChargeVoltage);
+            ControlMaxDischargeVoltageRead = FormatControlValue(maxDischargeVoltage);
+            ControlMaxChargeCurrentRead = FormatControlValue(maxChargeCurrent);
+            ControlMaxDischargeCurrentRead = FormatControlValue(maxDischargeCurrent);
+            ControlGridMaxImportPowerWRead = FormatControlValue(gridMaxImportPower);
+            ControlGridMaxExportPowerWRead = FormatControlValue(gridMaxExportPower);
+
+            // PCS-only communication test: comment this call to disable BMS/SOC stop policy.
+            _ = ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.Monitor);
+
+            if (_controlInputsInitializedFromRead) return;
+
+            ControlOperationMode = ControlOperationModeRead;
+            ControlChargeMode = ControlChargeModeRead;
+            ControlMaxChargePowerPercent = ControlMaxChargePowerPercentRead;
+            ControlMaxDischargePowerPercent = ControlMaxDischargePowerPercentRead;
+            ControlMaxChargePowerW = ControlMaxChargePowerWRead;
+            ControlMaxDischargePowerW = ControlMaxDischargePowerWRead;
+            ControlMaxChargeSoc = ControlMaxChargeSocRead;
+            ControlMinDischargeSoc = ControlMinDischargeSocRead;
+            ControlMaxChargeVoltage = ControlMaxChargeVoltageRead;
+            ControlMaxDischargeVoltage = ControlMaxDischargeVoltageRead;
+            ControlMaxChargeCurrent = ControlMaxChargeCurrentRead;
+            ControlMaxDischargeCurrent = ControlMaxDischargeCurrentRead;
+            ControlGridMaxImportPowerW = ControlGridMaxImportPowerWRead;
+            ControlGridMaxExportPowerW = ControlGridMaxExportPowerWRead;
+            _controlInputsInitializedFromRead = true;
+        }
+
+        private static double ReadControlU16(ushort[] registers, string ctrl)
+        {
+            var spec = PcsSpecs.ControlWrite[ctrl];
+            var index = spec.Address - ControlProtocolStartAddress;
+            return registers[index] * spec.Scale;
+        }
+
+        private static double ReadControlU32(ushort[] registers, string ctrl)
+        {
+            var spec = PcsSpecs.ControlWrite[ctrl];
+            var index = spec.Address - ControlProtocolStartAddress;
+            var raw = ((uint)registers[index] << 16) | registers[index + 1];
+            return raw * spec.Scale;
+        }
+
+        private static string FormatControlValue(double value)
+        {
+            return value.ToString("0.###", CultureInfo.CurrentCulture);
         }
 
         private void InitControlCommands()
@@ -182,9 +319,9 @@ namespace EMS_PJT_Hamburger.ViewModels
         {
             if (_faultMessageWindow != null) return;
 
-            _faultMessageWindow = new PcsFaultMessageWindow
+            _faultMessageWindow = new AlarmDetailWindow
             {
-                DataContext = this,
+                DataContext = new AlarmDetailWindowViewModel("PCS", null, CurrentPcsFaultMessages.Count, CurrentPcsFaultMessages),
                 Owner = Application.Current.MainWindow,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };
@@ -196,6 +333,11 @@ namespace EMS_PJT_Hamburger.ViewModels
         private async Task ExecuteControlSequenceAsync(string name, Func<Task> sequence)
         {
             if (IsControlBusy) return;
+            if (!ControlConfirmationService.Confirm("PCS", name))
+            {
+                SystemMsg = $"[PCS] {name} sequence canceled.";
+                return;
+            }
 
             try
             {
@@ -221,6 +363,8 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private async Task StartChargeSequenceAsync()
         {
+            // PCS-only communication test: comment this call to bypass BMS command guard.
+            await ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeCharge);
             await CheckControlReadyAsync(); // 1005 Read -> 1004 Read
             await CheckChargeCommandConflictAsync(); // 1003 bit2 high -> keep current command
             await WriteModeAsync(); // 1000 -> 7, 1001 -> 1
@@ -231,6 +375,8 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private async Task StartDischargeSequenceAsync()
         {
+            // PCS-only communication test: comment this call to bypass BMS command guard.
+            await ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeDischarge);
             await CheckControlReadyAsync(); // 1005 Read -> 1004 Read
             await CheckDischargeCommandConflictAsync(); // 1003 bit1 high -> keep current command
             await WriteModeAsync(); // 1000 -> 7, 1001 -> 1
@@ -257,6 +403,118 @@ namespace EMS_PJT_Hamburger.ViewModels
         {
             await WriteControlRawU16Async("EmergencyFault", 1); // 1004 -> 1
             await StopSequenceAsync();
+        }
+
+        private async Task ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode mode)
+        {
+            if (_bmsGuardPolicyRunning)
+            {
+                if (mode == PcsBmsPolicyMode.Monitor) return;
+                throw new InvalidOperationException("BMS guard policy is already running.");
+            }
+
+            try
+            {
+                _bmsGuardPolicyRunning = true;
+
+                var app = Application.Current as App;
+                var bms = app?.BmsVm;
+                if (bms == null)
+                {
+                    if (mode == PcsBmsPolicyMode.Monitor) return;
+                    throw new InvalidOperationException("BMS state is not ready.");
+                }
+
+                var isChargeActive = (_lastChargeDischargeStart & (1 << 1)) != 0;
+                var isDischargeActive = (_lastChargeDischargeStart & (1 << 2)) != 0;
+                var soc = bms.StatusMsg01.DispSOC > 0 ? bms.StatusMsg01.DispSOC : bms.StatusMsg01.SOC;
+                var bmsReady = string.Equals(bms.StatusMsg01.Ready, "Ready", StringComparison.OrdinalIgnoreCase);
+                var mbmsReady = string.Equals(bms.StatusMsg03.MbmsReady, "Ready", StringComparison.OrdinalIgnoreCase);
+                var hasCommonFault =
+                    bms.StatusMsg02.M_Connection ||
+                    bms.StatusMsg02.HighTemp ||
+                    bms.StatusMsg02.LowTemp ||
+                    bms.StatusMsg02.M_TempImbal ||
+                    bms.StatusMsg02.C_VoltImbal;
+                var hasChargeFault =
+                    bms.StatusMsg02.C_OverVolt ||
+                    bms.StatusMsg02.P_OverVolt ||
+                    bms.StatusMsg02.ChargeOverCurr;
+                var hasDischargeFault =
+                    bms.StatusMsg02.C_UnderVolt ||
+                    bms.StatusMsg02.P_UnderVolt ||
+                    bms.StatusMsg02.DischargeOverCurr ||
+                    bms.StatusMsg02.C_UnderSOC;
+
+                double parseLimit(string text, double fallback)
+                {
+                    if (double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out var value))
+                        return value;
+
+                    if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+                        return value;
+
+                    return fallback;
+                }
+
+                var chargeStopSoc = parseLimit(ControlMaxChargeSoc, 90d);
+                var dischargeStopSoc = parseLimit(ControlMinDischargeSoc, 10d);
+
+                string stopReason = null;
+                if (!bmsReady || !mbmsReady)
+                    stopReason = $"BMS={bms.StatusMsg01.Ready}, MBMS={bms.StatusMsg03.MbmsReady}";
+                else if (hasCommonFault)
+                    stopReason = "BMS common fault is active.";
+
+                if (mode == PcsBmsPolicyMode.BeforeCharge)
+                {
+                    if (stopReason != null) throw new InvalidOperationException(stopReason);
+                    if (hasChargeFault) throw new InvalidOperationException("BMS charge fault is active.");
+                    if (soc >= chargeStopSoc) throw new InvalidOperationException($"BMS SOC({soc:0.#}%) reached charge stop SOC({chargeStopSoc:0.#}%).");
+                    return;
+                }
+
+                if (mode == PcsBmsPolicyMode.BeforeDischarge)
+                {
+                    if (stopReason != null) throw new InvalidOperationException(stopReason);
+                    if (hasDischargeFault) throw new InvalidOperationException("BMS discharge fault is active.");
+                    if (soc <= dischargeStopSoc) throw new InvalidOperationException($"BMS SOC({soc:0.#}%) reached discharge stop SOC({dischargeStopSoc:0.#}%).");
+                    return;
+                }
+
+                if (IsControlBusy) return;
+                if (!isChargeActive && !isDischargeActive) return;
+
+                if (isChargeActive)
+                {
+                    if (stopReason == null && hasChargeFault) stopReason = "BMS charge fault is active.";
+                    if (stopReason == null && soc >= chargeStopSoc) stopReason = $"BMS SOC({soc:0.#}%) reached charge stop SOC({chargeStopSoc:0.#}%).";
+                }
+                else if (isDischargeActive)
+                {
+                    if (stopReason == null && hasDischargeFault) stopReason = "BMS discharge fault is active.";
+                    if (stopReason == null && soc <= dischargeStopSoc) stopReason = $"BMS SOC({soc:0.#}%) reached discharge stop SOC({dischargeStopSoc:0.#}%).";
+                }
+
+                if (stopReason == null) return;
+
+                SystemMsg = $"[PCS] BMS guard stop. {stopReason}";
+                await StopSequenceAsync();
+            }
+            catch (Exception ex)
+            {
+                if (mode == PcsBmsPolicyMode.Monitor)
+                {
+                    SystemMsg = $"[PCS] BMS guard monitor failed: {ex.Message}";
+                    return;
+                }
+
+                throw;
+            }
+            finally
+            {
+                _bmsGuardPolicyRunning = false;
+            }
         }
 
         private async Task CheckControlReadyAsync()
@@ -388,7 +646,7 @@ namespace EMS_PJT_Hamburger.ViewModels
                     minBackoff: TimeSpan.FromSeconds(1),
                     maxBackoff: TimeSpan.FromSeconds(15));
 
-                await InitializeDailyImportedEnergySummaryAsync();
+                //await InitializeDailyImportedEnergySummaryAsync();
 
                 await _client.StartAsync();
                 Conn_State.Status = "Connecting..";

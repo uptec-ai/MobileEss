@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace EMS_PJT_Hamburger.Models.Managers
 {
@@ -67,6 +68,90 @@ namespace EMS_PJT_Hamburger.Models.Managers
         }
         public object ConvertBack(object v, Type t, object p, CultureInfo c) => throw new NotImplementedException();
     }
+    public class FaultConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            bool isFault = value is bool b && b;
+            string mode = parameter as string;
+
+            if (mode == "Image")
+            {
+                string uri = isFault
+                    ? "pack://application:,,,/DevExpress.Images.v23.1;component/SvgImages/Status/Warning.svg"
+                    : "pack://application:,,,/DevExpress.Images.v23.1;component/SvgImages/XAF/State_Validation_Valid.svg";
+
+                return new SvgImageSourceExtension
+                {
+                    Uri = new Uri(uri, UriKind.Absolute),
+                    Size = new Size(20, 20)
+                }.ProvideValue(null);
+            }
+
+            return isFault ? "Warring" : "Normal";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+    public class RunFaultStatusConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values != null && values.Length > 1 && HasFault(values[1]))
+                return "FAULT";
+
+            if (values != null && values.Length > 0 && IsRun(values[0]))
+                return "RUN";
+
+            return "STOP";
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+
+        private static bool HasFault(object value)
+        {
+            if (value == null || value == DependencyProperty.UnsetValue)
+                return false;
+
+            if (value is int i) return i != 0;
+            if (value is double d) return Math.Abs(d) > double.Epsilon;
+            if (value is bool b) return b;
+
+            var text = value.ToString();
+            if (string.IsNullOrWhiteSpace(text))
+                return false;
+
+            if (int.TryParse(text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
+                return number != 0;
+
+            return !string.Equals(text.Trim(), "0", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsRun(object value)
+        {
+            if (value == null || value == DependencyProperty.UnsetValue)
+                return false;
+
+            if (value is bool b) return b;
+            if (value is int i) return i == 1;
+            if (value is double d) return Math.Abs(d - 1d) < double.Epsilon;
+
+            var text = value.ToString()?.Trim();
+            if (string.IsNullOrWhiteSpace(text))
+                return false;
+
+            if (int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
+                return number == 1;
+
+            return string.Equals(text, "RUN", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(text, "ON", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(text, "OPEN", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(text, "READY", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(text, "ENABLE", StringComparison.OrdinalIgnoreCase);
+        }
+    }
     public class ControlConverter : IValueConverter
     {
         public object Convert(object value, Type t, object p, CultureInfo c)
@@ -94,6 +179,21 @@ namespace EMS_PJT_Hamburger.Models.Managers
             return "Open";
         }
         public object ConvertBack(object v, Type t, object p, CultureInfo c) => throw new NotImplementedException();
+    }
+    public class ChargeToBrushConverter : IValueConverter
+    {
+        public Brush TrueBrush { get; set; } = Brushes.Orange;
+        public Brush FalseBrush { get; set; } = Brushes.Gray;
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value is bool b && b ? TrueBrush : FalseBrush;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
     }
     public class ValueToBrushConverter : IValueConverter
     {
@@ -163,5 +263,23 @@ namespace EMS_PJT_Hamburger.Models.Managers
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
     }
-    
+
+    public class HomeStatusMatchConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType,
+                              object parameter, CultureInfo culture)
+        {
+            if (value == null || parameter == null)
+                return false;
+
+            return value.ToString() == parameter.ToString();
+        }
+
+        public object ConvertBack(object value, Type targetType,
+                                  object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
 }

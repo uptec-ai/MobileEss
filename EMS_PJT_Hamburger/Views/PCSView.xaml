@@ -80,14 +80,15 @@
                                       Caption="Control" 
                                       AllowClose="False" 
                                       ShowCloseButton="False"
-                                      MinWidth="250" MaxWidth="250"
+                                      MinWidth="300" MaxWidth="300"
                                       Foreground="Red" >
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <Grid Margin="5">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="105"/>
-                                    <ColumnDefinition Width="85"/>
-                                    <ColumnDefinition Width="45"/>
+                                    <ColumnDefinition Width="50"/>
+                                    <ColumnDefinition Width="105"/>
+                                    <ColumnDefinition Width="30"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="34"/>
@@ -112,8 +113,12 @@
                                     <RowDefinition Height="40"/>
                                 </Grid.RowDefinitions>
 
-                                <Label Content="기동모드" Grid.Row="0" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <ComboBox Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" Margin="2,4"
+                                <Label Content="Read" Grid.Row="0" Grid.Column="1" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="Write" Grid.Row="0" Grid.Column="2" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                <Label Content="기동모드" Grid.Row="1" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="{Binding ControlOperationModeRead}" Grid.Column="1" Grid.Row="1" FontSize="11" Foreground="#4296D4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="2" Grid.Row="1" Margin="2,4"
                                           SelectedValue="{Binding ControlOperationMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                           SelectedValuePath="Tag">
                                     <ComboBoxItem Content="7: PMS 원격" Tag="7"/>
@@ -121,71 +126,84 @@
                                     <ComboBoxItem Content="0: 로컬" Tag="0"/>
                                 </ComboBox>
 
-                                <Label Content="충방전 모드" Grid.Row="1" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <ComboBox Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" Margin="2,4"
+                                <Label Content="충방전 모드" Grid.Row="2" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="{Binding ControlChargeModeRead}" Grid.Column="1" Grid.Row="2" FontSize="11" Foreground="#4296D4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                <ComboBox Grid.Column="2" Grid.Row="2" Margin="2,4"
                                           SelectedValue="{Binding ControlChargeMode, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                           SelectedValuePath="Tag">
                                     <ComboBoxItem Content="0: CC+CV" Tag="0"/>
                                     <ComboBoxItem Content="1: CP" Tag="1"/>
                                 </ComboBox>
 
-                                <Label Content="충전 전력(%)" Grid.Row="2" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <dxe:TextEdit Grid.Column="1" Grid.Row="2" Margin="2,4" EditValue="{Binding ControlMaxChargePowerPercent, Mode=TwoWay, StringFormat=\{0:F2\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
-                                <Label Content="%" Grid.Column="2" Grid.Row="2" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="충전 전력" Grid.Row="3" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="{Binding ControlMaxChargePowerPercentRead}" Grid.Column="1" Grid.Row="3" FontSize="11" Foreground="#4296D4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="2" Grid.Row="3" Margin="2,4" EditValue="{Binding ControlMaxChargePowerPercent, Mode=TwoWay, StringFormat=\{0:F2\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="%" Grid.Column="3" Grid.Row="3" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <Label Content="방전 전력(%)" Grid.Row="3" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <dxe:TextEdit Grid.Column="1" Grid.Row="3" Margin="2,4" EditValue="{Binding ControlMaxDischargePowerPercent, Mode=TwoWay, StringFormat=\{0:F2\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
-                                <Label Content="%" Grid.Column="2" Grid.Row="3" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="방전 전력" Grid.Row="4" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="{Binding ControlMaxDischargePowerPercentRead}" Grid.Column="1" Grid.Row="4" FontSize="11" Foreground="#4296D4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="2" Grid.Row="4" Margin="2,4" EditValue="{Binding ControlMaxDischargePowerPercent, Mode=TwoWay, StringFormat=\{0:F2\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="%" Grid.Column="3" Grid.Row="4" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <Label Content="최대 충전전력" Grid.Row="4" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <dxe:TextEdit Grid.Column="1" Grid.Row="4" Margin="2,4" EditValue="{Binding ControlMaxChargePowerW, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
-                                <Label Content="W" Grid.Column="2" Grid.Row="4" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="최대 충전전력" Grid.Row="5" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="{Binding ControlMaxChargePowerWRead}" Grid.Column="1" Grid.Row="5" FontSize="11" Foreground="#4296D4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="2" Grid.Row="5" Margin="2,4" EditValue="{Binding ControlMaxChargePowerW, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="W" Grid.Column="3" Grid.Row="5" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <Label Content="최대 방전전력" Grid.Row="5" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <dxe:TextEdit Grid.Column="1" Grid.Row="5" Margin="2,4" EditValue="{Binding ControlMaxDischargePowerW, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
-                                <Label Content="W" Grid.Column="2" Grid.Row="5" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="최대 방전전력" Grid.Row="6" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="{Binding ControlMaxDischargePowerWRead}" Grid.Column="1" Grid.Row="6" FontSize="11" Foreground="#4296D4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="2" Grid.Row="6" Margin="2,4" EditValue="{Binding ControlMaxDischargePowerW, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="W" Grid.Column="3" Grid.Row="6" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <Label Content="최대충전 SOC" Grid.Row="6" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <dxe:TextEdit Grid.Column="1" Grid.Row="6" Margin="2,4" EditValue="{Binding ControlMaxChargeSoc, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
-                                <Label Content="%" Grid.Column="2" Grid.Row="6" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="최대충전 SOC" Grid.Row="7" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="{Binding ControlMaxChargeSocRead}" Grid.Column="1" Grid.Row="7" FontSize="11" Foreground="#4296D4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="2" Grid.Row="7" Margin="2,4" EditValue="{Binding ControlMaxChargeSoc, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="%" Grid.Column="3" Grid.Row="7" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <Label Content="최소방전 SOC" Grid.Row="7" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <dxe:TextEdit Grid.Column="1" Grid.Row="7" Margin="2,4" EditValue="{Binding ControlMinDischargeSoc, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
-                                <Label Content="%" Grid.Column="2" Grid.Row="7" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="최소방전 SOC" Grid.Row="8" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="{Binding ControlMinDischargeSocRead}" Grid.Column="1" Grid.Row="8" FontSize="11" Foreground="#4296D4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="2" Grid.Row="8" Margin="2,4" EditValue="{Binding ControlMinDischargeSoc, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="%" Grid.Column="3" Grid.Row="8" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <Label Content="최대 충전전압" Grid.Row="8" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <dxe:TextEdit Grid.Column="1" Grid.Row="8" Margin="2,4" EditValue="{Binding ControlMaxChargeVoltage, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
-                                <Label Content="V" Grid.Column="2" Grid.Row="8" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="최대 충전전압" Grid.Row="9" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="{Binding ControlMaxChargeVoltageRead}" Grid.Column="1" Grid.Row="9" FontSize="11" Foreground="#4296D4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="2" Grid.Row="9" Margin="2,4" EditValue="{Binding ControlMaxChargeVoltage, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="V" Grid.Column="3" Grid.Row="9" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <Label Content="최대 방전전압" Grid.Row="9" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <dxe:TextEdit Grid.Column="1" Grid.Row="9" Margin="2,4" EditValue="{Binding ControlMaxDischargeVoltage, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
-                                <Label Content="V" Grid.Column="2" Grid.Row="9" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="최대 방전전압" Grid.Row="10" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="{Binding ControlMaxDischargeVoltageRead}" Grid.Column="1" Grid.Row="10" FontSize="11" Foreground="#4296D4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="2" Grid.Row="10" Margin="2,4" EditValue="{Binding ControlMaxDischargeVoltage, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="V" Grid.Column="3" Grid.Row="10" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <Label Content="최대 충전전류" Grid.Row="10" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <dxe:TextEdit Grid.Column="1" Grid.Row="10" MaskType="Numeric" Margin="0,4,2,4" EditValue="{Binding ControlMaxChargeCurrent, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center" HorizontalAlignment="Right" Width="82"/>
-                                <Label Content="A" Grid.Column="2" Grid.Row="10" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="최대 충전전류" Grid.Row="11" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="{Binding ControlMaxChargeCurrentRead}" Grid.Column="1" Grid.Row="11" FontSize="11" Foreground="#4296D4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="2" Grid.Row="11" MaskType="Numeric" Margin="2,4" EditValue="{Binding ControlMaxChargeCurrent, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="A" Grid.Column="3" Grid.Row="11" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <Label Content="최대 방전전류" Grid.Row="11" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <dxe:TextEdit Grid.Column="1" Grid.Row="11" Margin="2,4" EditValue="{Binding ControlMaxDischargeCurrent, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
-                                <Label Content="A" Grid.Column="2" Grid.Row="11" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="최대 방전전류" Grid.Row="12" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="{Binding ControlMaxDischargeCurrentRead}" Grid.Column="1" Grid.Row="12" FontSize="11" Foreground="#4296D4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="2" Grid.Row="12" Margin="2,4" EditValue="{Binding ControlMaxDischargeCurrent, Mode=TwoWay, StringFormat=\{0:F1\}, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="A" Grid.Column="3" Grid.Row="12" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <Label Content="Grid 수전제한" Grid.Row="12" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <dxe:TextEdit Grid.Column="1" Grid.Row="12" Margin="2,4" EditValue="{Binding ControlGridMaxImportPowerW, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
-                                <Label Content="W" Grid.Column="2" Grid.Row="12" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="Grid 수전제한" Grid.Row="13" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="{Binding ControlGridMaxImportPowerWRead}" Grid.Column="1" Grid.Row="13" FontSize="11" Foreground="#4296D4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="2" Grid.Row="13" Margin="2,4" EditValue="{Binding ControlGridMaxImportPowerW, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="W" Grid.Column="3" Grid.Row="13" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <Label Content="Grid 송전제한" Grid.Row="13" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                <dxe:TextEdit Grid.Column="1" Grid.Row="13" Margin="2,4" EditValue="{Binding ControlGridMaxExportPowerW, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
-                                <Label Content="W" Grid.Column="2" Grid.Row="13" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="Grid 송전제한" Grid.Row="14" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Label Content="{Binding ControlGridMaxExportPowerWRead}" Grid.Column="1" Grid.Row="14" FontSize="11" Foreground="#4296D4" HorizontalContentAlignment="Center" VerticalAlignment="Center"/>
+                                <dxe:TextEdit Grid.Column="2" Grid.Row="14" Margin="2,4" EditValue="{Binding ControlGridMaxExportPowerW, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
+                                <Label Content="W" Grid.Column="3" Grid.Row="14" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <dx:SimpleButton Grid.Row="15" Grid.Column="0" Grid.ColumnSpan="3" Margin="2,4"
+                                <dx:SimpleButton Grid.Row="15" Grid.Column="0" Grid.ColumnSpan="4" Margin="2,4"
                                                  Content="충전 시작" Command="{Binding Cmd_StartCharge}"/>
-                                <dx:SimpleButton Grid.Row="16" Grid.Column="0" Grid.ColumnSpan="3" Margin="2,4"
+                                <dx:SimpleButton Grid.Row="16" Grid.Column="0" Grid.ColumnSpan="4" Margin="2,4"
                                                  Content="방전 시작" Command="{Binding Cmd_StartDischarge}"/>
-                                <StackPanel Grid.Row="17" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal">
-                                    <dx:SimpleButton Width="115" Margin="2,4" Content="정지" Command="{Binding Cmd_StopPcs}"/>
-                                    <dx:SimpleButton Width="115" Margin="2,4" Content="Reset" Command="{Binding Cmd_FaultReset}"/>
+                                <StackPanel Grid.Row="17" Grid.Column="0" Grid.ColumnSpan="4" Orientation="Horizontal">
+                                    <dx:SimpleButton Width="141" Margin="2,4" Content="정지" Command="{Binding Cmd_StopPcs}"/>
+                                    <dx:SimpleButton Width="141" Margin="2,4" Content="Reset" Command="{Binding Cmd_FaultReset}"/>
                                 </StackPanel>
-                                <dx:SimpleButton Grid.Row="18" Grid.Column="0" Grid.ColumnSpan="3" Margin="2,4" Content="Emergency Stop" Command="{Binding Cmd_EmergencyStop}">
+                                <dx:SimpleButton Grid.Row="18" Grid.Column="0" Grid.ColumnSpan="4" Margin="2,4" Content="Emergency Stop" Command="{Binding Cmd_EmergencyStop}">
                                     <dx:SimpleButton.Style>
                                         <Style TargetType="{x:Type dx:SimpleButton}">
                                             <Setter Property="Background" Value="#FFB94242"/>
@@ -207,9 +225,9 @@
                                 </dx:SimpleButton>
                                 <dx:SimpleButton Grid.Row="19"
                                                  Grid.Column="0"
-                                                 Grid.ColumnSpan="3"
+                                                 Grid.ColumnSpan="4"
                                                  Margin="2,4"
-                                                 Content="Fault Message"
+                                                 Content="PCS Fault Message"
                                                  Command="{Binding Cmd_OpenFaultMessage}"
                                                  Glyph="{dx:DXImage 'SvgImages/Icon Builder/Security_Warning.svg'}"/>
                             </Grid>
@@ -325,7 +343,7 @@
                                 </Ellipse>
                             </StackPanel>
                             <!-- system message -->
-                            <StackPanel  Grid.Column="0" Grid.Row="1"  Orientation="Horizontal" Height="auto" HorizontalAlignment="Left" Margin="25,0,0,0">
+                            <StackPanel  Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1"  Orientation="Horizontal" Height="auto" Margin="25,0,0,0">
                                 <dx:DXImage Source="{dx:DXImage SvgImages/Icon Builder/Actions_Comment.svg}"
                                             Width="24" 
                                             Height="24" 
@@ -357,7 +375,7 @@
                                     <TextBlock Text="수전 누적 전력(총합)"  
                                                Style="{StaticResource HeadTextBlock}"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <Label Content="{Binding PanelData.T_Import_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="55"/>
+                                        <Label Content="{Binding PanelData.T_Import_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="70" Margin="0,-3,5,0"/>
                                         <TextBlock Text="MWh" Foreground="White" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
                                     </StackPanel>
                                 </StackPanel>
@@ -383,7 +401,7 @@
                                     <TextBlock Text="송전 누적 전력(총합)"
                                                Style="{StaticResource HeadTextBlock}"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <Label Content="{Binding PanelData.T_Export_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="55"/>
+                                        <Label Content="{Binding PanelData.T_Export_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="70" Margin="0,-3,5,0"/>
                                         <TextBlock Text="MWh" Foreground="White" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
                                     </StackPanel>
                                 </StackPanel>
@@ -443,8 +461,54 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Load -->
+                            <!-- Inverter -->
                             <Border Grid.Column="1"
+                                    Style="{StaticResource BorderCardStyle}">
+                                <StackPanel>
+                                    <Label Content="INVERTER"
+                                               HorizontalAlignment="Left"
+                                               FontWeight="Bold"
+                                               FontSize="20"
+                                               Style="{StaticResource HeadLableStyle}"/>
+
+                                    <ItemsControl ItemsSource="{Binding InvItems}" Margin="0">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0 2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="110"/>
+                                                        <ColumnDefinition Width="30"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding Header}"
+                                                               FontSize="14" 
+                                                               Foreground="White" VerticalAlignment="Center" Grid.ColumnSpan="3"/>
+                                                    <TextBlock Text="{Binding Name}"
+                                                               FontSize="14"
+                                                               Foreground="#FFC3C3C3" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding Value}"
+                                                               Grid.Column="1"
+                                                               Foreground="White"
+                                                               VerticalAlignment="Center" 
+                                                               HorizontalAlignment="Right" 
+                                                               Margin="0,0,5,0"
+                                                               FontSize="24"
+                                                               FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St"/>
+                                                    <TextBlock Text="{Binding Factor}"
+                                                               Grid.Column="2" 
+                                                               FontSize="12"
+                                                               Foreground="#FFC3C3C3" 
+                                                               VerticalAlignment="Bottom"
+                                                               HorizontalAlignment="Left"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Load -->
+                            <Border Grid.Column="2"
                                     Style="{StaticResource BorderCardStyle}">
                                 <StackPanel>
                                     <Label Content="LOAD"
@@ -488,8 +552,8 @@
                                 </StackPanel>
                             </Border>
 
-                            <!-- Inverter -->
-                            <Border Grid.Column="2"
+                            <!-- Battery -->
+                            <Border Grid.Column="3"
                                     Style="{StaticResource BorderCardStyle}">
                                 <StackPanel>
                                     <Label Content="ETC"
@@ -533,187 +597,6 @@
                                     </ItemsControl>
                                 </StackPanel>
                             </Border>
-
-                            <!-- Chart -->
-                            <Grid Grid.Column="3" Margin="10,0,0,0">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition/>
-                                    <RowDefinition/>
-                                </Grid.RowDefinitions>
-
-                                <s:SciChartSurface x:Name="D_ImportedEnergyChart" Grid.Row="0" Margin="0" Background="{x:Null}" BorderBrush="White" BorderThickness="0,0,1,1" Height="300">
-                                    <!--  Declare RenderableSeries  -->
-                                    <s:SciChartSurface.RenderableSeries>
-                                        <s:FastMountainRenderableSeries Fill="LightCyan"
-                                                                        Stroke="Lime"
-                                                                        StrokeThickness="2"
-                                                                        DataSeries="{Binding DailyImportedEnergySummarySeries}">
-                                            <s:RolloverModifier.TooltipContainerStyle>
-                                                <Style TargetType="s:TooltipControl">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                    <Setter Property="BorderBrush" Value="Transparent"/>
-                                                    <Setter Property="BorderThickness" Value="0"/>
-                                                    <Setter Property="Padding" Value="0"/>
-                                                </Style>
-                                            </s:RolloverModifier.TooltipContainerStyle>
-
-                                            <s:RolloverModifier.TooltipTemplate>
-                                                <DataTemplate>
-                                                    <Border Background="#CC1E1E1E"
-                                                            BorderBrush="Lime"
-                                                            BorderThickness="1"
-                                                            CornerRadius="3"
-                                                            Padding="6,3">
-                                                        <TextBlock Foreground="White"
-                                                                   FontSize="14"
-                                                                   FontWeight="SemiBold">
-                                                            <Run Text="{Binding FormattedYValue, Mode=OneWay}" />
-                                                            <Run Text=" kWh" />
-                                                        </TextBlock>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </s:RolloverModifier.TooltipTemplate>
-
-                                            <s:FastMountainRenderableSeries.SeriesAnimation>
-                                                <s:WaveAnimation AnimationDelay="0:0:0.2" Duration="0:0:2" PointDurationFraction="0.3"/>
-                                            </s:FastMountainRenderableSeries.SeriesAnimation>
-                                            <s:FastMountainRenderableSeries.PointMarker>
-                                                <s:EllipsePointMarker Width="7"
-                                                                      Height="7"
-                                                                      Fill="White"
-                                                                      Stroke="Lime"
-                                                                      StrokeThickness="2"/>
-                                            </s:FastMountainRenderableSeries.PointMarker>
-
-                                        </s:FastMountainRenderableSeries>
-                                    </s:SciChartSurface.RenderableSeries>
-
-                                    <!--  Create an X Axis  -->
-                                    <s:SciChartSurface.XAxis>
-                                        <s:DateTimeAxis DrawMajorBands="False" 
-                                                        DrawMajorTicks="False" 
-                                                        DrawMajorGridLines="False"
-                                                        DrawMinorGridLines="False" 
-                                                        DrawMinorTicks="False"
-                                                        TextFormatting="yyyy-MM-dd"
-                                                        MaxAutoTicks="5"
-                                                        AxisTitle="수전 누적 전력 (총합)" 
-                                                        Foreground="LightGray">
-                                        </s:DateTimeAxis>
-                                    </s:SciChartSurface.XAxis>
-
-                                    <!--  Create a Y Axis. Optional bands give a cool look and feel for minimal performance impact  -->
-                                    <s:SciChartSurface.YAxis>
-                                        <s:NumericAxis DrawMajorBands="False" 
-                                                       GrowBy="0.1, 0.1" 
-                                                       VisibleRange="0,500" 
-                                                       MaxAutoTicks="4"
-                                                       DrawMajorTicks="False" 
-                                                       DrawMajorGridLines="True" 
-                                                       DrawMinorGridLines="False" 
-                                                       DrawMinorTicks="False"
-                                                       AxisTitle="KWh"
-                                                       Foreground="LightGray"/>
-                                    </s:SciChartSurface.YAxis>
-
-                                    <!--  Optional ChartModifier to add interactivity  -->
-                                    <s:SciChartSurface.ChartModifier>
-                                        <s:ModifierGroup>
-                                            <s:MouseWheelZoomModifier/>
-                                            <s:RubberBandXyZoomModifier IsAnimated="False" IsXAxisOnly="True"/>
-                                            <s:ZoomExtentsModifier/>
-                                            <s:RolloverModifier ReceiveHandledEvents="True"
-                                                                DrawVerticalLine="True"
-                                                                ShowTooltipOn="Always"
-                                                                SourceMode="AllVisibleSeries"/>
-                                        </s:ModifierGroup>
-                                    </s:SciChartSurface.ChartModifier>
-                                </s:SciChartSurface>
-
-                                <s:SciChartSurface x:Name="D_ExportedEnergyChart" Grid.Row="1" Margin="0" Background="{x:Null}" BorderBrush="White" BorderThickness="0,0,1,1" Height="300">
-                                    <!--  Declare RenderableSeries  -->
-                                    <s:SciChartSurface.RenderableSeries>
-                                        <s:FastMountainRenderableSeries x:Name="_dExportedEnergyRenderSeries"
-                                                                        Fill="LightCyan"
-                                                                        Stroke="Lime"
-                                                                        StrokeThickness="2"
-                                                                        DataSeries="{Binding DailyExportedEnergySummarySeries}">
-                                            <s:RolloverModifier.TooltipContainerStyle>
-                                                <Style TargetType="s:TooltipControl">
-                                                    <Setter Property="Background" Value="Transparent"/>
-                                                    <Setter Property="BorderBrush" Value="Transparent"/>
-                                                    <Setter Property="BorderThickness" Value="0"/>
-                                                    <Setter Property="Padding" Value="0"/>
-                                                </Style>
-                                            </s:RolloverModifier.TooltipContainerStyle>
-
-                                            <s:RolloverModifier.TooltipTemplate>
-                                                <DataTemplate>
-                                                    <Border Background="#CC1E1E1E"
-                                                            BorderBrush="Lime"
-                                                            BorderThickness="1"
-                                                            CornerRadius="3"
-                                                            Padding="6,3">
-                                                        <TextBlock Foreground="White"
-                                                                   FontSize="14"
-                                                                   FontWeight="SemiBold">
-                                                            <Run Text="{Binding FormattedYValue, Mode=OneWay}" />
-                                                            <Run Text=" kWh" />
-                                                        </TextBlock>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </s:RolloverModifier.TooltipTemplate>
-                                            <s:FastMountainRenderableSeries.PointMarker>
-                                                <s:EllipsePointMarker Width="7"
-                                                                      Height="7"
-                                                                      Fill="White"
-                                                                      Stroke="Lime"
-                                                                      StrokeThickness="2"/>
-                                            </s:FastMountainRenderableSeries.PointMarker>
-                                        </s:FastMountainRenderableSeries>
-                                    </s:SciChartSurface.RenderableSeries>
-
-                                    <!--  Create an X Axis  -->
-                                    <s:SciChartSurface.XAxis>
-                                        <s:DateTimeAxis DrawMajorBands="False" 
-                                                        DrawMajorTicks="False" 
-                                                        DrawMajorGridLines="False"
-                                                        DrawMinorGridLines="False"
-                                                        DrawMinorTicks="False"
-                                                        TextFormatting="yyyy-MM-dd"
-                                                        MaxAutoTicks="5"
-                                                        AxisTitle="송전 누적 전력 (총합)"
-                                                        Foreground="LightGray"/>
-                                    </s:SciChartSurface.XAxis>
-
-                                    <!--  Create a Y Axis. Optional bands give a cool look and feel for minimal performance impact  -->
-                                    <s:SciChartSurface.YAxis>
-                                        <s:NumericAxis DrawMajorBands="False" 
-                                                       GrowBy="0.1, 0.1" 
-                                                       VisibleRange="0,500" 
-                                                       MaxAutoTicks="4"
-                                                       DrawMajorTicks="False" 
-                                                       DrawMajorGridLines="True" 
-                                                       DrawMinorGridLines="False" 
-                                                       DrawMinorTicks="False"
-                                                       AxisTitle="KWh"
-                                                       Foreground="LightGray"/>
-                                    </s:SciChartSurface.YAxis>
-
-                                    <!--  Optional ChartModifier to add interactivity  -->
-                                    <s:SciChartSurface.ChartModifier>
-                                        <s:ModifierGroup>
-                                            <s:MouseWheelZoomModifier/>
-                                            <s:RubberBandXyZoomModifier IsAnimated="False" IsXAxisOnly="True"/>
-                                            <s:ZoomExtentsModifier/>
-                                            <s:RolloverModifier ReceiveHandledEvents="True"
-                                                                DrawVerticalLine="True"
-                                                                ShowTooltipOn="Always"
-                                                                SourceMode="AllVisibleSeries"/>
-                                        </s:ModifierGroup>
-                                    </s:SciChartSurface.ChartModifier>
-                                </s:SciChartSurface>
-                            </Grid>
 
                         </Grid>
 

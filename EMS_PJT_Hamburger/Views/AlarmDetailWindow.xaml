@@ -12,10 +12,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EMS_PJT_Hamburger.Views" 
         mc:Ignorable="d"
-        Title="ALARM"
+        Title="{Binding SourceName, StringFormat={}{0} ALARM}"
         Icon="{dx:DXImage 'SvgImages/Icon Builder/Security_Warning.svg'}"
         d:DataContext="{d:DesignInstance Type=ViewModels:AlarmDetailWindowViewModel}"
-        Height="400" Width="600">
+        Height="420" Width="860">
     <Window.Resources>
         <!--SimpleButton Style-->
         <Style x:Key="SimpleButtonStyle" TargetType="dx:SimpleButton">
@@ -70,21 +70,42 @@
                          ShowBorder="True"
                          ItemsSource="{Binding Alarms}">
             <dxg:GridControl.Columns>
-                <dxg:GridColumn FieldName="Code" Width="50" AllowEditing="False">
+                <dxg:GridColumn FieldName="OccurredAt"
+                                Header="Time"
+                                Width="145"
+                                AllowEditing="False">
                     <dxg:GridColumn.EditSettings>
-                        <dxe:TextEditSettings HorizontalContentAlignment="Left"/>
+                        <dxe:TextEditSettings DisplayFormat="yyyy-MM-dd HH:mm:ss"/>
                     </dxg:GridColumn.EditSettings>
                 </dxg:GridColumn>
-                <dxg:GridColumn FieldName="Alarm" Width="14*" AllowEditing="False"/>
-                <dxg:GridColumn FieldName="Hour"
-                                HeaderToolTip="Duration"
-                                AllowColumnFiltering="False"
-                                AllowEditing="False"
-                                Width="200">
-                    <dxg:GridColumn.EditSettings>
-                        <dxe:TextEditSettings DisplayFormat="{}{0:d}h"/>
-                    </dxg:GridColumn.EditSettings>
-                </dxg:GridColumn>
+                <dxg:GridColumn FieldName="Source"
+                                Header="Source"
+                                Width="65"
+                                AllowEditing="False"/>
+                <dxg:GridColumn FieldName="Category"
+                                Header="Category"
+                                Width="100"
+                                Visible="{Binding IsPcsAlarm}"
+                                AllowEditing="False"/>
+                <dxg:GridColumn FieldName="Bit"
+                                Header="Bit"
+                                Width="45"
+                                Visible="{Binding IsPcsAlarm}"
+                                AllowEditing="False"/>
+                <dxg:GridColumn FieldName="Code"
+                                Header="Code"
+                                Width="55"
+                                Visible="{Binding IsBmsAlarm}"
+                                AllowEditing="False"/>
+                <dxg:GridColumn FieldName="FaultMessage"
+                                Header="Fault Message"
+                                Width="*"
+                                AllowEditing="False"/>
+                <dxg:GridColumn FieldName="RawValue"
+                                Header="Raw"
+                                Width="70"
+                                Visible="{Binding IsPcsAlarm}"
+                                AllowEditing="False"/>
             </dxg:GridControl.Columns>
 
             <dxg:GridControl.View>
