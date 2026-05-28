@@ -13,8 +13,17 @@ namespace EMS_PJT_Hamburger.ViewModels
 {
     public class PcsViewModel : PcsModel, IDisposable
     {
+        private enum PcsBmsPolicyMode
+        {
+            BeforeCharge,
+            BeforeDischarge,
+            Monitor
+        }
+
         private bool _disposed;
         private bool _controlInputsInitializedFromRead;
+        private bool _bmsGuardPolicyRunning;
+        private ushort _lastChargeDischargeStart;
         private DateTime _lastKeepAliveReceivedUtc = DateTime.MinValue;
         private AlarmDetailWindow _faultMessageWindow;
 
@@ -224,6 +233,7 @@ namespace EMS_PJT_Hamburger.ViewModels
         {
             var operationMode = ReadControlU16(registers, "OperationMode");
             var chargeMode = ReadControlU16(registers, "ChargeMode");
+            var chargeDischargeStart = ReadControlU16(registers, "ChargeDischargeStart");
             var maxChargePowerPercent = ReadControlU16(registers, "MaxChargePowerPercent");
             var maxDischargePowerPercent = ReadControlU16(registers, "MaxDischargePowerPercent");
             var maxChargePower = ReadControlU32(registers, "MaxChargePower");
@@ -239,6 +249,7 @@ namespace EMS_PJT_Hamburger.ViewModels
 
             ControlOperationModeRead = FormatControlValue(operationMode);
             ControlChargeModeRead = FormatControlValue(chargeMode);
+            _lastChargeDischargeStart = (ushort)chargeDischargeStart;
             ControlMaxChargePowerPercentRead = FormatControlValue(maxChargePowerPercent);
             ControlMaxDischargePowerPercentRead = FormatControlValue(maxDischargePowerPercent);
             ControlMaxChargePowerWRead = FormatControlValue(maxChargePower);
@@ -251,6 +262,9 @@ namespace EMS_PJT_Hamburger.ViewModels
             ControlMaxDischargeCurrentRead = FormatControlValue(maxDischargeCurrent);
             ControlGridMaxImportPowerWRead = FormatControlValue(gridMaxImportPower);
             ControlGridMaxExportPowerWRead = FormatControlValue(gridMaxExportPower);
+
+            // PCS-only communication test: comment this call to disable BMS/SOC stop policy.
+            _ = ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.Monitor);
 
             if (_controlInputsInitializedFromRead) return;
 
@@ -349,6 +363,8 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private async Task StartChargeSequenceAsync()
         {
+            // PCS-only communication test: comment this call to bypass BMS command guard.
+            await ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeCharge);
             await CheckControlReadyAsync(); // 1005 Read -> 1004 Read
             await CheckChargeCommandConflictAsync(); // 1003 bit2 high -> keep current command
             await WriteModeAsync(); // 1000 -> 7, 1001 -> 1
@@ -359,6 +375,8 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private async Task StartDischargeSequenceAsync()
         {
+            // PCS-only communication test: comment this call to bypass BMS command guard.
+            await ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeDischarge);
             await CheckControlReadyAsync(); // 1005 Read -> 1004 Read
             await CheckDischargeCommandConflictAsync(); // 1003 bit1 high -> keep current command
             await WriteModeAsync(); // 1000 -> 7, 1001 -> 1
@@ -385,6 +403,118 @@ namespace EMS_PJT_Hamburger.ViewModels
         {
             await WriteControlRawU16Async("EmergencyFault", 1); // 1004 -> 1
             await StopSequenceAsync();
+        }
+
+        private async Task ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode mode)
+        {
+            if (_bmsGuardPolicyRunning)
+            {
+                if (mode == PcsBmsPolicyMode.Monitor) return;
+                throw new InvalidOperationException("BMS guard policy is already running.");
+            }
+
+            try
+            {
+                _bmsGuardPolicyRunning = true;
+
+                var app = Application.Current as App;
+                var bms = app?.BmsVm;
+                if (bms == null)
+                {
+                    if (mode == PcsBmsPolicyMode.Monitor) return;
+                    throw new InvalidOperationException("BMS state is not ready.");
+                }
+
+                var isChargeActive = (_lastChargeDischargeStart & (1 << 1)) != 0;
+                var isDischargeActive = (_lastChargeDischargeStart & (1 << 2)) != 0;
+                var soc = bms.StatusMsg01.DispSOC > 0 ? bms.StatusMsg01.DispSOC : bms.StatusMsg01.SOC;
+                var bmsReady = string.Equals(bms.StatusMsg01.Ready, "Ready", StringComparison.OrdinalIgnoreCase);
+                var mbmsReady = string.Equals(bms.StatusMsg03.MbmsReady, "Ready", StringComparison.OrdinalIgnoreCase);
+                var hasCommonFault =
+                    bms.StatusMsg02.M_Connection ||
+                    bms.StatusMsg02.HighTemp ||
+                    bms.StatusMsg02.LowTemp ||
+                    bms.StatusMsg02.M_TempImbal ||
+                    bms.StatusMsg02.C_VoltImbal;
+                var hasChargeFault =
+                    bms.StatusMsg02.C_OverVolt ||
+                    bms.StatusMsg02.P_OverVolt ||
+                    bms.StatusMsg02.ChargeOverCurr;
+                var hasDischargeFault =
+                    bms.StatusMsg02.C_UnderVolt ||
+                    bms.StatusMsg02.P_UnderVolt ||
+                    bms.StatusMsg02.DischargeOverCurr ||
+                    bms.StatusMsg02.C_UnderSOC;
+
+                double parseLimit(string text, double fallback)
+                {
+                    if (double.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out var value))
+                        return value;
+
+                    if (double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+                        return value;
+
+                    return fallback;
+                }
+
+                var chargeStopSoc = parseLimit(ControlMaxChargeSoc, 90d);
+                var dischargeStopSoc = parseLimit(ControlMinDischargeSoc, 10d);
+
+                string stopReason = null;
+                if (!bmsReady || !mbmsReady)
+                    stopReason = $"BMS={bms.StatusMsg01.Ready}, MBMS={bms.StatusMsg03.MbmsReady}";
+                else if (hasCommonFault)
+                    stopReason = "BMS common fault is active.";
+
+                if (mode == PcsBmsPolicyMode.BeforeCharge)
+                {
+                    if (stopReason != null) throw new InvalidOperationException(stopReason);
+                    if (hasChargeFault) throw new InvalidOperationException("BMS charge fault is active.");
+                    if (soc >= chargeStopSoc) throw new InvalidOperationException($"BMS SOC({soc:0.#}%) reached charge stop SOC({chargeStopSoc:0.#}%).");
+                    return;
+                }
+
+                if (mode == PcsBmsPolicyMode.BeforeDischarge)
+                {
+                    if (stopReason != null) throw new InvalidOperationException(stopReason);
+                    if (hasDischargeFault) throw new InvalidOperationException("BMS discharge fault is active.");
+                    if (soc <= dischargeStopSoc) throw new InvalidOperationException($"BMS SOC({soc:0.#}%) reached discharge stop SOC({dischargeStopSoc:0.#}%).");
+                    return;
+                }
+
+                if (IsControlBusy) return;
+                if (!isChargeActive && !isDischargeActive) return;
+
+                if (isChargeActive)
+                {
+                    if (stopReason == null && hasChargeFault) stopReason = "BMS charge fault is active.";
+                    if (stopReason == null && soc >= chargeStopSoc) stopReason = $"BMS SOC({soc:0.#}%) reached charge stop SOC({chargeStopSoc:0.#}%).";
+                }
+                else if (isDischargeActive)
+                {
+                    if (stopReason == null && hasDischargeFault) stopReason = "BMS discharge fault is active.";
+                    if (stopReason == null && soc <= dischargeStopSoc) stopReason = $"BMS SOC({soc:0.#}%) reached discharge stop SOC({dischargeStopSoc:0.#}%).";
+                }
+
+                if (stopReason == null) return;
+
+                SystemMsg = $"[PCS] BMS guard stop. {stopReason}";
+                await StopSequenceAsync();
+            }
+            catch (Exception ex)
+            {
+                if (mode == PcsBmsPolicyMode.Monitor)
+                {
+                    SystemMsg = $"[PCS] BMS guard monitor failed: {ex.Message}";
+                    return;
+                }
+
+                throw;
+            }
+            finally
+            {
+                _bmsGuardPolicyRunning = false;
+            }
         }
 
         private async Task CheckControlReadyAsync()

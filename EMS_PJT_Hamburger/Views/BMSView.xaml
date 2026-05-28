@@ -126,6 +126,7 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="0"/>
@@ -149,6 +150,9 @@
                                    Style="{StaticResource HeadLableStyle}"/>
                             <Label Grid.Column="4" Grid.Row="1" 
                                    Content="SOC"
+                                   Style="{StaticResource HeadLableStyle}"/>
+                            <Label Grid.Column="5" Grid.Row="1" 
+                                   Content="SOH"
                                    Style="{StaticResource HeadLableStyle}"/>
 
                             <Label Grid.Column="0" Grid.Row="2"                      
@@ -179,6 +183,13 @@
                                 </TextBlock>
                             </Label>
                             <Label Grid.Column="4" Grid.Row="2" Background="Transparent"
+                                   Style="{StaticResource HeadLableStyle}">
+                                <TextBlock FontSize="28" Margin="0,0,0,20" Style="{StaticResource MonitorTextBlock}">
+                                    <Run Text="{Binding StatusMsg01.DispSOC}" Foreground="Lime"/>
+                                    <Run Text="%" FontSize="16" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                </TextBlock>
+                            </Label>
+                            <Label Grid.Column="5" Grid.Row="2" Background="Transparent"
                                    Style="{StaticResource HeadLableStyle}">
                                 <TextBlock FontSize="28" Margin="0,0,0,20" Style="{StaticResource MonitorTextBlock}">
                                     <Run Text="{Binding StatusMsg01.DispSOC}" Foreground="Lime"/>

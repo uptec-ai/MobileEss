@@ -545,7 +545,7 @@
                         </StackPanel>
                     </Grid>
                 </Border>
-                
+
                 <Border Canvas.Left="22" Canvas.Top="14" Width="526" Height="46"
                         CornerRadius="5"
                         BorderThickness="1"
@@ -1230,7 +1230,7 @@
                         <StackPanel Orientation="Vertical">
                             <Image Source="{dx:DXImage 'SvgImages/Status/Warning.svg'}" Style="{StaticResource DefaultImageStyle}" Margin="9,5,9,0"
                                    Height="25" Width="20"/>
-                            <TextBlock Text="Warning" 
+                            <TextBlock Text="Normal" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
@@ -1314,7 +1314,7 @@
                         <StackPanel Orientation="Vertical">
                             <Image Source="{dx:DXImage 'SvgImages/Status/Warning.svg'}" Style="{StaticResource DefaultImageStyle}" Margin="9,5,9,0"
                                    Height="25" Width="20"/>
-                            <TextBlock Text="Warning" 
+                            <TextBlock Text="Normal" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
@@ -1398,7 +1398,7 @@
                         <StackPanel Orientation="Vertical">
                             <Image Source="{dx:DXImage 'SvgImages/Status/Warning.svg'}" Style="{StaticResource DefaultImageStyle}" Margin="9,5,9,0"
                                    Height="25" Width="20"/>
-                            <TextBlock Text="Warning" 
+                            <TextBlock Text="Normal" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
                     </Border>
