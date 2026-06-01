@@ -63,6 +63,13 @@ namespace EMS_PJT_Hamburger.ViewModels
         public string ControlMaxDischargeCurrentRead { get => GetProperty(() => ControlMaxDischargeCurrentRead); set => SetProperty(() => ControlMaxDischargeCurrentRead, value); }
         public string ControlGridMaxImportPowerWRead { get => GetProperty(() => ControlGridMaxImportPowerWRead); set => SetProperty(() => ControlGridMaxImportPowerWRead, value); }
         public string ControlGridMaxExportPowerWRead { get => GetProperty(() => ControlGridMaxExportPowerWRead); set => SetProperty(() => ControlGridMaxExportPowerWRead, value); }
+        public ushort ChargeDischargeStartStatus
+        {
+            get => GetProperty(() => ChargeDischargeStartStatus);
+            private set => SetProperty(() => ChargeDischargeStartStatus, value);
+        }
+        public bool IsChargeModeActive => (ChargeDischargeStartStatus & (1 << 1)) != 0;
+        public bool IsDischargeModeActive => (ChargeDischargeStartStatus & (1 << 2)) != 0;
 
         public PcsViewModel()
         {
@@ -250,6 +257,9 @@ namespace EMS_PJT_Hamburger.ViewModels
             ControlOperationModeRead = FormatControlValue(operationMode);
             ControlChargeModeRead = FormatControlValue(chargeMode);
             _lastChargeDischargeStart = (ushort)chargeDischargeStart;
+            ChargeDischargeStartStatus = _lastChargeDischargeStart;
+            RaisePropertyChanged(nameof(IsChargeModeActive));
+            RaisePropertyChanged(nameof(IsDischargeModeActive));
             ControlMaxChargePowerPercentRead = FormatControlValue(maxChargePowerPercent);
             ControlMaxDischargePowerPercentRead = FormatControlValue(maxDischargePowerPercent);
             ControlMaxChargePowerWRead = FormatControlValue(maxChargePower);
@@ -264,7 +274,7 @@ namespace EMS_PJT_Hamburger.ViewModels
             ControlGridMaxExportPowerWRead = FormatControlValue(gridMaxExportPower);
 
             // PCS-only communication test: comment this call to disable BMS/SOC stop policy.
-            _ = ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.Monitor);
+            //_ = ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.Monitor);
 
             if (_controlInputsInitializedFromRead) return;
 
@@ -364,7 +374,7 @@ namespace EMS_PJT_Hamburger.ViewModels
         private async Task StartChargeSequenceAsync()
         {
             // PCS-only communication test: comment this call to bypass BMS command guard.
-            await ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeCharge);
+            //await ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeCharge);
             await CheckControlReadyAsync(); // 1005 Read -> 1004 Read
             await CheckChargeCommandConflictAsync(); // 1003 bit2 high -> keep current command
             await WriteModeAsync(); // 1000 -> 7, 1001 -> 1
@@ -376,7 +386,7 @@ namespace EMS_PJT_Hamburger.ViewModels
         private async Task StartDischargeSequenceAsync()
         {
             // PCS-only communication test: comment this call to bypass BMS command guard.
-            await ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeDischarge);
+            //await ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeDischarge);
             await CheckControlReadyAsync(); // 1005 Read -> 1004 Read
             await CheckDischargeCommandConflictAsync(); // 1003 bit1 high -> keep current command
             await WriteModeAsync(); // 1000 -> 7, 1001 -> 1
