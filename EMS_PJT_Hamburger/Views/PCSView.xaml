@@ -11,7 +11,7 @@
     <UserControl.Resources>
         <Style TargetType="{x:Type Label}" x:Key="HeadLableStyle">
             <Setter Property="Padding" Value="0"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Foreground" Value="#FFB0FCFC"/>
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
@@ -21,16 +21,16 @@
         </Style>
 
         <Style TargetType="{x:Type Border}" x:Key="MainBorderStyle">
-            <Setter Property="CornerRadius" Value="6"/>
-            <Setter Property="Background" Value="{DynamicResource Main.Panel.Background}"/>
-            <Setter Property="BorderBrush" Value="#FFF3F3F3"/>
-            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Background" Value="#17212B"/>
+            <Setter Property="BorderBrush" Value="#FFB0FCFC"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Margin" Value="5"/>
         </Style>
 
         <Style TargetType="{x:Type TextBlock}" x:Key="HeadTextBlock">
             <Setter Property="FontFamily" Value="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
-            <Setter Property="Foreground" Value="AliceBlue"/>
+            <Setter Property="Foreground" Value="#FFB0FCFC"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="FontSize" Value="16"/>
@@ -59,10 +59,10 @@
 
         <Style TargetType="{x:Type Border}" x:Key="BorderCardStyle">
             <Setter Property="Margin" Value="5"/>
-            <Setter Property="Background" Value="{DynamicResource Main.Panel.Background}"/>
-            <Setter Property="CornerRadius" Value="0"/>
-            <Setter Property="BorderBrush" Value="#FFF3F3F3"/>
-            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+            <Setter Property="Background" Value="#17212B"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="BorderBrush" Value="#FFB0FCFC"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="10"/>
         </Style>
     </UserControl.Resources>
@@ -91,6 +91,7 @@
                                     <ColumnDefinition Width="30"/>
                                 </Grid.ColumnDefinitions>
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="34"/>
                                     <RowDefinition Height="34"/>
                                     <RowDefinition Height="34"/>
                                     <RowDefinition Height="34"/>
@@ -195,15 +196,31 @@
                                 <dxe:TextEdit Grid.Column="2" Grid.Row="14" Margin="2,4" EditValue="{Binding ControlGridMaxExportPowerW, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalContentAlignment="Center"/>
                                 <Label Content="W" Grid.Column="3" Grid.Row="14" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
-                                <dx:SimpleButton Grid.Row="15" Grid.Column="0" Grid.ColumnSpan="4" Margin="2,4"
-                                                 Content="충전 시작" Command="{Binding Cmd_StartCharge}"/>
+                                <Label Content="32bit Read" Grid.Row="15" FontSize="11" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <ToggleButton Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="15" Margin="2,4"
+                                              IsChecked="{Binding IsRead32BigEndian, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              HorizontalContentAlignment="Center">
+                                    <ToggleButton.Style>
+                                        <Style TargetType="{x:Type ToggleButton}">
+                                            <Setter Property="Content" Value="Little Endian"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter Property="Content" Value="Big Endian"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </ToggleButton.Style>
+                                </ToggleButton>
+
                                 <dx:SimpleButton Grid.Row="16" Grid.Column="0" Grid.ColumnSpan="4" Margin="2,4"
+                                                 Content="충전 시작" Command="{Binding Cmd_StartCharge}"/>
+                                <dx:SimpleButton Grid.Row="17" Grid.Column="0" Grid.ColumnSpan="4" Margin="2,4"
                                                  Content="방전 시작" Command="{Binding Cmd_StartDischarge}"/>
-                                <StackPanel Grid.Row="17" Grid.Column="0" Grid.ColumnSpan="4" Orientation="Horizontal">
+                                <StackPanel Grid.Row="18" Grid.Column="0" Grid.ColumnSpan="4" Orientation="Horizontal">
                                     <dx:SimpleButton Width="141" Margin="2,4" Content="정지" Command="{Binding Cmd_StopPcs}"/>
                                     <dx:SimpleButton Width="141" Margin="2,4" Content="Reset" Command="{Binding Cmd_FaultReset}"/>
                                 </StackPanel>
-                                <dx:SimpleButton Grid.Row="18" Grid.Column="0" Grid.ColumnSpan="4" Margin="2,4" Content="Emergency Stop" Command="{Binding Cmd_EmergencyStop}">
+                                <dx:SimpleButton Grid.Row="19" Grid.Column="0" Grid.ColumnSpan="4" Margin="2,4" Content="Emergency Stop" Command="{Binding Cmd_EmergencyStop}">
                                     <dx:SimpleButton.Style>
                                         <Style TargetType="{x:Type dx:SimpleButton}">
                                             <Setter Property="Background" Value="#FFB94242"/>
@@ -223,7 +240,7 @@
                                         </Style>
                                     </dx:SimpleButton.Style>
                                 </dx:SimpleButton>
-                                <dx:SimpleButton Grid.Row="19"
+                                <dx:SimpleButton Grid.Row="20"
                                                  Grid.Column="0"
                                                  Grid.ColumnSpan="4"
                                                  Margin="2,4"
@@ -235,6 +252,7 @@
                     </dxdo:LayoutPanel>
                 </dxdo:AutoHideGroup>
             </dxdo:DockLayoutManager.AutoHideGroups>
+            
             <dxdo:LayoutGroup Orientation="Vertical" >
                 <dxdo:LayoutPanel Background="{DynamicResource Main.Background}" ShowCaption="False">
                     <Grid Margin="0">
@@ -244,7 +262,7 @@
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="10"/>
-                            <RowDefinition Height="100"/>
+                            <RowDefinition Height="120"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="20"/>
                         </Grid.RowDefinitions>
@@ -362,7 +380,7 @@
                                             Height="24" 
                                             Margin="0,0,0,0"/>
                                 <TextBlock FontSize="16" Margin="5,0,0,0" 
-                                           Style="{StaticResource MonitorTextBlock}"><Run Text="알람" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/><Run Text=" "/><Run Text="{Binding PanelData.AlarmCnt}" Foreground="Lime" FontSize="20"/></TextBlock>
+                                           Style="{StaticResource MonitorTextBlock}"><Run Text="알람" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/><Run Text=" "/><Run Text="{Binding PanelData.AlarmCnt}" Foreground="White" FontSize="20"/></TextBlock>
                             </StackPanel>
                             <!-- cumulative power-->
                             <Label Grid.Column="2" Grid.Row="0" 
@@ -375,8 +393,8 @@
                                     <TextBlock Text="수전 누적 전력(총합)"  
                                                Style="{StaticResource HeadTextBlock}"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <Label Content="{Binding PanelData.T_Import_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="70" Margin="0,-3,5,0"/>
-                                        <TextBlock Text="MWh" Foreground="White" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                        <Label Content="{Binding PanelData.T_Import_Energy}" Foreground="White" Style="{StaticResource MonitorLabel}" Width="90" Margin="0,-3,5,0"/>
+                                        <TextBlock Text="KWh" Foreground="Gray" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Label>
@@ -401,12 +419,13 @@
                                     <TextBlock Text="송전 누적 전력(총합)"
                                                Style="{StaticResource HeadTextBlock}"/>
                                     <StackPanel Orientation="Horizontal">
-                                        <Label Content="{Binding PanelData.T_Export_Energy}" Foreground="Lime" Style="{StaticResource MonitorLabel}" Width="70" Margin="0,-3,5,0"/>
-                                        <TextBlock Text="MWh" Foreground="White" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
+                                        <Label Content="{Binding PanelData.T_Export_Energy}" Foreground="White" Style="{StaticResource MonitorLabel}" Width="90" Margin="0,-3,5,0"/>
+                                        <TextBlock Text="KWh" Foreground="Gray" FontSize="14" Style="{StaticResource MonitorTextBlock}" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Label>
                         </Grid>
+                        
                         <!-- Data View -->
                         <Grid Grid.Column="1" Grid.Row="2">
                             <Grid.ColumnDefinitions>
@@ -439,7 +458,7 @@
                                                                Foreground="White" VerticalAlignment="Center" Grid.ColumnSpan="3"/>
                                                     <TextBlock Text="{Binding Name}"
                                                                FontSize="14"
-                                                               Foreground="#FFC3C3C3" VerticalAlignment="Center"/>
+                                                               Foreground="#FFB0FCFC" VerticalAlignment="Center"/>
                                                     <TextBlock Text="{Binding Value}"
                                                                Grid.Column="1"
                                                                Foreground="White"
@@ -485,7 +504,7 @@
                                                                Foreground="White" VerticalAlignment="Center" Grid.ColumnSpan="3"/>
                                                     <TextBlock Text="{Binding Name}"
                                                                FontSize="14"
-                                                               Foreground="#FFC3C3C3" VerticalAlignment="Center"/>
+                                                               Foreground="#FFB0FCFC" VerticalAlignment="Center"/>
                                                     <TextBlock Text="{Binding Value}"
                                                                Grid.Column="1"
                                                                Foreground="White"
@@ -530,7 +549,7 @@
                                                                Foreground="White" VerticalAlignment="Center" Grid.ColumnSpan="3"/>
                                                     <TextBlock Text="{Binding Name}"
                                                                FontSize="14"
-                                                               Foreground="#FFC3C3C3" VerticalAlignment="Center"/>
+                                                               Foreground="#FFB0FCFC" VerticalAlignment="Center"/>
                                                     <TextBlock Text="{Binding Value}"
                                                                Grid.Column="1"
                                                                Foreground="White"
@@ -576,7 +595,7 @@
                                                                Foreground="White" VerticalAlignment="Center" Grid.ColumnSpan="3"/>
                                                     <TextBlock Text="{Binding Name}"
                                                                FontSize="14"
-                                                               Foreground="#FFC3C3C3" VerticalAlignment="Center"/>
+                                                               Foreground="#FFB0FCFC" VerticalAlignment="Center"/>
                                                     <TextBlock Text="{Binding Value}"
                                                                Grid.Column="1"
                                                                Foreground="White"

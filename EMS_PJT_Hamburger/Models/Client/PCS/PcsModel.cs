@@ -104,6 +104,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
 
         private readonly HashSet<string> _activePcsFaultKeys = new HashSet<string>();
         private string _lastPcsStatusSnapshotKey;
+        private bool _isRead32BigEndian = true;
         public ModbusService _client = new ModbusService();
         public ConnectionSettings Conn_Settings { get; set; }
         public ConnectionState Conn_State { get; set; }
@@ -196,6 +197,18 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         public bool IsTransmit { get => GetProperty(() => IsTransmit); set => SetProperty(() => IsTransmit, value); } // TX(송신)
         public bool IsWrite { get => GetProperty(() => IsWrite); set => SetProperty(() => IsWrite, value); } // Send Write 동작?
         public bool IsRelay { get => GetProperty(() => IsRelay); set => SetProperty(() => IsRelay, value); } // BMS Relay 동작?
+        public bool IsRead32BigEndian
+        {
+            get => _isRead32BigEndian;
+            set
+            {
+                if (_isRead32BigEndian == value) return;
+                _isRead32BigEndian = value;
+                RaisePropertyChanged(nameof(IsRead32BigEndian));
+                RaisePropertyChanged(nameof(Read32WordOrder));
+            }
+        }
+        public ModbusWordOrder Read32WordOrder => IsRead32BigEndian ? ModbusWordOrder.HighLow : ModbusWordOrder.LowHigh;
         public string SystemMsg { get; set; } = string.Empty; // [Log] system msg
 
         // Chart
@@ -694,7 +707,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 return;
             }
 
-            var parsed = ModbusParser.ParseRegisters(registers, PcsSpecs.All, PollStartAddress);
+            var parsed = ModbusParser.ParseRegisters(registers, PcsSpecs.All, PollStartAddress, Read32WordOrder);
             ChangeInformation(parsed);
         }
 
@@ -790,17 +803,18 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 throw new ArgumentOutOfRangeException(nameof(input), $"[{ctrl}] write value is out of U32 range.");
 
             var value = (uint)Math.Round(raw);
-            // low word
-            //var values = new[]
-            //{
-            //    (ushort)(value & 0xFFFF),
-            //    (ushort)(value >> 16)
-            //};
+            // Little Endian
             var values = new[]
             {
-                (ushort)(value >> 16),
-                (ushort)(value & 0xFFFF)
+                (ushort)(value & 0xFFFF),
+                (ushort)(value >> 16)
             };
+            // Big Endian
+            //var values = new[]
+            //{
+            //    (ushort)(value >> 16),
+            //    (ushort)(value & 0xFFFF)
+            //};
 
             await _client.WriteMultipleRegistersAsync(spec.Address, values);
         }

@@ -460,10 +460,45 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style TargetType="{x:Type RadioButton}" x:Key="LoadTargetToggleStyle">
+            <Setter Property="Width" Value="70"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="Foreground" Value="#FFC3C3C3"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RadioButton}">
+                        <Border x:Name="ToggleBox"
+                                Background="#273642"
+                                BorderBrush="#FFB0FCFC"
+                                BorderThickness="1"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ToggleBox" Property="Background" Value="#8A5A1E"/>
+                                <Setter TargetName="ToggleBox" Property="BorderBrush" Value="#FFE2A6"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ToggleBox" Property="BorderBrush" Value="#C9FFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Viewbox>
-        <Canvas Height="704" Width="1000" Margin="0" Background="{DynamicResource Main.Background}">
+        <Canvas Height="705" Width="1000" Margin="0" Background="{DynamicResource Main.Background}">
             <StackPanel Orientation="Horizontal">
                 <Border Canvas.Left="22" Canvas.Top="14" Width="185" Height="46"
                         CornerRadius="5"
@@ -652,6 +687,39 @@
                     </Grid>
                 </Border>
             </StackPanel>
+
+            <Border Canvas.Left="20" Canvas.Top="55" Width="310" Height="40"
+                    CornerRadius="5"
+                    BorderThickness="1"
+                    BorderBrush="#334F5E"
+                    Background="#CC15181C">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                    <TextBlock Text="목표 Load"
+                               Foreground="#FFB0FCFC"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"
+                               Margin="0,0,12,0"/>
+                    <RadioButton Content="ON"
+                                 GroupName="HomeLoadTarget"
+                                 Command="{Binding Cmd_SelectLoadTarget}"
+                                 CommandParameter="{x:Static Models:LoadStatus.OnGrid}"
+                                 IsChecked="{Binding SelectedLoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OnGrid, Mode=OneWay}"
+                                 Style="{StaticResource LoadTargetToggleStyle}"/>
+                    <RadioButton Content="OFF"
+                                 GroupName="HomeLoadTarget"
+                                 Command="{Binding Cmd_SelectLoadTarget}"
+                                 CommandParameter="{x:Static Models:LoadStatus.OffGrid}"
+                                 IsChecked="{Binding SelectedLoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OffGrid, Mode=OneWay}"
+                                 Style="{StaticResource LoadTargetToggleStyle}"/>
+                    <RadioButton Content="Vehicle"
+                                 GroupName="HomeLoadTarget"
+                                 Command="{Binding Cmd_SelectLoadTarget}"
+                                 CommandParameter="{x:Static Models:LoadStatus.Vehicle}"
+                                 IsChecked="{Binding SelectedLoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Vehicle, Mode=OneWay}"
+                                 Style="{StaticResource LoadTargetToggleStyle}"/>
+                </StackPanel>
+            </Border>
             <!--#region 충전 Path -->
             <Path x:Name="Charge_PCS"
                   Managers:AnimationManager.IsRunning="False"
@@ -663,7 +731,7 @@
                   Style="{StaticResource NotusedPathStyle}" Canvas.Top="45.639">
                 <Path.Data>
                     <PathGeometry>
-                        <PathFigure StartPoint="131,190" IsClosed="False">
+                        <PathFigure StartPoint="131,430" IsClosed="False">
                             <LineSegment Point="131,310"/>
                             <LineSegment Point="320,310"/>
                         </PathFigure>
@@ -792,7 +860,7 @@
                     </TextBlock>
 
                     <Label Canvas.Left="17" Canvas.Top="68"
-                           Content="Stop" Foreground="White"
+                           Content="Disable" Foreground="#FFA6A6A6"
                            Style="{StaticResource ConnLableStyle}" Width="55"/>
 
                     <Image Source="/EMS_PJT_Hamburger;component/Assets/인버터02.png" 
@@ -814,7 +882,7 @@
                     </TextBlock>
 
                     <Label Canvas.Left="17" Canvas.Top="68"
-                           Content="Stop" Foreground="White"
+                           Content="Disable" Foreground="#FFA6A6A6"
                            Style="{StaticResource ConnLableStyle}" Width="55"/>
 
                     <Image Source="/EMS_PJT_Hamburger;component/Assets/Transformer.png" 
@@ -858,7 +926,7 @@
             <!-- Charge -->
             <Border x:Name="ENERGY"
                     Canvas.Left="20"
-                    Canvas.Top="70"
+                    Canvas.Top="470"
                     BorderBrush="Gray"
                     Style="{StaticResource ChargeStoryBorderStyle}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -868,7 +936,7 @@
                     </TextBlock>
 
                     <Label Canvas.Left="157" Canvas.Top="4"
-                           Content="Stop" Foreground="White"
+                           Content="Disable" Foreground="#FFA6A6A6"
                            Style="{StaticResource ConnLableStyle}" Width="55"/>
 
                     <Label Canvas.Left="172" Canvas.Top="28"
@@ -1118,7 +1186,7 @@
 
                     </TextBlock>
 
-                    <Label Canvas.Left="87" Canvas.Top="8"
+                    <!--<Label Canvas.Left="87" Canvas.Top="8"
                            Style="{StaticResource InfoLableStyle}" Width="35">
                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                             <TextBlock Text="전압"/>
@@ -1132,16 +1200,15 @@
                             <TextBlock Text="전류"/>
                             <Ellipse Width="5" Height="5" Margin="1,1,0,0" Fill="GreenYellow"/>
                         </StackPanel>
-
-                    </Label>
-
-                    <Label Canvas.Left="87" Canvas.Top="46"
+                    </Label>-->
+                    
+                    <!--<Label Canvas.Left="87" Canvas.Top="46"
                            Style="{StaticResource InfoLableStyle}" Width="35">
                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                             <TextBlock Text="전력"/>
                             <Ellipse Width="5" Height="5" Margin="1,1,0,0" Fill="GreenYellow"/>
                         </StackPanel>
-                    </Label>
+                    </Label>-->
 
                     <Label Canvas.Left="36" Canvas.Top="106"
                            Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Vehicle}"
@@ -1162,11 +1229,11 @@
                     <TextBlock Text="On Grid" Padding="0,0,0,0"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Left="4" Canvas.Top="3"/>
 
-                    <Label Canvas.Left="147" Canvas.Top="4"
-                          Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OnGrid}"
-                           Style="{StaticResource LoadLableStyle}"/>
+                    <Label Canvas.Left="142" Canvas.Top="4"
+                           Style="{StaticResource LoadLableStyle}" Width="70" Content="Standalone"/>
+                    <!--Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OnGrid}"-->
 
-                    <Label Canvas.Left="172" Canvas.Top="28"
+                    <!--<Label Canvas.Left="172" Canvas.Top="28"
                            Style="{StaticResource InfoLableStyle}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Va"/>
@@ -1186,13 +1253,13 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Vc"/>
                         </StackPanel>
-                    </Label>
+                    </Label>-->
 
                     <Image 
-                           Canvas.Left="54"
-                           Style="{StaticResource DefaultImageStyle}" Width="110" Height="133" Stretch="Fill" Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/Ongrid.png" Canvas.Top="1"/>
+                           Canvas.Left="32"
+                           Style="{StaticResource DefaultImageStyle}" Width="150" Height="150" Stretch="Fill" Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/Ongrid.png" Canvas.Top="30"/>
 
-                    <Border Canvas.Top="112" Canvas.Left="4"
+                    <!--<Border Canvas.Top="112" Canvas.Left="4"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
                             <Label Content="Volt" 
@@ -1233,7 +1300,7 @@
                             <TextBlock Text="Normal" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
-                    </Border>
+                    </Border>-->
 
                 </Canvas>
             </Border>
@@ -1246,11 +1313,11 @@
                     <TextBlock Text="Off Grid" Canvas.Left="4"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Top="3"/>
 
-                    <Label Canvas.Left="147" Canvas.Top="4"
-                           Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OffGrid}"
-                           Style="{StaticResource LoadLableStyle}"/>
+                    <Label Canvas.Left="142" Canvas.Top="4"
+                           Style="{StaticResource LoadLableStyle}" Width="70" Content="Standalone"/>
+                    <!--Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OffGrid}"-->
 
-                    <Label Canvas.Left="172" Canvas.Top="28"
+                    <!--<Label Canvas.Left="172" Canvas.Top="28"
                            Style="{StaticResource InfoLableStyle}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Va"/>
@@ -1270,13 +1337,13 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Vc"/>
                         </StackPanel>
-                    </Label>
+                    </Label>-->
 
                     <Image 
-                           Canvas.Left="22"
-                           Style="{StaticResource DefaultImageStyle}" Width="154" Height="122" Stretch="Fill" Canvas.Top="1" Source="/EMS_PJT_Hamburger;component/Assets/Home1.png"/>
+                           Canvas.Left="32"
+                           Style="{StaticResource DefaultImageStyle}" Width="150" Height="150" Stretch="Fill" Canvas.Top="16" Source="/EMS_PJT_Hamburger;component/Assets/Home1.png"/>
 
-                    <Border Canvas.Top="112" Canvas.Left="4"
+                    <!--<Border Canvas.Top="112" Canvas.Left="4"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
                             <Label Content="Volt" 
@@ -1317,7 +1384,7 @@
                             <TextBlock Text="Normal" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
-                    </Border>
+                    </Border>-->
 
                 </Canvas>
             </Border>
@@ -1330,11 +1397,12 @@
                     <TextBlock Text="Vehicle" Padding="0,0,0,0"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Left="4" Canvas.Top="3"/>
 
-                    <Label Canvas.Left="147" Canvas.Top="4"
-                           Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Vehicle}"
-                           Style="{StaticResource LoadLableStyle}"/>
+                    <Label Canvas.Left="142" Canvas.Top="4"
+                           Content="Standalone" 
+                           Style="{StaticResource LoadLableStyle}" Width="70"/>
+                    <!--Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Vehicle}"-->
 
-                    <Label Canvas.Left="172" Canvas.Top="28"
+                    <!--<Label Canvas.Left="172" Canvas.Top="28"
                            Style="{StaticResource InfoLableStyle}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Va"/>
@@ -1354,13 +1422,13 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Vc"/>
                         </StackPanel>
-                    </Label>
+                    </Label>-->
 
                     <Image Source="/EMS_PJT_Hamburger;component/Assets/ESS(자동차).png" 
-                           Canvas.Left="50" Canvas.Top="31"
-                           Style="{StaticResource DefaultImageStyle}" Width="108" Height="76"/>
+                           Canvas.Left="32" Canvas.Top="60"
+                           Style="{StaticResource DefaultImageStyle}" Width="150" Height="90"/>
 
-                    <Border Canvas.Top="112" Canvas.Left="4"
+                    <!--<Border Canvas.Top="112" Canvas.Left="4"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
                             <Label Content="Power" 
@@ -1401,7 +1469,7 @@
                             <TextBlock Text="Normal" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
-                    </Border>
+                    </Border>-->
 
                 </Canvas>
             </Border>

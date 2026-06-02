@@ -13,6 +13,11 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         U32,
         S32,
     }
+    public enum ModbusWordOrder
+    {
+        HighLow,
+        LowHigh,
+    }
     public sealed class ModbusFieldSpec
     {
         public int Address { get; set; } // Register address

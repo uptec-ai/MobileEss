@@ -1,0 +1,267 @@
+PCSView 버튼 시퀀스 및 기능 정리
+작성 기준: EMS_PJT_Hamburger/ViewModels/PcsViewModel.cs, Models/Client/PCS/PcsModel.cs
+
+1. 공통 실행 흐름
+
+대상 버튼:
+- 충전 시작
+- 방전 시작
+- 정지
+- Reset
+- Emergency Stop
+
+공통 커맨드 처리:
+1) PCSView 버튼 클릭
+2) PcsViewModel의 DelegateCommand 실행
+3) ExecuteControlSequenceAsync(name, sequence) 호출
+4) IsControlBusy가 true이면 중복 실행 방지로 즉시 종료
+5) ControlConfirmationService.Confirm("PCS", name)으로 사용자 확인
+6) 확인 취소 시 SystemMsg에 취소 메시지 기록 후 종료
+7) 확인 시 IsControlBusy = true, IsTransmit = true
+8) 각 버튼별 sequence 함수 실행
+9) sequence 완료 후 ReadControlStatusMessageAsync() 실행
+   - Holding Register 148부터 2개 읽음
+   - Status(148), Fault(149) 확인 목적
+10) 완료 메시지 또는 예외 메시지를 SystemMsg에 기록
+11) finally에서 IsTransmit = false, IsControlBusy = false
+
+주의:
+- 현재 BMS/SOC 기반 command guard 호출은 코드상 주석 처리되어 있음.
+- PCS-only 통신 테스트 중에는 BMS 상태와 무관하게 버튼 시퀀스가 실행될 수 있음.
+- 실제 운전 연동 시에는 ApplyBmsGuardPolicyAsync(...) 호출 주석 해제 여부를 다시 결정해야 함.
+
+
+2. 충전 시작 버튼
+
+연결 커맨드:
+- Cmd_StartCharge
+
+실행 함수:
+- StartChargeSequenceAsync()
+
+기능:
+- PCS를 충전 운전 상태로 만들기 위한 제어값을 순서대로 기록한다.
+- 충전 시작 전 PCS fault 상태와 반대 방향 운전 충돌 여부를 확인한다.
+
+동작 순서:
+1) BMS command guard
+   - 현재 주석 처리됨.
+   - 주석 해제 시 ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeCharge) 실행
+   - BMS Ready, MBMS Ready, 충전 관련 fault, SOC 상한 조건을 검사함.
+
+2) CheckControlReadyAsync()
+   - 1005(PmsHeartbeat) 1개 Read
+   - 읽기 실패 시 예외
+   - 1004(EmergencyFault/Fault) 1개 Read
+   - 읽기 실패 시 예외
+   - 1004 값이 0이 아니면 Fault 상태로 보고 충전 시작 중단
+
+3) CheckChargeCommandConflictAsync()
+   - 1003(ChargeDischargeStart) 1개 Read
+   - bit2가 1이면 이미 방전 명령이 활성화된 상태로 보고 충전 시작 중단
+
+4) WriteModeAsync()
+   - 1000(OperationMode)에 ControlOperationMode 값 Write
+     기본값: 7
+   - 1001(ChargeMode)에 ControlChargeMode 값 Write
+     기본값: 1
+
+5) WriteChargeParametersAsync()
+   - 1006(MaxChargePowerPercent) Write
+   - 1008~1009(MaxChargePower, U32) Write
+   - 1012(MaxChargeSOC) Write
+   - 1014(MaxChargeVoltage) Write
+   - 1016(MaxChargeCurrent) Write
+   - GridMaxImportPower(1018~1019)는 현재 주석 처리됨
+
+6) 충전 기동 명령
+   - 1003(ChargeDischargeStart)에 0x000A Write
+   - 의미: bit1 + bit3 사용
+   - 코드 주석 기준: bit1 충전, bit3 grid input enable
+
+7) Run 명령
+   - 1002(RunStop)에 1 Write
+
+결과:
+- PCS가 조건을 수락하면 충전 운전으로 진입한다.
+- 이후 HomeView는 1003 bit1 상태를 보고 Charging UI를 표시한다.
+
+
+3. 방전 시작 버튼
+
+연결 커맨드:
+- Cmd_StartDischarge
+
+실행 함수:
+- StartDischargeSequenceAsync()
+
+기능:
+- PCS를 방전 운전 상태로 만들기 위한 제어값을 순서대로 기록한다.
+- 방전 시작 전 PCS fault 상태와 반대 방향 운전 충돌 여부를 확인한다.
+
+동작 순서:
+1) BMS command guard
+   - 현재 주석 처리됨.
+   - 주석 해제 시 ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeDischarge) 실행
+   - BMS Ready, MBMS Ready, 방전 관련 fault, SOC 하한 조건을 검사함.
+
+2) CheckControlReadyAsync()
+   - 1005(PmsHeartbeat) 1개 Read
+   - 1004(EmergencyFault/Fault) 1개 Read
+   - 1004 값이 0이 아니면 Fault 상태로 보고 방전 시작 중단
+
+3) CheckDischargeCommandConflictAsync()
+   - 1003(ChargeDischargeStart) 1개 Read
+   - bit1이 1이면 이미 충전 명령이 활성화된 상태로 보고 방전 시작 중단
+
+4) WriteModeAsync()
+   - 1000(OperationMode)에 ControlOperationMode 값 Write
+     기본값: 7
+   - 1001(ChargeMode)에 ControlChargeMode 값 Write
+     기본값: 1
+
+5) WriteDischargeParametersAsync()
+   - 1007(MaxDischargePowerPercent) Write
+   - 1010~1011(MaxDischargePower, U32) Write
+   - 1013(MinDischargeSOC) Write
+   - MaxDischargeVoltage(1015), MaxDischargeCurrent(1017), GridMaxExportPower(1020~1021)는 현재 주석 처리됨
+
+6) 방전 기동 명령
+   - 1003(ChargeDischargeStart)에 0x0004 Write
+   - 의미: bit2 방전
+
+7) Run 명령
+   - 1002(RunStop)에 1 Write
+
+결과:
+- PCS가 조건을 수락하면 방전 운전으로 진입한다.
+- 이후 HomeView는 1003 bit2 상태를 보고 Discharging UI를 표시한다.
+
+
+4. 정지 버튼
+
+연결 커맨드:
+- Cmd_StopPcs
+
+실행 함수:
+- StopSequenceAsync()
+
+기능:
+- PCS 충전/방전 기동 명령과 Run 상태를 해제한다.
+
+동작 순서:
+1) 1003(ChargeDischargeStart)에 0 Write
+   - 충전/방전 기동 bit 해제
+
+2) 1002(RunStop)에 0 Write
+   - PCS Run 해제
+
+결과:
+- PCS 운전 정지 명령을 보낸다.
+- 이후 1003 충전/방전 bit가 내려가면 HomeView는 Wait UI로 전환된다.
+
+
+5. Reset 버튼
+
+연결 커맨드:
+- Cmd_FaultReset
+
+실행 함수:
+- FaultResetSequenceAsync()
+
+기능:
+- PCS를 먼저 정지시킨 뒤 Fault Reset 신호를 펄스 형태로 보낸다.
+
+동작 순서:
+1) StopSequenceAsync() 실행
+   - 1003(ChargeDischargeStart)에 0 Write
+   - 1002(RunStop)에 0 Write
+
+2) 1024(FaultReset)에 1 Write
+   - Fault Reset 신호 ON
+
+3) 200ms 대기
+
+4) 1024(FaultReset)에 0 Write
+   - Fault Reset 신호 OFF
+
+결과:
+- PCS fault reset 신호를 200ms 펄스로 전달한다.
+- Reset 이후 실제 fault 해제 여부는 PCS 상태/알람 레지스터를 다시 확인해야 한다.
+
+
+6. Emergency Stop 버튼
+
+연결 커맨드:
+- Cmd_EmergencyStop
+
+실행 함수:
+- EmergencyStopSequenceAsync()
+
+기능:
+- PCS EmergencyFault 신호를 먼저 올리고, 이후 정지 시퀀스를 실행한다.
+
+동작 순서:
+1) 1004(EmergencyFault)에 1 Write
+   - 비상정지/fault 신호 전달
+
+2) StopSequenceAsync() 실행
+   - 1003(ChargeDischargeStart)에 0 Write
+   - 1002(RunStop)에 0 Write
+
+결과:
+- PCS에 비상정지 신호를 전달하고 운전 명령을 해제한다.
+- 이후 fault 상태 해제는 Reset 버튼 시퀀스 또는 PCS 자체 절차가 필요할 수 있다.
+
+
+7. 관련 주소 요약
+
+1000: OperationMode
+- 기동모드
+- 기본 입력값: 7
+
+1001: ChargeMode
+- 충방전 모드
+- 기본 입력값: 1
+
+1002: RunStop
+- 1: Run
+- 0: Stop
+
+1003: ChargeDischargeStart
+- 0x000A: 충전 시작 명령
+- 0x0004: 방전 시작 명령
+- 0x0000: 충전/방전 기동 해제
+
+1004: EmergencyFault
+- CheckControlReadyAsync에서는 fault 상태 확인용으로 Read
+- EmergencyStopSequenceAsync에서는 1 Write
+
+1005: PmsHeartbeat
+- CheckControlReadyAsync에서 Read 확인
+
+1006: MaxChargePowerPercent
+1007: MaxDischargePowerPercent
+1008~1009: MaxChargePower, U32
+1010~1011: MaxDischargePower, U32
+1012: MaxChargeSOC
+1013: MinDischargeSOC
+1014: MaxChargeVoltage
+1015: MaxDischargeVoltage, 현재 방전 시작 시 Write 주석 처리
+1016: MaxChargeCurrent
+1017: MaxDischargeCurrent, 현재 방전 시작 시 Write 주석 처리
+1018~1019: GridMaxImportPower, 현재 충전 시작 시 Write 주석 처리
+1020~1021: GridMaxExportPower, 현재 방전 시작 시 Write 주석 처리
+1024: FaultReset
+
+
+8. 32bit 값 처리 참고
+
+Control 패널 Read:
+- PCSView의 32bit Read Endian 토글 설정을 사용한다.
+- IsChecked = true: Big Endian, HighLow
+- IsChecked = false: Little Endian, LowHigh
+
+Control Write:
+- 현재 WriteControlU32Async는 기존 코드 기준 High word -> Low word 순서로 Write한다.
+- PCS 통신 테스트에서 32bit Write 순서까지 변경이 필요하면 별도 정책으로 분리해서 수정해야 한다.

@@ -148,6 +148,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             { "ChargeDischargeStart", new ModbusWriteSpec { Address = 1003, Scale = 1 } },          // 충전/방전 기동
             { "EmergencyFault", new ModbusWriteSpec { Address = 1004, Scale = 1 } },                // 비상정지
             { "PmsHeartbeat", new ModbusWriteSpec { Address = 1005, Scale = 1 } },                  // PMS Heartbeat
+
             { "MaxChargePowerPercent", new ModbusWriteSpec { Address = 1006, Scale = 0.01 } },      // 최대 충전 전력(%)
             { "MaxDischargePowerPercent", new ModbusWriteSpec { Address = 1007, Scale = 0.01 } },   // 최대 방전 전력(%)
             { "MaxChargePower", new ModbusWriteSpec { Address = 1008, Scale = 1 } },                // 최대 충전 전력_H/L

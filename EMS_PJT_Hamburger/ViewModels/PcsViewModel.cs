@@ -123,8 +123,8 @@ namespace EMS_PJT_Hamburger.ViewModels
                 new DataItem { Header="----------------------- 상태 -----------------------"},
                 new DataItem { Name="Fault 상태", Value=$"0"},            // 1
                 new DataItem { Header="----------------------- 정보 -----------------------"},
-                new DataItem { Name="Total 송전 전력량", Value=$"0.0", Factor="MWh"},  // 3
-                new DataItem { Name="Total 수전 전력량", Value=$"0.0", Factor="MWh"},  // 4
+                new DataItem { Name="Total 송전 전력량", Value=$"0.0", Factor="KWh"},  // 3
+                new DataItem { Name="Total 수전 전력량", Value=$"0.0", Factor="KWh"},  // 4
                 new DataItem { Name="유효 전력", Value=$"0", Factor="kWh"},       // 5
 
                 new DataItem { Name="상전압 (AN)", Value=$"0.0", Factor="V"}, // 6
@@ -148,7 +148,7 @@ namespace EMS_PJT_Hamburger.ViewModels
                 new DataItem { Header="----------------------- 상태 -----------------------"},
                 new DataItem { Name="Fault 상태", Value=$"0"},            // 1
                 new DataItem { Header="----------------------- 정보 -----------------------"},
-                new DataItem { Name="Total 송전 전력량", Value=$"0.0", Factor="MWh"},  // 3
+                new DataItem { Name="Total 송전 전력량", Value=$"0.0", Factor="KWh"},  // 3
                 new DataItem { Name="유효 전력", Value=$"0.0", Factor="kWh"},       // 4
                 new DataItem { Name="유효 전력(RN)", Value=$"0.0", Factor="kWh"},   // 5
                 new DataItem { Name="유효 전력(SN)", Value=$"0.0", Factor="kWh"},   // 6
@@ -274,7 +274,7 @@ namespace EMS_PJT_Hamburger.ViewModels
             ControlGridMaxExportPowerWRead = FormatControlValue(gridMaxExportPower);
 
             // PCS-only communication test: comment this call to disable BMS/SOC stop policy.
-            //_ = ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.Monitor);
+            _ = ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.Monitor);
 
             if (_controlInputsInitializedFromRead) return;
 
@@ -302,11 +302,11 @@ namespace EMS_PJT_Hamburger.ViewModels
             return registers[index] * spec.Scale;
         }
 
-        private static double ReadControlU32(ushort[] registers, string ctrl)
+        private double ReadControlU32(ushort[] registers, string ctrl)
         {
             var spec = PcsSpecs.ControlWrite[ctrl];
             var index = spec.Address - ControlProtocolStartAddress;
-            var raw = ((uint)registers[index] << 16) | registers[index + 1];
+            var raw = ModbusParser.ReadU32(registers, index, Read32WordOrder);
             return raw * spec.Scale;
         }
 
@@ -358,7 +358,7 @@ namespace EMS_PJT_Hamburger.ViewModels
                 await sequence();
                 var statusMessage = await ReadControlStatusMessageAsync();
 
-                SystemMsg = $"[PCS] {name} sequence complete. {statusMessage}";
+                SystemMsg = $"[PCS] {name} sequence complete.";
             }
             catch (Exception ex)
             {
@@ -374,7 +374,7 @@ namespace EMS_PJT_Hamburger.ViewModels
         private async Task StartChargeSequenceAsync()
         {
             // PCS-only communication test: comment this call to bypass BMS command guard.
-            //await ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeCharge);
+            await ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeCharge);
             await CheckControlReadyAsync(); // 1005 Read -> 1004 Read
             await CheckChargeCommandConflictAsync(); // 1003 bit2 high -> keep current command
             await WriteModeAsync(); // 1000 -> 7, 1001 -> 1
@@ -386,7 +386,7 @@ namespace EMS_PJT_Hamburger.ViewModels
         private async Task StartDischargeSequenceAsync()
         {
             // PCS-only communication test: comment this call to bypass BMS command guard.
-            //await ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeDischarge);
+            await ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeDischarge);
             await CheckControlReadyAsync(); // 1005 Read -> 1004 Read
             await CheckDischargeCommandConflictAsync(); // 1003 bit1 high -> keep current command
             await WriteModeAsync(); // 1000 -> 7, 1001 -> 1
@@ -581,19 +581,19 @@ namespace EMS_PJT_Hamburger.ViewModels
         {
             await WriteControlU16Async("MaxChargePowerPercent", ParseControlDouble(ControlMaxChargePowerPercent, "최대 충전 전력(%)")); // 1006
             await WriteControlU32Async("MaxChargePower", ParseControlDouble(ControlMaxChargePowerW, "최대 충전 전력(W)")); // 1008
-            await WriteControlU16Async("MaxChargeSOC", ParseControlDouble(ControlMaxChargeSoc, "최대 충전 SOC(%)")); // 1012
+            await WriteControlU16Async("MaxChargeSOC", ParseControlSoc(ControlMaxChargeSoc, "최대 충전 SOC(%)")); // 1012
             await WriteControlU16Async("MaxChargeVoltage", ParseControlDouble(ControlMaxChargeVoltage, "최대 충전 전압(V)")); // 1014
             await WriteControlU16Async("MaxChargeCurrent", ParseControlDouble(ControlMaxChargeCurrent, "최대 충전 전류(A)")); // 1016
-            //await WriteControlU32Async("GridMaxImportPower", ParseControlDouble(ControlGridMaxImportPowerW, "Grid 최대 수전 전력(W)"));
+            await WriteControlU32Async("GridMaxImportPower", ParseControlDouble(ControlGridMaxImportPowerW, "Grid 최대 수전 전력(W)"));
         }
 
         private async Task WriteDischargeParametersAsync()
         {
             await WriteControlU16Async("MaxDischargePowerPercent", ParseControlDouble(ControlMaxDischargePowerPercent, "최대 방전 전력(%)")); // 1007
             await WriteControlU32Async("MaxDischargePower", ParseControlDouble(ControlMaxDischargePowerW, "최대 방전 전력(W)")); // 1010
-            await WriteControlU16Async("MinDischargeSOC", ParseControlDouble(ControlMinDischargeSoc, "최소 방전 SOC(%)")); // 1013
-            //await WriteControlU16Async("MaxDischargeVoltage", ParseControlDouble(ControlMaxDischargeVoltage, "최대 방전 전압(V)"));
-            //await WriteControlU16Async("MaxDischargeCurrent", ParseControlDouble(ControlMaxDischargeCurrent, "최대 방전 전류(A)"));
+            await WriteControlU16Async("MinDischargeSOC", ParseControlSoc(ControlMinDischargeSoc, "최소 방전 SOC(%)")); // 1013
+            await WriteControlU16Async("MaxDischargeVoltage", ParseControlDouble(ControlMaxDischargeVoltage, "최대 방전 전압(V)"));
+            await WriteControlU16Async("MaxDischargeCurrent", ParseControlDouble(ControlMaxDischargeCurrent, "최대 방전 전류(A)"));
             //await WriteControlU32Async("GridMaxExportPower", ParseControlDouble(ControlGridMaxExportPowerW, "Grid 최대 송전 전력(W)"));
         }
 
@@ -613,7 +613,15 @@ namespace EMS_PJT_Hamburger.ViewModels
 
             throw new ArgumentException($"{fieldName} 값이 올바르지 않습니다.");
         }
+        private static double ParseControlSoc(string text, string fieldName)
+        {
+            var value = ParseControlDouble(text, fieldName);
 
+            if (value < 0 || value > 100)
+                throw new ArgumentOutOfRangeException(fieldName, $"{fieldName} 값은 0~100 사이여야 합니다.");
+
+            return value;
+        }
         private static double ParseControlDouble(string text, string fieldName)
         {
             if (string.IsNullOrWhiteSpace(text))

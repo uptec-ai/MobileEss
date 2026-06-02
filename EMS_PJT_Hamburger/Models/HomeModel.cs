@@ -46,6 +46,7 @@ namespace EMS_PJT_Hamburger.Models
         public int emsMode { get; set; } = 0;
         public HomeStatus ChargingStatus { get; set; } = HomeStatus.Waiting;  // charge status
         public LoadStatus LoadTarget { get; set; } = LoadStatus.Waiting;  // load charge target
+        public LoadStatus SelectedLoadTarget { get; set; } = LoadStatus.OnGrid;
         public bool CouplingStatus { get; set; } = false;
 
         //public string ConnectPCS { get; set; } = "Disable";

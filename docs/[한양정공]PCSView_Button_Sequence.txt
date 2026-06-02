@@ -1,0 +1,287 @@
+PCSView 버튼 기능 및 시퀀스 정리 - 제어문 기준
+
+1. 제어문 기준 역할 정리
+
+제어문에서 정의한 ESS 제어 구조는 다음과 같다.
+- PMS: ESS 전체 운전 제어 및 충방전 지령 관리
+- BMS: 배터리 보호, Cell 상태 감시, SOC/전압/전류 제한값 및 Fault 제공
+- PCS: 실제 전력변환 및 충방전 수행
+
+따라서 PCSView의 버튼은 최종적으로 PCS에 명령을 전달하지만, 운전 허용 여부 판단은 PMS 역할에 해당한다.
+현재 프로젝트에서는 PCSViewModel이 PMS 역할의 일부를 대신 수행하는 구조로 볼 수 있다.
+
+제어문 기준 정상 흐름:
+1) BMS가 SOC, 전압, 전류 제한값, Fault 상태를 PMS로 제공
+2) PMS가 충전/방전 가능 여부 판단
+3) PMS가 PCS에 출력 제한 또는 충방전/정지 지령 전송
+4) PCS가 실제 충방전 또는 정지 수행
+
+제어문 기준 비정상 흐름:
+1) BMS 또는 PCS에서 Fault 검출
+2) PMS가 Fault 상태를 반영하여 PCS 운전을 정지
+3) 배터리 보호가 필요한 긴급 상황에서는 BMS가 Main Contactor 차단 가능
+4) PCS는 DC Link 차단 및 운전 정지 수행
+
+2. 공통 버튼
+
+대상 버튼:
+- 충전
+- 방전
+- 정지
+- Reset
+- Emergency Stop
+
+3. 충전 버튼 기능 및 시퀀스
+
+버튼:
+- 충전
+
+기능:
+- PMS 관점에서 충전 가능 조건을 확인한 뒤 PCS에 충전 지령을 전달한다.
+- PCS 관점에서는 충전 파라미터와 기동 bit를 수신하고 실제 충전 운전을 수행한다.
+
+제어문 기준 의도:
+- BMS의 SOC, 전압, 전류 제한, Fault 상태를 반영해야 한다.
+- SOC 상한 또는 충전 제한 조건이 있으면 PCS 충전 출력을 제한하거나 충전 정지 지령을 내려야 한다.
+
+현재 코드 기준 실제 실행 순서:
+1) Before Charge BMS Guard
+   - 현재 주석 처리됨.
+   - 주석 해제 시 제어문 기준 PMS의 충전 가능 판단 단계
+
+2) Check Control Ready 
+   - 1005(PmsHeartbeat) 1개 Read
+   - Read 실패 시 충전 중단
+   - 1004(EmergencyFault/Fault) 1개 Read
+   - 1004 값이 0이 아니면 PCS fault 또는 emergency 상태로 보고 충전 중단
+
+3) Check Charge Command Conflict 
+   - 1003(ChargeDischargeStart) 1개 Read
+   - bit2가 1이면 방전 명령이 이미 활성화된 상태로 판단
+   - 충전/방전 동시 명령 방지를 위해 충전 시작 중단
+
+4) Write Mode
+   - 1000(OperationMode)에 ControlOperationMode Write
+     기본값: 7
+   - 1001(ChargeMode)에 ControlChargeMode Write
+     기본값: 1
+
+5) Charge Parameters Write
+   - 1006(MaxChargePowerPercent) Write
+   - 1008~1009(MaxChargePower, U32) Write
+   - 1012(MaxChargeSOC) Write
+   - 1014(MaxChargeVoltage) Write
+   - 1016(MaxChargeCurrent) Write
+   - 1018~1019(GridMaxImportPower) Write
+
+6) 충전 기동 bit Write
+   - 1003(ChargeDischargeStart)에 0x000A Write
+   - 코드 주석 기준: bit1 + bit3
+   - bit1: 충전 활성
+   - bit3: grid input enable로 해석 중
+
+7) Run 명령 Write
+   - 1002(RunStop)에 1 Write
+
+8) 완료 후 상태 확인
+   - 148~149 Read
+   - Status/Fault 확인 목적
+
+충전 버튼 관련 주요 주소:
+- 1000: OperationMode
+- 1001: ChargeMode
+- 1002: RunStop
+- 1003: ChargeDischargeStart
+- 1004: EmergencyFault/Fault 확인
+- 1005: PmsHeartbeat 확인
+- 1006: MaxChargePowerPercent
+- 1008~1009: MaxChargePower
+- 1012: MaxChargeSOC
+- 1014: MaxChargeVoltage
+- 1016: MaxChargeCurrent
+
+
+4. 방전 버튼 기능 및 시퀀스
+
+버튼:
+- 방전
+
+기능:
+- PMS 관점에서 방전 가능 조건을 확인한 뒤 PCS에 방전 지령을 전달한다.
+- PCS 관점에서는 방전 파라미터와 기동 bit를 수신하고 실제 방전 운전을 수행한다.
+
+제어문 기준 의도:
+- BMS의 SOC, 전압, 전류 제한, Fault 상태를 반영해야 한다.
+- SOC 하한 또는 방전 제한 조건이 있으면 PCS 방전 출력을 제한하거나 방전 정지 지령을 내려야 한다.
+
+현재 코드 기준 실제 실행 순서:
+1) BeforeDischarge BMS Guard
+   - 현재 주석 처리됨.
+   - 주석 해제 시 제어문 기준 PMS의 방전 가능 판단 단계에 해당
+
+2) Check Control Ready
+   - 1005(PmsHeartbeat) 1개 Read
+   - Read 실패 시 방전 중단
+   - 1004(EmergencyFault/Fault) 1개 Read
+   - 1004 값이 0이 아니면 PCS fault 또는 emergency 상태로 보고 방전 중단
+
+3) Check Discharge Command Conflict
+   - 1003(ChargeDischargeStart) 1개 Read
+   - bit1이 1이면 충전 명령이 이미 활성화된 상태로 판단
+   - 충전/방전 동시 명령 방지를 위해 방전 시작 중단
+
+4) Write Mode
+   - 1000(OperationMode)에 ControlOperationMode Write
+     기본값: 7
+   - 1001(ChargeMode)에 ControlChargeMode Write
+     기본값: 1
+
+5) Write Discharge Parameter
+   - 1007(MaxDischargePowerPercent) Write
+   - 1010~1011(MaxDischargePower, U32) Write
+   - 1013(MinDischargeSOC) Write
+   - 1015(MaxDischargeVoltage) Write
+   - 1017(MaxDischargeCurrent) Write
+   - 1020~1021(GridMaxExportPower)는 현재 주석 처리됨
+
+6) 방전 기동 bit Write
+   - 1003(ChargeDischargeStart)에 0x0004 Write
+   - bit2: 방전 활성
+
+7) Run 명령 Write
+   - 1002(RunStop)에 1 Write
+
+8) 완료 후 상태 확인
+   - 148~149 Read
+   - Status/Fault 확인 목적
+
+방전 버튼 관련 주요 주소:
+- 1000: OperationMode
+- 1001: ChargeMode
+- 1002: RunStop
+- 1003: ChargeDischargeStart
+- 1004: EmergencyFault/Fault 확인
+- 1005: PmsHeartbeat 확인
+- 1007: MaxDischargePowerPercent
+- 1010~1011: MaxDischargePower
+- 1013: MinDischargeSOC
+
+
+5. 정지 버튼 기능 및 시퀀스
+
+버튼:
+- 정지
+
+기능:
+- PCS 충전/방전 기동 bit를 해제하고 Run 상태를 Stop으로 변경한다.
+- 제어문 기준 PMS가 PCS에 충전 정지 또는 방전 정지 지령을 내리는 동작에 해당한다.
+
+현재 코드 기준 실행 순서:
+1) 1003(ChargeDischargeStart)에 0 Write
+   - 충전 bit 해제
+   - 방전 bit 해제
+   - grid input enable 등 기동 관련 bit 해제
+
+2) 1002(RunStop)에 0 Write
+   - PCS Run 해제
+   - PCS Stop 지령
+
+3) 완료 후 상태 확인
+   - 148~149 Read
+   - Status/Fault 확인 목적
+
+제어문 기준 정지 발생 조건:
+- 사용자가 정지 버튼을 누른 경우
+- SOC 상한 도달로 충전 정지가 필요한 경우
+- SOC 하한 도달로 방전 정지가 필요한 경우
+- BMS Fault 또는 PCS Fault로 운전 지속이 위험한 경우
+- 통신 두절 정책상 정지가 필요한 경우
+
+
+6. Reset 버튼 기능 및 시퀀스
+
+버튼:
+- Reset
+
+기능:
+- PCS를 먼저 정지시킨 후 Fault Reset 신호를 펄스로 전달한다.
+- 제어문 기준 Fault 발생 후 PCS 측 fault 해제 시도 동작에 해당한다.
+
+현재 코드 기준 실행 순서:
+1) Stop Sequence
+   - 1003(ChargeDischargeStart)에 0 Write
+   - 1002(RunStop)에 0 Write
+
+2) 1024(FaultReset)에 1 Write
+   - Fault Reset 신호 ON
+
+3) 200ms 대기
+
+4) 1024(FaultReset)에 0 Write
+   - Fault Reset 신호 OFF
+
+5) 완료 후 상태 확인
+   - 148~149 Read
+   - Status/Fault 확인 목적
+
+주의:
+- Reset은 PCS fault reset 신호이며, BMS Fault 자체를 해제하는 기능은 아니다.
+- BMS가 계속 Fault 상태라면 제어문 기준으로 PMS는 다시 PCS 운전을 허용하지 않아야 한다.
+- BMS Main Contactor 차단이 발생한 경우에는 BMS 측 복구 절차가 별도로 필요할 수 있다.
+
+
+7. Emergency Stop 버튼 기능 및 시퀀스
+
+버튼:
+- Emergency Stop
+
+기능:
+- PCS에 비상정지/Fault 신호를 먼저 전달한 뒤 운전 명령을 해제한다.
+- 제어문 기준 비정상 상황 시 PCS DC Link 차단 및 운전정지에 해당하는 보호 동작이다.
+
+현재 코드 기준 실행 순서:
+1) 1004(EmergencyFault)에 1 Write
+   - PCS에 emergency/fault 신호 전달
+
+2) Stop Sequence 실행
+   - 1003(ChargeDischargeStart)에 0 Write
+   - 1002(RunStop)에 0 Write
+
+3) 완료 후 상태 확인
+   - 148~149 Read
+   - Status/Fault 확인 목적
+
+제어문 기준 관련 상황:
+- Cell Voltage OVP
+- 과온
+- 절연 이상
+- BMS Fault
+- PCS Fault
+- 통신 두절 정책에 따른 정지 필요
+
+주의:
+- Emergency Stop은 1004에 1을 Write하지만, 현재 시퀀스 내에서 1004를 다시 0으로 내리지는 않는다.
+- Fault 해제는 Reset 버튼 또는 PCS/BMS 측 절차에 따라 별도 수행되어야 한다.
+
+
+8. 버튼별 제어 책임 관점 요약
+
+충전:
+- PMS 판단: BMS Ready, MBMS Ready, 충전 Fault, SOC 상한, PCS Fault 확인
+- PCS 실행: 충전 파라미터 수신 후 1003=0x000A, 1002=1로 충전 수행
+
+방전:
+- PMS 판단: BMS Ready, MBMS Ready, 방전 Fault, SOC 하한, PCS Fault 확인
+- PCS 실행: 방전 파라미터 수신 후 1003=0x0004, 1002=1로 방전 수행
+
+정지:
+- PMS 판단: 사용자 정지, SOC 조건, Fault, 통신 두절 등 정지 필요 판단
+- PCS 실행: 1003=0, 1002=0
+
+Reset:
+- PMS 판단: PCS Fault reset 시도 가능 여부 판단
+- PCS 실행: 정지 후 1024=1 -> 200ms -> 1024=0
+
+Emergency Stop:
+- PMS/BMS 판단: 위험 상황 또는 사용자 비상정지
+- PCS 실행: 1004=1 후 1003=0, 1002=0

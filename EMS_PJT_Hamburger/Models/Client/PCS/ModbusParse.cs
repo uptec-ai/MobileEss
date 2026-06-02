@@ -8,7 +8,11 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
 {
     public static class ModbusParser
     {
-        public static Dictionary<string, object> ParseRegisters(ushort[] registers, IEnumerable<ModbusFieldSpec> specs, int startAddress = 0)
+        public static Dictionary<string, object> ParseRegisters(
+            ushort[] registers,
+            IEnumerable<ModbusFieldSpec> specs,
+            int startAddress = 0,
+            ModbusWordOrder read32WordOrder = ModbusWordOrder.HighLow)
         {
             if (registers == null) throw new ArgumentNullException(nameof(registers));
             if (specs == null) throw new ArgumentNullException(nameof(specs));
@@ -39,15 +43,11 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                         break;
 
                     case ModbusDataType.U32: // uint
-                        //if (spec.Name == "Grid_Total_ImportedEnergy") { }
-                        
-                        raw = ((uint)registers[index] << 16)
-                            | registers[index + 1];
+                        raw = ReadU32(registers, index, read32WordOrder);
                         break;
 
                     case ModbusDataType.S32: // int
-                        raw = (registers[index] << 16)
-                            | registers[index + 1];
+                        raw = unchecked((int)ReadU32(registers, index, read32WordOrder));
                         break;
                 }
 
@@ -57,6 +57,24 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             }
 
             return result;
+        }
+
+        public static uint ReadU32(ushort[] registers, int index, ModbusWordOrder wordOrder)
+        {
+            if (registers == null) throw new ArgumentNullException(nameof(registers));
+            if (index < 0 || index + 1 >= registers.Length)
+                throw new ArgumentOutOfRangeException(nameof(index));
+
+            var high = registers[index];
+            var low = registers[index + 1];
+
+            if (wordOrder == ModbusWordOrder.LowHigh)
+            {
+                low = registers[index];
+                high = registers[index + 1];
+            }
+
+            return ((uint)high << 16) | low;
         }
     }
     public class RegisterItem

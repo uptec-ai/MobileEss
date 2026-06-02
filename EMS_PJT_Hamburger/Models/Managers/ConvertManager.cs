@@ -195,6 +195,21 @@ namespace EMS_PJT_Hamburger.Models.Managers
             throw new NotSupportedException();
         }
     }
+    public class StringToBrushConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is string s)
+            {
+                if (s == "Ready")
+                    return Brushes.White;
+            }
+
+            return Brushes.Gray;
+        }
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+                => throw new NotImplementedException();
+    }
     public class ValueToBrushConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

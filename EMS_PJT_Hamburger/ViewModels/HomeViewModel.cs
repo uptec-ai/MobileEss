@@ -16,19 +16,22 @@ namespace EMS_PJT_Hamburger.ViewModels
     public class HomeViewModel : HomeModel, IDisposable
     {
         private bool _disposed;
-        private readonly Random _loadTargetRandom = new Random();
+        public DelegateCommand<LoadStatus> Cmd_SelectLoadTarget { get; private set; }
         public bool IsTouchKeyboardEnabled
         {
             get => GetProperty(() => IsTouchKeyboardEnabled);
             set
             {
-                SetProperty(() => IsTouchKeyboardEnabled, value);
-                TouchKeyboardService.SetEnabled(value);
+                if (SetProperty(() => IsTouchKeyboardEnabled, value))
+                {
+                    TouchKeyboardService.SetEnabled(value);
+                }
             }
         }
         public HomeViewModel()
         {
-            IsTouchKeyboardEnabled = TouchKeyboardService.IsEnabled;
+            TouchKeyboardService.SetEnabled(false);
+            Cmd_SelectLoadTarget = new DelegateCommand<LoadStatus>(SelectLoadTarget);
             StartLoop();
         }
         public void StartLoop()
@@ -94,9 +97,7 @@ namespace EMS_PJT_Hamburger.ViewModels
             BChargeBorderBrush = Brushes.Lime;
             OperationModeBrush = Brushes.Lime;
 
-            ChargeOnGrid = Brushes.Gray;
-            ChargeOffGrid = Brushes.Gray;
-            ChargeVihicle = Brushes.Gray;
+            UpdateLoadTargetUi(false);
             DischargeBorderBrush = Brushes.Gray;
             PDischargeBorderBrush = Brushes.Gray;
             BDischargeBorderBrush = Brushes.Gray;
@@ -114,26 +115,7 @@ namespace EMS_PJT_Hamburger.ViewModels
             OperationModeBrush = Brushes.Orange;
 
             CouplingStatus = true;
-            if (LoadTarget == LoadStatus.Waiting)
-            {
-                var random = _loadTargetRandom.Next(0, 3);
-                if (random == 0)
-                {
-                    LoadTarget = LoadStatus.OnGrid;
-                }
-                else if (random == 1)
-                {
-                    LoadTarget = LoadStatus.OffGrid;
-                }
-                else
-                {
-                    LoadTarget = LoadStatus.Vehicle;
-                }
-            }
-
-            ChargeOnGrid = (LoadTarget == LoadStatus.OnGrid) ? Brushes.Orange : Brushes.Gray;
-            ChargeOffGrid = (LoadTarget == LoadStatus.OffGrid) ? Brushes.Orange : Brushes.Gray;
-            ChargeVihicle = (LoadTarget == LoadStatus.Vehicle) ? Brushes.Orange : Brushes.Gray;
+            UpdateLoadTargetUi(true);
 
             PDischargeBorderBrush = Brushes.Orange;
             BDischargeBorderBrush = Brushes.Orange;
@@ -152,11 +134,26 @@ namespace EMS_PJT_Hamburger.ViewModels
             BChargeBorderBrush = Brushes.Gray;
             OperationModeBrush = Brushes.Gray;
 
-            ChargeOnGrid = Brushes.Gray;
-            ChargeOffGrid = Brushes.Gray;
-            ChargeVihicle = Brushes.Gray;
+            UpdateLoadTargetUi(false);
             PDischargeBorderBrush = Brushes.Gray;
             BDischargeBorderBrush = Brushes.Gray;
+        }
+
+        private void SelectLoadTarget(LoadStatus target)
+        {
+            if (target == LoadStatus.Waiting) return;
+
+            SelectedLoadTarget = target;
+            RaisePropertyChanged(nameof(SelectedLoadTarget));
+            UpdateLoadTargetUi(ChargingStatus == HomeStatus.Discharging);
+        }
+
+        private void UpdateLoadTargetUi(bool isActive)
+        {
+            LoadTarget = isActive ? SelectedLoadTarget : LoadStatus.Waiting;
+            ChargeOnGrid = (isActive && SelectedLoadTarget == LoadStatus.OnGrid) ? Brushes.Orange : Brushes.Gray;
+            ChargeOffGrid = (isActive && SelectedLoadTarget == LoadStatus.OffGrid) ? Brushes.Orange : Brushes.Gray;
+            ChargeVihicle = (isActive && SelectedLoadTarget == LoadStatus.Vehicle) ? Brushes.Orange : Brushes.Gray;
         }
 
         public async Task WaitChangeAsync(CancellationToken ct)
