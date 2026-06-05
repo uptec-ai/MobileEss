@@ -20,19 +20,23 @@ namespace EMS_PJT_Hamburger.ViewModels
 {
     public class BMSViewModel : BmsDataModel, IDisposable
     {
+        private static readonly TimeSpan BmsFrameTimeout = TimeSpan.FromSeconds(3);
         private bool _disposed;
+        private bool _isPcanStarted;
+        private DateTime _lastFrameReceivedUtc = DateTime.MinValue;
+        private StatusManager.BMSStatus _lastPublishedBmsStatus = StatusManager.BMSStatus.None;
+        private DispatcherTimer _bmsStatusTimer;
 
         public BMSViewModel()
         {
             _rx = new PcanRxService(Peak.Can.Basic.PcanChannel.Usb01, Peak.Can.Basic.Bitrate.Pcan500);
             _rx.FrameReceived += OnFrameReceived;
+            _rx.ConnectionStateChanged += HandlePcanConnectionStateChanged;
             StatusMsg02.PropertyChanged += StatusMsg02_PropertyChanged;
 
             app.nlog.Info($"Started BMS");
-            //if (!_rx.Start())
-            //{
-            //    MessageBox.Show("PCAN Initialize 실패. 채널/비트레이트/드라이버/플랫폼(x64) 확인하세요.");
-            //}
+            VariableInitialize();
+            StartBmsReceiver();
 
             // 고정 Pack 17개 생성
             for (int i = 1; i <= PackCount; i++)
@@ -60,8 +64,27 @@ namespace EMS_PJT_Hamburger.ViewModels
             //var maxVolt = BmsSpecs._specMap[0x154].Fields[0].Convert; // canId 0x154에 대한 스펙을 가져온다.
 
             CommandInitialize();
+        }
 
-            VariableInitialize();
+        private void StartBmsReceiver()
+        {
+            UpdateBmsConnectionStatus(StatusManager.BMSStatus.TryConnect);
+
+            try
+            {
+                _isPcanStarted = _rx.Start();
+                if (!_isPcanStarted)
+                {
+                    UpdateBmsConnectionStatus(StatusManager.BMSStatus.Disconnected);
+                    app?.nlog?.Warn("PCAN initialize failed. Check channel, bitrate, driver, and platform.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _isPcanStarted = false;
+                UpdateBmsConnectionStatus(StatusManager.BMSStatus.Error);
+                app?.nlog?.Warn(ex, "BMS receiver start failed.");
+            }
         }
         
         private void OnFrameReceived(uint canId, byte[] data)
@@ -75,6 +98,9 @@ namespace EMS_PJT_Hamburger.ViewModels
             // TryGetValue : 있으면 가져와서 쓰고, 없으면 무시
             if (!BmsSpecs._specMap.TryGetValue(canId, out var spec)) // 해시 탐색 1번, key확인 + value추출
                 return;
+
+            _lastFrameReceivedUtc = DateTime.UtcNow;
+            UpdateBmsConnectionStatus(StatusManager.BMSStatus.Connected);
 
             // Worker 스레드 → UI 스레드로
             var parsed = CanMessageParser.Parse(spec, data);
@@ -109,7 +135,55 @@ namespace EMS_PJT_Hamburger.ViewModels
             StatusMsg01.DispSOC = 0d;
 
             StatusMsg03.MbmsReady = "Not Ready";
+
+            _bmsStatusTimer = new DispatcherTimer();
+            _bmsStatusTimer.Interval = TimeSpan.FromSeconds(1);
+            _bmsStatusTimer.Tick += BmsStatusTimer_Tick;
+            _bmsStatusTimer.Start();
         }
+
+        private void HandlePcanConnectionStateChanged(bool connected)
+        {
+            if (_disposed) return;
+
+            UpdateBmsConnectionStatus(connected
+                ? StatusManager.BMSStatus.TryConnect
+                : StatusManager.BMSStatus.Disconnected);
+        }
+
+        private void BmsStatusTimer_Tick(object sender, EventArgs e)
+        {
+            if (_disposed || !_isPcanStarted) return;
+
+            if (_lastFrameReceivedUtc == DateTime.MinValue ||
+                DateTime.UtcNow - _lastFrameReceivedUtc > BmsFrameTimeout)
+            {
+                UpdateBmsConnectionStatus(StatusManager.BMSStatus.Disconnected);
+            }
+        }
+
+        private void UpdateBmsConnectionStatus(StatusManager.BMSStatus status)
+        {
+            if (_lastPublishedBmsStatus == status) return;
+
+            Action update = () =>
+            {
+                if (_lastPublishedBmsStatus == status) return;
+
+                var currentApp = Application.Current as App;
+                if (currentApp?.StatusManager == null) return;
+
+                currentApp.StatusManager.CurrentBMS_Status = status;
+                _lastPublishedBmsStatus = status;
+            };
+
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher?.CheckAccess() == true)
+                update();
+            else if (dispatcher != null)
+                dispatcher.BeginInvoke(update);
+        }
+
         private void Snapshot_Tick(object sender, EventArgs e)
         {
             var now = DateTime.UtcNow;
@@ -214,11 +288,21 @@ namespace EMS_PJT_Hamburger.ViewModels
                     _uiTimer = null;
                 }
 
+                if (_bmsStatusTimer != null)
+                {
+                    _bmsStatusTimer.Stop();
+                    _bmsStatusTimer.Tick -= BmsStatusTimer_Tick;
+                    _bmsStatusTimer = null;
+                }
+
+                UpdateBmsConnectionStatus(StatusManager.BMSStatus.Disconnected);
+
                 StatusMsg02.PropertyChanged -= StatusMsg02_PropertyChanged;
 
                 if (_rx != null)
                 {
                     _rx.FrameReceived -= OnFrameReceived;
+                    _rx.ConnectionStateChanged -= HandlePcanConnectionStateChanged;
                     _rx.Dispose();
                     _rx = null;
                 }
