@@ -33,7 +33,7 @@ namespace EMS_PJT_Hamburger.Models
         public Brush PDischargeBorderBrush { get; set; } = Brushes.Gray;      // pcs status is discharging. (t:orange, f:gray) 
         public Brush BDischargeBorderBrush { get; set; } = Brushes.Gray;      // battery status is discharging. (t:orange, f:gray) 
         public Brush DischargeBorderBrush { get; set; } = Brushes.Gray;      // status is discharging. (t:orange, f:gray) 
-        public Brush ChargeOnGrid { get; set; } = Brushes.Gray;
+        
         public Brush ChargeOffGrid { get; set; } = Brushes.Gray;
         public Brush ChargeVihicle { get; set; } = Brushes.Gray;
         public Brush PcsBorderBrush { get; set; } = Brushes.Gray;
