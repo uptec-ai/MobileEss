@@ -29,10 +29,12 @@ namespace EMS_PJT_Hamburger.ViewModels
             StatusMsg02.PropertyChanged += StatusMsg02_PropertyChanged;
 
             app.nlog.Info($"Started BMS");
-            //if (!_rx.Start())
-            //{
-            //    MessageBox.Show("PCAN Initialize 실패. 채널/비트레이트/드라이버/플랫폼(x64) 확인하세요.");
-            //}
+            if (!_rx.Start())
+            {
+                App app = (App)Application.Current;
+                MessageBox.Show("PCAN Initialize 실패. 채널/비트레이트/드라이버/플랫폼(x64) 확인하세요.");
+            }
+            app.StatusManager.CurrentBMS_Status = StatusManager.BMSStatus.Connected;
 
             // 고정 Pack 17개 생성
             for (int i = 1; i <= PackCount; i++)

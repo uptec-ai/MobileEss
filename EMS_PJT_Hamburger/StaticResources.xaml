@@ -2,8 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"                     
                     xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
-                    xmlns:dxwui="http://schemas.devexpress.com/winfx/2008/xaml/windowsui" 
-                    xmlns:ext="http://schemas.abtsoftware.co.uk/scichart/exampleExternals">
+                    xmlns:dxwui="http://schemas.devexpress.com/winfx/2008/xaml/windowsui">
     <SolidColorBrush x:Key="Main.Background" Color="#0E1012"/>
     <SolidColorBrush x:Key="Sub.Background" Color="#0E1012"/>
     
@@ -25,6 +24,14 @@
         <Setter Property="Margin" Value="0"/>
         <Setter Property="Background" Value="White"/>
         <Setter Property="Opacity" Value="0.2"/>
+    </Style>
+
+    <Style TargetType="{x:Type CheckBox}" x:Key="ToolbarPopupCheckBoxStyle">
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Main.MouseOver}"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Padding" Value="2"/>
     </Style>
 
     <!--Toggle Button Color-->

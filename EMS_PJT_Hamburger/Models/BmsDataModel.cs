@@ -30,6 +30,7 @@ namespace EMS_PJT_Hamburger.Models
     public class BmsDataModel : ViewModelBase, INotifyPropertyChanged
     {
         public App app = Application.Current as App;
+        private readonly HashSet<int> _activeBmsFaultCodes = new HashSet<int>();
         
         public Random _random = new Random();
         // random으로 UI 동작 확인
@@ -182,7 +183,7 @@ namespace EMS_PJT_Hamburger.Models
                                        $"C_VoltImbal:{StatusMsg02.C_VoltImbal}  C_UnderSOC:{StatusMsg02.C_UnderSOC}  PackNum:{StatusMsg02.PackNum}  MaxCell:{StatusMsg02.MaxCellVolt}  MaxCellNum:{StatusMsg02.MaxCellVoltNum}  Ver:{StatusMsg02.Version}");
                     });
 
-                    //SaveFaults(GetActiveFaults(StatusMsg02)); // true 알람 -> db저장
+                    SaveFaults(GetActiveFaults(StatusMsg02)); // true 알람 -> db저장
 
                     break;
 
@@ -237,9 +238,19 @@ namespace EMS_PJT_Hamburger.Models
         public void SaveFaults(IEnumerable<(int Code, string Name)> faults)
         {
             App app = Application.Current as App;
-            foreach (var fault in faults)
+            var activeFaults = faults?.ToList();
+            if (activeFaults == null) return;
+
+            var activeCodes = new HashSet<int>(activeFaults.Select(fault => fault.Code));
+            _activeBmsFaultCodes.RemoveWhere(code => !activeCodes.Contains(code));
+
+            foreach (var fault in activeFaults)
             {
-                app.DbManager.InsertBmsAlarmData(fault, 0);
+                if (!_activeBmsFaultCodes.Add(fault.Code))
+                    continue;
+
+                app?.nlog?.Warn($"[BMS FAULT] Code={fault.Code}, Name={fault.Name}, OccurredAt={DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+                app?.DbManager?.InsertBmsAlarmData((fault.Code, fault.Name), 0);
             }
         }
 

@@ -125,7 +125,6 @@
     <Reference Include="SciChart.Drawing, Version=8.6.0.28199, Culture=neutral, PublicKeyToken=b55dd9efe817e823, processorArchitecture=MSIL">
       <HintPath>..\packages\SciChart.8.6.0.28199\lib\net462\SciChart.Drawing.dll</HintPath>
     </Reference>
-    <Reference Include="SciChart.Examples.ExternalDependencies, Version=7.0.1.27055, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="SuperSocket.ClientEngine, Version=0.10.0.0, Culture=neutral, PublicKeyToken=ee9af13f57f00acc, processorArchitecture=MSIL">
       <HintPath>..\packages\SuperSocket.ClientEngine.0.10.0\lib\net45\SuperSocket.ClientEngine.dll</HintPath>
     </Reference>

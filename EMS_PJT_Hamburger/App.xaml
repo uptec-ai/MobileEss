@@ -8,8 +8,6 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="/SciChart.Examples.ExternalDependencies;component/Themes/Navy.xaml"/>
-                <ResourceDictionary Source="/SciChart.Examples.ExternalDependencies;component/Resources/Styles/Controls.xaml"/>
                 <ResourceDictionary Source="StaticResources.xaml"/>
             </ResourceDictionary.MergedDictionaries>
 
