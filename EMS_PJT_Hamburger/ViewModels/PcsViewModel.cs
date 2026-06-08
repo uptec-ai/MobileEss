@@ -33,8 +33,21 @@ namespace EMS_PJT_Hamburger.ViewModels
         public DelegateCommand Cmd_FaultReset { get; private set; }
         public DelegateCommand Cmd_EmergencyStop { get; private set; }
         public DelegateCommand Cmd_OpenFaultMessage { get; private set; }
+        public DelegateCommand<string> Cmd_SelectPcsSection { get; private set; }
+        public DelegateCommand<string> Cmd_SelectPowerTrendInterval { get; private set; }
 
         public bool IsControlBusy { get => GetProperty(() => IsControlBusy); set => SetProperty(() => IsControlBusy, value); }
+        public string SelectedPcsSection { get => GetProperty(() => SelectedPcsSection); set => SetProperty(() => SelectedPcsSection, value); }
+        public ObservableCollection<DataItem> SelectedPcsDetailItems { get => GetProperty(() => SelectedPcsDetailItems); set => SetProperty(() => SelectedPcsDetailItems, value); }
+        public bool IsGridSectionSelected => string.Equals(SelectedPcsSection, "Grid", StringComparison.OrdinalIgnoreCase);
+        public bool IsInverterSectionSelected => string.Equals(SelectedPcsSection, "Inverter", StringComparison.OrdinalIgnoreCase);
+        public bool IsBatterySectionSelected => string.Equals(SelectedPcsSection, "Battery", StringComparison.OrdinalIgnoreCase);
+        public bool IsLoadSectionSelected => string.Equals(SelectedPcsSection, "Load", StringComparison.OrdinalIgnoreCase);
+        public bool IsControlSectionSelected => string.Equals(SelectedPcsSection, "Control", StringComparison.OrdinalIgnoreCase);
+        public string SelectedPowerTrendInterval { get => GetProperty(() => SelectedPowerTrendInterval); set => SetProperty(() => SelectedPowerTrendInterval, value); }
+        public bool IsPowerTrendMinuteSelected => string.Equals(SelectedPowerTrendInterval, "1M", StringComparison.OrdinalIgnoreCase);
+        public bool IsPowerTrendHourSelected => string.Equals(SelectedPowerTrendInterval, "1H", StringComparison.OrdinalIgnoreCase);
+        public bool IsPowerTrendDaySelected => string.Equals(SelectedPowerTrendInterval, "1D", StringComparison.OrdinalIgnoreCase);
         public string ControlOperationMode { get => GetProperty(() => ControlOperationMode); set => SetProperty(() => ControlOperationMode, value); }
         public string ControlChargeMode { get => GetProperty(() => ControlChargeMode); set => SetProperty(() => ControlChargeMode, value); }
         public string ControlMaxChargePowerPercent { get => GetProperty(() => ControlMaxChargePowerPercent); set => SetProperty(() => ControlMaxChargePowerPercent, value); }
@@ -94,38 +107,59 @@ namespace EMS_PJT_Hamburger.ViewModels
 
             GridItems = new ObservableCollection<DataItem>
             {
-                new DataItem { Header="----------------------- 상태 -----------------------"},
-                new DataItem { Name="운전 상태", Value=$"off"}, // 1
-                new DataItem { Name="퓨즈 상태", Value=$"normal"}, // 2
-                new DataItem { Name="Fault 상태", Value=$"0"}, // 3
-                new DataItem { Header="----------------------- 정보 -----------------------"},
-                new DataItem { Name="유효 전력", Value=$"0", Factor="W"}, // 5
+                new DataItem { Name="운전 상태", Value=$"off"}, // 0
+                new DataItem { Name="퓨즈 상태", Value=$"normal"}, // 1
+                new DataItem { Name="Fault 상태", Value=$"0"}, // 2
+                new DataItem { Name="유효 전력", Value=$"0", Factor="W"}, // 3
 
-                new DataItem { Name="상전압 (AN)", Value=$"0.0", Factor="V"},       // 6
-                new DataItem { Name="상전압 (BN)", Value=$"0.0", Factor="V"},       // 7 
-                new DataItem { Name="상전압 (CN)", Value=$"0.0", Factor="V"},       // 8
+                new DataItem { Name="상전압 (AN)", Value=$"0.0", Factor="V"},       // 4
+                new DataItem { Name="상전압 (BN)", Value=$"0.0", Factor="V"},       // 5 
+                new DataItem { Name="상전압 (CN)", Value=$"0.0", Factor="V"},       // 6
 
-                new DataItem { Name="상전류 (AN)", Value=$"0.0", Factor="A"},       // 9
-                new DataItem { Name="상전류 (BN)", Value=$"0.0", Factor="A"},       // 10
-                new DataItem { Name="상전류 (CN)", Value=$"0.0", Factor="A"},       // 11
+                new DataItem { Name="상전류 (AN)", Value=$"0.0", Factor="A"},       // 7
+                new DataItem { Name="상전류 (BN)", Value=$"0.0", Factor="A"},       // 8
+                new DataItem { Name="상전류 (CN)", Value=$"0.0", Factor="A"},       // 9
 
-                new DataItem { Name="선간 전압 (AB)", Value=$"0", Factor="V"},    // 12
-                new DataItem { Name="선간 전압 (BC)", Value=$"0", Factor="V"},    // 13
-                new DataItem { Name="선간 전압 (CA)", Value=$"0", Factor="V"},    // 14
+                new DataItem { Name="선간 전압 (AB)", Value=$"0", Factor="V"},    // 10
+                new DataItem { Name="선간 전압 (BC)", Value=$"0", Factor="V"},    // 11
+                new DataItem { Name="선간 전압 (CA)", Value=$"0", Factor="V"},    // 12
 
-                new DataItem { Name="주파수", Value=$"0.0", Factor="Hz"},          // 15
-                new DataItem { Name="역률", Value=$"0.00", Factor="%"},             // 16
-                new DataItem { Name="Sourge Count", Value=$"0", Factor="Cyc"},     // 17
+                new DataItem { Name="주파수", Value=$"0.0", Factor="Hz"},          // 13
+                new DataItem { Name="역률", Value=$"0.00", Factor="%"},             // 14
+                new DataItem { Name="Sourge Count", Value=$"0", Factor="Cyc"},     // 15
             };
 
             InvItems = new ObservableCollection<DataItem>
             {
-                new DataItem { Header="----------------------- 상태 -----------------------"},
-                new DataItem { Name="Fault 상태", Value=$"0"},            // 1
-                new DataItem { Header="----------------------- 정보 -----------------------"},
-                new DataItem { Name="Total 송전 전력량", Value=$"0.0", Factor="KWh"},  // 3
-                new DataItem { Name="Total 수전 전력량", Value=$"0.0", Factor="KWh"},  // 4
-                new DataItem { Name="유효 전력", Value=$"0", Factor="kWh"},       // 5
+                new DataItem { Name="Fault 상태", Value=$"0"},            // 0
+                new DataItem { Name="Total 송전 전력량", Value=$"0.0", Factor="KWh"},  // 1
+                new DataItem { Name="Total 수전 전력량", Value=$"0.0", Factor="KWh"},  // 2
+                new DataItem { Name="유효 전력", Value=$"0", Factor="kWh"},       // 3
+
+                new DataItem { Name="상전압 (AN)", Value=$"0.0", Factor="V"}, // 4
+                new DataItem { Name="상전압 (BN)", Value=$"0.0", Factor="V"}, // 5
+                new DataItem { Name="상전압 (CN)", Value=$"0.0", Factor="V"}, // 6
+
+                new DataItem { Name="상전류 (AN)", Value=$"0.0", Factor="A"}, // 7
+                new DataItem { Name="상전류 (BN)", Value=$"0.0", Factor="A"}, // 8
+                new DataItem { Name="상전류 (CN)", Value=$"0.0", Factor="A"}, // 9
+
+                new DataItem { Name="선간 전압 (AB)", Value=$"0", Factor="V"}, // 10
+                new DataItem { Name="선간 전압 (BC)", Value=$"0", Factor="V"}, // 11
+                new DataItem { Name="선간 전압 (CA)", Value=$"0", Factor="V"}, // 12
+
+                new DataItem { Name="주파수", Value=$"0.0", Factor="Hz"},      // 13
+                new DataItem { Name="역률", Value=$"0.00", Factor="%"},        // 14
+            };
+
+            LoadItems = new ObservableCollection<DataItem>
+            {
+                new DataItem { Name="Fault 상태", Value=$"0"},            // 0
+                new DataItem { Name="Total 송전 전력량", Value=$"0.0", Factor="KWh"},  // 1
+                new DataItem { Name="유효 전력", Value=$"0.0", Factor="kWh"},       // 2
+                new DataItem { Name="유효 전력(RN)", Value=$"0.0", Factor="kWh"},   // 3
+                new DataItem { Name="유효 전력(SN)", Value=$"0.0", Factor="kWh"},   // 4
+                new DataItem { Name="유효 전력(TN)", Value=$"0.0", Factor="kWh"},   // 5
 
                 new DataItem { Name="상전압 (AN)", Value=$"0.0", Factor="V"}, // 6
                 new DataItem { Name="상전압 (BN)", Value=$"0.0", Factor="V"}, // 7
@@ -139,35 +173,8 @@ namespace EMS_PJT_Hamburger.ViewModels
                 new DataItem { Name="선간 전압 (BC)", Value=$"0", Factor="V"}, // 13
                 new DataItem { Name="선간 전압 (CA)", Value=$"0", Factor="V"}, // 14
 
-                new DataItem { Name="주파수", Value=$"0.0", Factor="Hz"},      // 15
-                new DataItem { Name="역률", Value=$"0.00", Factor="%"},        // 16
-            };
-
-            LoadItems = new ObservableCollection<DataItem>
-            {
-                new DataItem { Header="----------------------- 상태 -----------------------"},
-                new DataItem { Name="Fault 상태", Value=$"0"},            // 1
-                new DataItem { Header="----------------------- 정보 -----------------------"},
-                new DataItem { Name="Total 송전 전력량", Value=$"0.0", Factor="KWh"},  // 3
-                new DataItem { Name="유효 전력", Value=$"0.0", Factor="kWh"},       // 4
-                new DataItem { Name="유효 전력(RN)", Value=$"0.0", Factor="kWh"},   // 5
-                new DataItem { Name="유효 전력(SN)", Value=$"0.0", Factor="kWh"},   // 6
-                new DataItem { Name="유효 전력(TN)", Value=$"0.0", Factor="kWh"},   // 7
-
-                new DataItem { Name="상전압 (AN)", Value=$"0.0", Factor="V"}, // 8
-                new DataItem { Name="상전압 (BN)", Value=$"0.0", Factor="V"}, // 9
-                new DataItem { Name="상전압 (CN)", Value=$"0.0", Factor="V"}, // 10
-
-                new DataItem { Name="상전류 (AN)", Value=$"0.0", Factor="A"}, // 11
-                new DataItem { Name="상전류 (BN)", Value=$"0.0", Factor="A"}, // 12
-                new DataItem { Name="상전류 (CN)", Value=$"0.0", Factor="A"}, // 13
-
-                new DataItem { Name="선간 전압 (AB)", Value=$"0", Factor="V"}, // 14
-                new DataItem { Name="선간 전압 (BC)", Value=$"0", Factor="V"}, // 15
-                new DataItem { Name="선간 전압 (CA)", Value=$"0", Factor="V"}, // 16
-
-                new DataItem { Name="주파수", Value=$"0.0", Factor="Hz"},       // 17
-                new DataItem { Name="역률", Value=$"0.00", Factor="%"},          // 18
+                new DataItem { Name="주파수", Value=$"0.0", Factor="Hz"},       // 15
+                new DataItem { Name="역률", Value=$"0.00", Factor="%"},         // 16
                 //new DataItem { Name="수전 누적 전력량(일간)", Value="124.4", Factor="kWh"},
                 //new DataItem { Name="송전 누적 전력량(일간)", Value="5.4", Factor="kWh"},
                 //new DataItem { Name="선간전압 BC", Value="23.0", Factor="V"},
@@ -178,18 +185,17 @@ namespace EMS_PJT_Hamburger.ViewModels
 
             EtcItems = new ObservableCollection<DataItem>
             {
-                new DataItem { Header="----------------------- 정보 -----------------------"},
-                new DataItem { Name="내부온도 (주위)", Value=$"0", Factor="℃"},      // 1
-                new DataItem { Name="내부온도1 (방열판)", Value=$"0", Factor="℃"},   // 2
-                new DataItem { Name="내부온도2 (방열판)", Value=$"0", Factor="℃"},   // 3
-                new DataItem { Name="내부온도3 (방열판)", Value=$"0", Factor="℃"},   // 4
-                new DataItem { Name="내부온도4 (방열판)", Value=$"0", Factor="℃"},   // 5
-                new DataItem { Name="내부온도5 (방열판)", Value=$"0", Factor="℃"},   // 6
-                new DataItem { Name="내부온도6 (방열판)", Value=$"0", Factor="℃"},   // 7
-                new DataItem { Name="내부온도7 (방열판)", Value=$"0", Factor="℃"},   // 8
-                new DataItem { Name="내부온도8 (방열판)", Value=$"0", Factor="℃"},   // 9
-                new DataItem { Name="누설 전류(RCMU)", Value=$"0", Factor="mA"},     // 10
-                new DataItem { Name="Heart Beat 카운트", Value=$"0", Factor="Cyc"},  // 11
+                new DataItem { Name="내부온도 (주위)", Value=$"0", Factor="℃"},      // 0
+                new DataItem { Name="내부온도1 (방열판)", Value=$"0", Factor="℃"},   // 1
+                new DataItem { Name="내부온도2 (방열판)", Value=$"0", Factor="℃"},   // 2
+                new DataItem { Name="내부온도3 (방열판)", Value=$"0", Factor="℃"},   // 3
+                new DataItem { Name="내부온도4 (방열판)", Value=$"0", Factor="℃"},   // 4
+                new DataItem { Name="내부온도5 (방열판)", Value=$"0", Factor="℃"},   // 5
+                new DataItem { Name="내부온도6 (방열판)", Value=$"0", Factor="℃"},   // 6
+                new DataItem { Name="내부온도7 (방열판)", Value=$"0", Factor="℃"},   // 7
+                new DataItem { Name="내부온도8 (방열판)", Value=$"0", Factor="℃"},   // 8
+                new DataItem { Name="누설 전류(RCMU)", Value=$"0", Factor="mA"},     // 9
+                new DataItem { Name="Heart Beat 카운트", Value=$"0", Factor="Cyc"},  // 10
             }; 
             
             BattItems = new ObservableCollection<DataItem>
@@ -200,6 +206,10 @@ namespace EMS_PJT_Hamburger.ViewModels
                 new DataItem { Name="Battery 전압", Value=$"0", Factor="kWh"},   // 3
                 new DataItem { Name="Battery 전류", Value=$"0.0", Factor="kWh"},   // 4
             };
+
+            DailyPowerTrendSeries = new SciChart.Charting.Model.DataSeries.XyDataSeries<DateTime, double> { SeriesName = "Active Power" };
+            SelectPcsSection("Grid");
+            SelectPowerTrendInterval("1M");
 
             _ = ConnectAsync();
         }
@@ -240,7 +250,7 @@ namespace EMS_PJT_Hamburger.ViewModels
         {
             var operationMode = ReadControlU16(registers, "OperationMode");
             var chargeMode = ReadControlU16(registers, "ChargeMode");
-            var chargeDischargeStart = ReadControlU16(registers, "ChargeDischargeStart");
+            var chargeDischargeStart = ReadControlU16(registers, "ChargeDischargeStart"); // 1003
             var maxChargePowerPercent = ReadControlU16(registers, "MaxChargePowerPercent");
             var maxDischargePowerPercent = ReadControlU16(registers, "MaxDischargePowerPercent");
             var maxChargePower = ReadControlU32(registers, "MaxChargePower");
@@ -272,6 +282,8 @@ namespace EMS_PJT_Hamburger.ViewModels
             ControlMaxDischargeCurrentRead = FormatControlValue(maxDischargeCurrent);
             ControlGridMaxImportPowerWRead = FormatControlValue(gridMaxImportPower);
             ControlGridMaxExportPowerWRead = FormatControlValue(gridMaxExportPower);
+            if (IsControlSectionSelected)
+                SelectedPcsDetailItems = BuildControlDetailItems();
 
             // PCS-only communication test: comment this call to disable BMS/SOC stop policy.
             _ = ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.Monitor);
@@ -323,6 +335,85 @@ namespace EMS_PJT_Hamburger.ViewModels
             Cmd_FaultReset = new DelegateCommand(async () => await ExecuteControlSequenceAsync("Fault Reset", FaultResetSequenceAsync));
             Cmd_EmergencyStop = new DelegateCommand(async () => await ExecuteControlSequenceAsync("비상정지", EmergencyStopSequenceAsync));
             Cmd_OpenFaultMessage = new DelegateCommand(OpenFaultMessageWindow);
+            Cmd_SelectPcsSection = new DelegateCommand<string>(SelectPcsSection);
+            Cmd_SelectPowerTrendInterval = new DelegateCommand<string>(SelectPowerTrendInterval);
+        }
+
+        private void SelectPcsSection(string section)
+        {
+            SelectedPcsSection = string.IsNullOrWhiteSpace(section) ? "Grid" : section;
+
+            switch (SelectedPcsSection)
+            {
+                case "Inverter":
+                    SelectedPcsDetailItems = InvItems;
+                    break;
+                case "Battery":
+                    SelectedPcsDetailItems = BattItems;
+                    break;
+                case "Load":
+                    SelectedPcsDetailItems = LoadItems;
+                    break;
+                case "Control":
+                    SelectedPcsDetailItems = BuildControlDetailItems();
+                    break;
+                case "Grid":
+                default:
+                    SelectedPcsDetailItems = GridItems;
+                    break;
+            }
+
+            RaisePropertyChanged(nameof(IsGridSectionSelected));
+            RaisePropertyChanged(nameof(IsInverterSectionSelected));
+            RaisePropertyChanged(nameof(IsBatterySectionSelected));
+            RaisePropertyChanged(nameof(IsLoadSectionSelected));
+            RaisePropertyChanged(nameof(IsControlSectionSelected));
+        }
+
+        private void SelectPowerTrendInterval(string interval)
+        {
+            SelectedPowerTrendInterval = string.IsNullOrWhiteSpace(interval) ? "1M" : interval;
+
+            switch (SelectedPowerTrendInterval)
+            {
+                case "1H":
+                    SetPowerTrendInterval(TimeSpan.FromHours(1));
+                    break;
+                case "1D":
+                    SetPowerTrendInterval(TimeSpan.FromDays(1));
+                    break;
+                case "1M":
+                default:
+                    SelectedPowerTrendInterval = "1M";
+                    SetPowerTrendInterval(TimeSpan.FromMinutes(1));
+                    break;
+            }
+
+            RaisePropertyChanged(nameof(IsPowerTrendMinuteSelected));
+            RaisePropertyChanged(nameof(IsPowerTrendHourSelected));
+            RaisePropertyChanged(nameof(IsPowerTrendDaySelected));
+        }
+
+        private ObservableCollection<DataItem> BuildControlDetailItems()
+        {
+            return new ObservableCollection<DataItem>
+            {
+                new DataItem { Name="기동모드", Value=ControlOperationModeRead, Factor="Read" },
+                new DataItem { Name="충방전 모드", Value=ControlChargeModeRead, Factor="Read" },
+                new DataItem { Name="충전 전력", Value=ControlMaxChargePowerPercentRead, Factor="%" },
+                new DataItem { Name="방전 전력", Value=ControlMaxDischargePowerPercentRead, Factor="%" },
+                new DataItem { Name="최대 충전전력", Value=ControlMaxChargePowerWRead, Factor="W" },
+                new DataItem { Name="최대 방전전력", Value=ControlMaxDischargePowerWRead, Factor="W" },
+                new DataItem { Name="최대충전 SOC", Value=ControlMaxChargeSocRead, Factor="%" },
+                new DataItem { Name="최소방전 SOC", Value=ControlMinDischargeSocRead, Factor="%" },
+                new DataItem { Name="최대 충전전압", Value=ControlMaxChargeVoltageRead, Factor="V" },
+                new DataItem { Name="최대 방전전압", Value=ControlMaxDischargeVoltageRead, Factor="V" },
+                new DataItem { Name="최대 충전전류", Value=ControlMaxChargeCurrentRead, Factor="A" },
+                new DataItem { Name="최대 방전전류", Value=ControlMaxDischargeCurrentRead, Factor="A" },
+                new DataItem { Name="Grid 수전제한", Value=ControlGridMaxImportPowerWRead, Factor="W" },
+                new DataItem { Name="Grid 송전제한", Value=ControlGridMaxExportPowerWRead, Factor="W" },
+                new DataItem { Name="PCS Fault Message", Value=SystemMsg, Factor="" },
+            };
         }
 
         private void OpenFaultMessageWindow()

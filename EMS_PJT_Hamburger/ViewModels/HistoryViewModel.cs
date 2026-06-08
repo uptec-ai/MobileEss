@@ -1,6 +1,7 @@
 using DevExpress.Mvvm;
 using EMS_PJT_Hamburger.Models.Managers;
 using Npgsql;
+using SciChart.Charting.Model.DataSeries;
 using System;
 using System.Collections.ObjectModel;
 using System.Data;
@@ -13,9 +14,6 @@ namespace EMS_PJT_Hamburger.ViewModels
 {
     public sealed class HistoryViewModel : ViewModelBase
     {
-        private const double ChartWidth = 720d;
-        private const double ChartHeight = 190d;
-
         public ObservableCollection<HistoryDataRow> PcsRows { get; } = new ObservableCollection<HistoryDataRow>();
         public ObservableCollection<HistoryDataRow> BmsRows { get; } = new ObservableCollection<HistoryDataRow>();
         public ObservableCollection<HistoryAlarmRow> AlarmRows { get; } = new ObservableCollection<HistoryAlarmRow>();
@@ -61,24 +59,24 @@ namespace EMS_PJT_Hamburger.ViewModels
             set => SetProperty(() => AlarmCount, value);
         }
 
-        public PointCollection PcsChartPoints
+        public XyDataSeries<DateTime, double> PcsTrendSeries
         {
-            get => GetProperty(() => PcsChartPoints);
-            set => SetProperty(() => PcsChartPoints, value);
+            get => GetProperty(() => PcsTrendSeries);
+            set => SetProperty(() => PcsTrendSeries, value);
         }
 
-        public PointCollection BmsChartPoints
+        public XyDataSeries<DateTime, double> BmsTrendSeries
         {
-            get => GetProperty(() => BmsChartPoints);
-            set => SetProperty(() => BmsChartPoints, value);
+            get => GetProperty(() => BmsTrendSeries);
+            set => SetProperty(() => BmsTrendSeries, value);
         }
 
         public HistoryViewModel()
         {
             StartDate = DateTime.Today;
             EndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
-            PcsChartPoints = new PointCollection();
-            BmsChartPoints = new PointCollection();
+            PcsTrendSeries = CreateTrendSeries("PCS Trend");
+            BmsTrendSeries = CreateTrendSeries("BMS Trend");
 
             Cmd_Refresh = new DelegateCommand(LoadHistory);
             Cmd_Today = new DelegateCommand(() =>
@@ -131,69 +129,126 @@ namespace EMS_PJT_Hamburger.ViewModels
         private void LoadPcsRows(DbManager db)
         {
             var ds = db.GetDataSetByQuery(@"
-select *
-from public.tb_pcs_grid
-order by 1 desc
-limit 200;");
+select collected_at, message_name, payload_length, compressed_length, summary
+from public.tb_ems_raw_data
+where source = 'PCS'
+  and collected_at >= @start_at
+  and collected_at <= @end_at
+order by collected_at desc
+limit 200;",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@start_at", StartDate);
+                    cmd.Parameters.AddWithValue("@end_at", EndDate);
+                });
 
             var table = FirstTable(ds);
-            if (table == null) return;
-
-            foreach (DataRow row in table.Rows)
+            if (table != null)
             {
-                var occurredAt = ReadDate(row, "collected_at", DateTime.MinValue);
-                if (!IsInRangeOrUnknown(occurredAt)) continue;
-
-                var imported = ReadDouble(row, "total_imported", ReadDouble(row, "grid_total_imported_energy", 0));
-                var exported = ReadDouble(row, "total_exported", ReadDouble(row, "grid_total_exported_energy", 0));
-                PcsRows.Add(new HistoryDataRow
+                foreach (DataRow row in table.Rows)
                 {
-                    Time = FormatTime(occurredAt),
-                    Source = "PCS",
-                    Name = "Grid Energy",
-                    Value1Name = "Imported",
-                    Value1 = FormatNumber(imported),
-                    Value2Name = "Exported",
-                    Value2 = FormatNumber(exported),
-                    Value3Name = "Unit",
-                    Value3 = "kWh",
-                    ChartValue = imported + exported
-                });
+                    var occurredAt = ReadDate(row, "collected_at", DateTime.MinValue);
+                    var payloadLength = ReadDouble(row, "payload_length", 0);
+                    var compressedLength = ReadDouble(row, "compressed_length", 0);
+
+                    PcsRows.Add(new HistoryDataRow
+                    {
+                        Time = FormatTime(occurredAt),
+                        Source = "PCS",
+                        Name = ReadString(row, "message_name", "Raw"),
+                        Value1Name = "Raw",
+                        Value1 = FormatNumber(payloadLength),
+                        Value2Name = "Compressed",
+                        Value2 = FormatNumber(compressedLength),
+                        Value3Name = "Summary",
+                        Value3 = ReadString(row, "summary", "-"),
+                        ChartValue = compressedLength
+                    });
+                }
             }
+
+            LoadSystemStateRows(db, "PCS", PcsRows);
         }
 
         private void LoadBmsRows(DbManager db)
         {
             var ds = db.GetDataSetByQuery(@"
-select *
-from public.tb_bms
-order by 1 desc
-limit 200;");
+select collected_at, message_name, payload_length, compressed_length, summary
+from public.tb_ems_raw_data
+where source = 'BMS'
+  and collected_at >= @start_at
+  and collected_at <= @end_at
+order by collected_at desc
+limit 200;",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@start_at", StartDate);
+                    cmd.Parameters.AddWithValue("@end_at", EndDate);
+                });
+
+            var table = FirstTable(ds);
+            if (table != null)
+            {
+                foreach (DataRow row in table.Rows)
+                {
+                    var occurredAt = ReadDate(row, "collected_at", DateTime.MinValue);
+                    var payloadLength = ReadDouble(row, "payload_length", 0);
+                    var compressedLength = ReadDouble(row, "compressed_length", 0);
+
+                    BmsRows.Add(new HistoryDataRow
+                    {
+                        Time = FormatTime(occurredAt),
+                        Source = "BMS",
+                        Name = ReadString(row, "message_name", "Raw"),
+                        Value1Name = "Raw",
+                        Value1 = FormatNumber(payloadLength),
+                        Value2Name = "Compressed",
+                        Value2 = FormatNumber(compressedLength),
+                        Value3Name = "Summary",
+                        Value3 = ReadString(row, "summary", "-"),
+                        ChartValue = compressedLength
+                    });
+                }
+            }
+
+            LoadSystemStateRows(db, "BMS", BmsRows);
+        }
+
+        private void LoadSystemStateRows(DbManager db, string source, ObservableCollection<HistoryDataRow> target)
+        {
+            var ds = db.GetDataSetByQuery(@"
+select collected_at, ready_name, ready_text, ready_value, raw_value
+from public.tb_ems_system_state
+where source = @source
+  and collected_at >= @start_at
+  and collected_at <= @end_at
+order by collected_at desc
+limit 100;",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@source", source);
+                    cmd.Parameters.AddWithValue("@start_at", StartDate);
+                    cmd.Parameters.AddWithValue("@end_at", EndDate);
+                });
 
             var table = FirstTable(ds);
             if (table == null) return;
 
             foreach (DataRow row in table.Rows)
             {
-                var occurredAt = ReadDate(row, "collected_at", ReadDate(row, "occurred_at", DateTime.MinValue));
-                if (!IsInRangeOrUnknown(occurredAt)) continue;
-
-                var soc = ReadDouble(row, "disp_soc", ReadDouble(row, "soc", 0));
-                var voltage = ReadDouble(row, "total_volt", ReadDouble(row, "total_voltage", 0));
-                var current = ReadDouble(row, "total_curr", ReadDouble(row, "total_current", 0));
-
-                BmsRows.Add(new HistoryDataRow
+                var readyValue = ReadString(row, "ready_value", "-");
+                target.Add(new HistoryDataRow
                 {
-                    Time = FormatTime(occurredAt),
-                    Source = "BMS",
-                    Name = ReadString(row, "status", "Battery"),
-                    Value1Name = "SOC",
-                    Value1 = FormatNumber(soc),
-                    Value2Name = "Voltage",
-                    Value2 = FormatNumber(voltage),
-                    Value3Name = "Current",
-                    Value3 = FormatNumber(current),
-                    ChartValue = soc
+                    Time = FormatTime(ReadDate(row, "collected_at", DateTime.MinValue)),
+                    Source = source,
+                    Name = ReadString(row, "ready_name", "Ready"),
+                    Value1Name = "Ready",
+                    Value1 = ReadString(row, "ready_text", readyValue),
+                    Value2Name = "Raw",
+                    Value2 = ReadString(row, "raw_value", "-"),
+                    Value3Name = "Type",
+                    Value3 = "System",
+                    ChartValue = string.Equals(readyValue, "true", StringComparison.OrdinalIgnoreCase) ? 1 : 0
                 });
             }
         }
@@ -226,7 +281,9 @@ limit 300;",
                     Code = ReadString(row, "alarm_code", "-"),
                     Message = ReadString(row, "fault_message", ReadString(row, "alarm_name", "-")),
                     Raw = ReadString(row, "raw_value", "-"),
-                    IsReset = ReadString(row, "is_reset", "false")
+                    IsReset = ReadString(row, "is_reset", "false"),
+                    Severity = ResolveSeverity(row),
+                    SeverityBrush = ResolveSeverityBrush(row)
                 });
             }
         }
@@ -237,36 +294,44 @@ limit 300;",
             BmsCount = BmsRows.Count;
             AlarmCount = AlarmRows.Count;
 
-            MetricCards.Add(new HistoryMetricCard { Title = "PCS DATA", Value = PcsCount.ToString(), Accent = "#FF76F7A8" });
-            MetricCards.Add(new HistoryMetricCard { Title = "BMS DATA", Value = BmsCount.ToString(), Accent = "#FF87FFFF" });
-            MetricCards.Add(new HistoryMetricCard { Title = "ALARMS", Value = AlarmCount.ToString(), Accent = "#FFFF8C8C" });
-            MetricCards.Add(new HistoryMetricCard { Title = "PERIOD", Value = $"{StartDate:MM-dd} ~ {EndDate:MM-dd}", Accent = "#FFFFE2A6" });
+            MetricCards.Add(new HistoryMetricCard { Title = "PCS DATA", Value = PcsCount.ToString(), Unit = "건", Accent = "#FF76F7A8" });
+            MetricCards.Add(new HistoryMetricCard { Title = "BMS DATA", Value = BmsCount.ToString(), Unit = "건", Accent = "#FF4EA5FF" });
+            MetricCards.Add(new HistoryMetricCard { Title = "ALARMS", Value = AlarmCount.ToString(), Unit = "건", Accent = "#FFFF5F5F" });
+            MetricCards.Add(new HistoryMetricCard { Title = "PERIOD", Value = $"{StartDate:MM-dd} ~ {EndDate:MM-dd}", Unit = string.Empty, Accent = "#FFFFC83D", SubValue = BuildPeriodText() });
         }
 
         private void UpdateCharts()
         {
-            PcsChartPoints = BuildPoints(PcsRows.Reverse().Select(x => x.ChartValue).ToArray());
-            BmsChartPoints = BuildPoints(BmsRows.Reverse().Select(x => x.ChartValue).ToArray());
+            PcsTrendSeries = BuildTrendSeries("PCS Trend", PcsRows.Reverse().ToArray());
+            BmsTrendSeries = BuildTrendSeries("BMS Trend", BmsRows.Reverse().ToArray());
         }
 
-        private static PointCollection BuildPoints(double[] values)
+        private static XyDataSeries<DateTime, double> CreateTrendSeries(string name)
         {
-            var points = new PointCollection();
-            if (values == null || values.Length == 0)
-                return points;
+            return new XyDataSeries<DateTime, double> { SeriesName = name };
+        }
 
-            var min = values.Min();
-            var max = values.Max();
-            var span = Math.Max(1d, max - min);
+        private static XyDataSeries<DateTime, double> BuildTrendSeries(string name, HistoryDataRow[] rows)
+        {
+            var series = CreateTrendSeries(name);
+            if (rows == null || rows.Length == 0)
+                return series;
 
-            for (var i = 0; i < values.Length; i++)
+            foreach (var row in rows)
             {
-                var x = values.Length == 1 ? 0 : (ChartWidth / (values.Length - 1)) * i;
-                var y = ChartHeight - ((values[i] - min) / span * ChartHeight);
-                points.Add(new Point(x, y));
+                if (!DateTime.TryParse(row.Time, CultureInfo.CurrentCulture, DateTimeStyles.None, out var time))
+                    continue;
+
+                series.Append(time, row.ChartValue);
             }
 
-            return points;
+            return series;
+        }
+
+        private string BuildPeriodText()
+        {
+            var days = Math.Max(1, (EndDate.Date - StartDate.Date).Days + 1);
+            return days == 1 ? "1 Day" : $"{days} Days";
         }
 
         private bool IsInRangeOrUnknown(DateTime value)
@@ -323,6 +388,27 @@ limit 300;",
         {
             return value.ToString("0.###", CultureInfo.CurrentCulture);
         }
+
+        private static string ResolveSeverity(DataRow row)
+        {
+            var source = ReadString(row, "source", string.Empty);
+            var category = ReadString(row, "category", string.Empty);
+            var message = ReadString(row, "fault_message", ReadString(row, "alarm_name", string.Empty));
+            var merged = $"{source} {category} {message}";
+
+            if (merged.IndexOf("Fault", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                merged.IndexOf("BMS", StringComparison.OrdinalIgnoreCase) >= 0)
+                return "Critical";
+
+            return "Warning";
+        }
+
+        private static string ResolveSeverityBrush(DataRow row)
+        {
+            return string.Equals(ResolveSeverity(row), "Critical", StringComparison.OrdinalIgnoreCase)
+                ? "#FFFF5F5F"
+                : "#FFFFC83D";
+        }
     }
 
     public sealed class HistoryDataRow
@@ -348,12 +434,16 @@ limit 300;",
         public string Message { get; set; }
         public string Raw { get; set; }
         public string IsReset { get; set; }
+        public string Severity { get; set; }
+        public string SeverityBrush { get; set; }
     }
 
     public sealed class HistoryMetricCard
     {
         public string Title { get; set; }
         public string Value { get; set; }
+        public string Unit { get; set; }
         public string Accent { get; set; }
+        public string SubValue { get; set; }
     }
 }

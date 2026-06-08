@@ -36,6 +36,11 @@ namespace EMS_PJT_Hamburger
 
         private void Btn_Home_Click(object sender, RoutedEventArgs e)
         {
+            NavigateHome();
+        }
+
+        public void NavigateHome()
+        {
             app.MainWindow = this;
             NaviFrame.Content = app.HomeView;
         }

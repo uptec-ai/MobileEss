@@ -24,5 +24,14 @@ namespace EMS_PJT_Hamburger.Views
         {
             InitializeComponent();
         }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            var app = Application.Current as App;
+            if (app?.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.NavigateHome();
+            }
+        }
     }
 }

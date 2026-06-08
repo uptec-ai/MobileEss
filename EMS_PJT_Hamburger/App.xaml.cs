@@ -112,6 +112,14 @@ namespace EMS_PJT_Hamburger
             StatusManager = new StatusManager();
             StatusManager.Init();
             DbManager = new DbManager();
+            try
+            {
+                DbManager.EnsureEssHistoryTables();
+            }
+            catch (Exception ex)
+            {
+                nlog.Warn(ex, "ESS history database schema initialization failed.");
+            }
 
             // Communication Code
             //CommonSetDataModel = new CommonSetDataModel();

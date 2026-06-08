@@ -21,6 +21,41 @@ namespace EMS_PJT_Hamburger.Models.Managers
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => throw new NotImplementedException();
     }
+    public class OperatingModeConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null)
+                return "Stop";
+
+            int rawValue;
+
+            try
+            {
+                rawValue = System.Convert.ToInt32(value);
+            }
+            catch
+            {
+                return "Stop";
+            }
+
+            bool bit1 = (rawValue & (1 << 1)) != 0;
+            bool bit3 = (rawValue & (1 << 3)) != 0;
+
+            if (bit1)
+                return "Charge";
+
+            if (bit3)
+                return "Discharge";
+
+            return "Stop";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
     public class ConvertManager
     {
         public ImageSource GetSvgImage(string imagePath, Size imageSize)

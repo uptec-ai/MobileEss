@@ -26,6 +26,9 @@ namespace EMS_PJT_Hamburger.ViewModels
         private DateTime _lastFrameReceivedUtc = DateTime.MinValue;
         private StatusManager.BMSStatus _lastPublishedBmsStatus = StatusManager.BMSStatus.None;
         private DispatcherTimer _bmsStatusTimer;
+        private string _lastBmsReadyStateKey;
+        private readonly HashSet<int> _activeBmsFaultCodes = new HashSet<int>();
+        private readonly Dictionary<uint, DateTime> _lastBmsRawSavedUtcByCanId = new Dictionary<uint, DateTime>();
 
         public BMSViewModel()
         {
@@ -108,6 +111,7 @@ namespace EMS_PJT_Hamburger.ViewModels
             if(canId >= 0x150 && canId < 0x154)
             {
                 StatusMessage(parsed, canId);
+                SaveBmsHistory(canId, spec.Name, parsed, data);
             }
             else
             {
@@ -122,6 +126,68 @@ namespace EMS_PJT_Hamburger.ViewModels
                     };
                 }
             }
+        }
+
+        private void SaveBmsHistory(uint canId, string messageName, Dictionary<string, object> parsed, byte[] rawFrame)
+        {
+            if (app?.DbManager == null || parsed == null) return;
+
+            if (canId == 0x150 || canId == 0x152 || canId == 0x153)
+                SaveBmsRawData(canId, messageName, parsed, rawFrame);
+
+            if (canId == 0x150 || canId == 0x152)
+                SaveBmsReadyState();
+
+            if (canId == 0x151)
+                SaveBmsFaultChanges();
+        }
+
+        private void SaveBmsRawData(uint canId, string messageName, Dictionary<string, object> parsed, byte[] rawFrame)
+        {
+            var nowUtc = DateTime.UtcNow;
+            if (_lastBmsRawSavedUtcByCanId.TryGetValue(canId, out var lastSaved) &&
+                nowUtc - lastSaved < TimeSpan.FromSeconds(1))
+                return;
+
+            app.DbManager.InsertCompressedRawData(
+                "BMS",
+                messageName,
+                unchecked((int)canId),
+                parsed,
+                rawFrame,
+                DateTime.Now);
+
+            _lastBmsRawSavedUtcByCanId[canId] = nowUtc;
+        }
+
+        private void SaveBmsReadyState()
+        {
+            var bmsReady = string.Equals(StatusMsg01.Ready, "Ready", StringComparison.OrdinalIgnoreCase);
+            var mbmsReady = string.Equals(StatusMsg03.MbmsReady, "Ready", StringComparison.OrdinalIgnoreCase);
+            var readyKey = $"{StatusMsg01.Ready}|{StatusMsg03.MbmsReady}|{StatusMsg01.MbmsState}|{StatusMsg03.PackReady}";
+            if (readyKey == _lastBmsReadyStateKey) return;
+
+            var now = DateTime.Now;
+            app.DbManager.InsertSystemReadyState("BMS", "BmsReady", bmsReady, StatusMsg01.Ready, StatusMsg01.MbmsState, now);
+            app.DbManager.InsertSystemReadyState("BMS", "MbmsReady", mbmsReady, StatusMsg03.MbmsReady, StatusMsg03.PackReady, now);
+
+            _lastBmsReadyStateKey = readyKey;
+        }
+
+        private void SaveBmsFaultChanges()
+        {
+            var activeFaults = GetActiveFaults(StatusMsg02);
+            var activeCodes = new HashSet<int>(activeFaults.Select(x => x.Code));
+
+            foreach (var fault in activeFaults)
+            {
+                if (!_activeBmsFaultCodes.Add(fault.Code))
+                    continue;
+
+                app.DbManager.InsertBmsAlarmData((fault.Code, fault.Name), 0);
+            }
+
+            _activeBmsFaultCodes.RemoveWhere(code => !activeCodes.Contains(code));
         }
         
         private void VariableInitialize()
