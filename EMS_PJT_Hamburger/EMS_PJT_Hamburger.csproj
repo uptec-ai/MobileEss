@@ -330,6 +330,7 @@
     <Compile Include="Models\Managers\AnimationManager.cs" />
     <Compile Include="Models\Managers\ConvertManager.cs" />
     <Compile Include="Models\Managers\CredentialStore.cs" />
+    <Compile Include="Models\Managers\AlarmFileLogger.cs" />
     <Compile Include="Models\Managers\DbManager.cs" />
     <Compile Include="Models\Managers\EMSStatusManager.cs" />
     <Compile Include="ThemedSplashScreen\SplashScreen.xaml.cs">

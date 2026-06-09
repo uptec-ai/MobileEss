@@ -14,6 +14,9 @@ namespace EMS_PJT_Hamburger.ViewModels
 {
     public sealed class HistoryViewModel : ViewModelBase
     {
+        private const int MaxHourlyPayloadRows = 720;
+        private const int MaxHistoryDays = 30;
+
         public ObservableCollection<HistoryDataRow> PcsRows { get; } = new ObservableCollection<HistoryDataRow>();
         public ObservableCollection<HistoryDataRow> BmsRows { get; } = new ObservableCollection<HistoryDataRow>();
         public ObservableCollection<HistoryAlarmRow> AlarmRows { get; } = new ObservableCollection<HistoryAlarmRow>();
@@ -71,10 +74,17 @@ namespace EMS_PJT_Hamburger.ViewModels
             set => SetProperty(() => BmsTrendSeries, value);
         }
 
+        public string TrendXAxisTextFormatting
+        {
+            get => GetProperty(() => TrendXAxisTextFormatting);
+            set => SetProperty(() => TrendXAxisTextFormatting, value);
+        }
+
         public HistoryViewModel()
         {
             StartDate = DateTime.Today;
             EndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
+            TrendXAxisTextFormatting = "HH:mm";
             PcsTrendSeries = CreateTrendSeries("PCS Trend");
             BmsTrendSeries = CreateTrendSeries("BMS Trend");
 
@@ -112,6 +122,9 @@ namespace EMS_PJT_Hamburger.ViewModels
                     return;
                 }
 
+                if (!ValidateSearchPeriod())
+                    return;
+
                 LoadPcsRows(db);
                 LoadBmsRows(db);
                 LoadAlarmRows(db);
@@ -129,17 +142,25 @@ namespace EMS_PJT_Hamburger.ViewModels
         private void LoadPcsRows(DbManager db)
         {
             var ds = db.GetDataSetByQuery(@"
-select collected_at, message_name, payload_length, compressed_length, summary
-from public.tb_ems_raw_data
-where source = 'PCS'
-  and collected_at >= @start_at
-  and collected_at <= @end_at
+select collected_at, saved_count
+from
+(
+    select
+        date_trunc('hour', collected_at) as collected_at,
+        count(*) as saved_count
+    from public.tb_ems_raw_data
+    where source = 'PCS'
+      and collected_at >= @start_at
+      and collected_at <= @end_at
+    group by date_trunc('hour', collected_at)
+) hourly_count
 order by collected_at desc
-limit 200;",
+limit @limit;",
                 cmd =>
                 {
-                    cmd.Parameters.AddWithValue("@start_at", StartDate);
-                    cmd.Parameters.AddWithValue("@end_at", EndDate);
+                    cmd.Parameters.AddWithValue("@start_at", QueryStartDate());
+                    cmd.Parameters.AddWithValue("@end_at", QueryEndDate());
+                    cmd.Parameters.AddWithValue("@limit", MaxHourlyPayloadRows);
                 });
 
             var table = FirstTable(ds);
@@ -148,21 +169,22 @@ limit 200;",
                 foreach (DataRow row in table.Rows)
                 {
                     var occurredAt = ReadDate(row, "collected_at", DateTime.MinValue);
-                    var payloadLength = ReadDouble(row, "payload_length", 0);
-                    var compressedLength = ReadDouble(row, "compressed_length", 0);
+                    var savedCount = ReadDouble(row, "saved_count", 0);
 
                     PcsRows.Add(new HistoryDataRow
                     {
+                        OccurredAt = occurredAt,
+                        IsPayloadTrendPoint = true,
                         Time = FormatTime(occurredAt),
                         Source = "PCS",
-                        Name = ReadString(row, "message_name", "Raw"),
-                        Value1Name = "Raw",
-                        Value1 = FormatNumber(payloadLength),
-                        Value2Name = "Compressed",
-                        Value2 = FormatNumber(compressedLength),
+                        Name = "Hourly Raw Data",
+                        Value1Name = "Saved Count",
+                        Value1 = FormatNumber(savedCount),
+                        Value2Name = "Unit",
+                        Value2 = "건",
                         Value3Name = "Summary",
-                        Value3 = ReadString(row, "summary", "-"),
-                        ChartValue = compressedLength
+                        Value3 = "Hourly Count",
+                        ChartValue = savedCount
                     });
                 }
             }
@@ -173,17 +195,25 @@ limit 200;",
         private void LoadBmsRows(DbManager db)
         {
             var ds = db.GetDataSetByQuery(@"
-select collected_at, message_name, payload_length, compressed_length, summary
-from public.tb_ems_raw_data
-where source = 'BMS'
-  and collected_at >= @start_at
-  and collected_at <= @end_at
+select collected_at, saved_count
+from
+(
+    select
+        date_trunc('hour', collected_at) as collected_at,
+        count(*) as saved_count
+    from public.tb_ems_raw_data
+    where source = 'BMS'
+      and collected_at >= @start_at
+      and collected_at <= @end_at
+    group by date_trunc('hour', collected_at)
+) hourly_count
 order by collected_at desc
-limit 200;",
+limit @limit;",
                 cmd =>
                 {
-                    cmd.Parameters.AddWithValue("@start_at", StartDate);
-                    cmd.Parameters.AddWithValue("@end_at", EndDate);
+                    cmd.Parameters.AddWithValue("@start_at", QueryStartDate());
+                    cmd.Parameters.AddWithValue("@end_at", QueryEndDate());
+                    cmd.Parameters.AddWithValue("@limit", MaxHourlyPayloadRows);
                 });
 
             var table = FirstTable(ds);
@@ -192,21 +222,22 @@ limit 200;",
                 foreach (DataRow row in table.Rows)
                 {
                     var occurredAt = ReadDate(row, "collected_at", DateTime.MinValue);
-                    var payloadLength = ReadDouble(row, "payload_length", 0);
-                    var compressedLength = ReadDouble(row, "compressed_length", 0);
+                    var savedCount = ReadDouble(row, "saved_count", 0);
 
                     BmsRows.Add(new HistoryDataRow
                     {
+                        OccurredAt = occurredAt,
+                        IsPayloadTrendPoint = true,
                         Time = FormatTime(occurredAt),
                         Source = "BMS",
-                        Name = ReadString(row, "message_name", "Raw"),
-                        Value1Name = "Raw",
-                        Value1 = FormatNumber(payloadLength),
-                        Value2Name = "Compressed",
-                        Value2 = FormatNumber(compressedLength),
+                        Name = "Hourly Raw Data",
+                        Value1Name = "Saved Count",
+                        Value1 = FormatNumber(savedCount),
+                        Value2Name = "Unit",
+                        Value2 = "건",
                         Value3Name = "Summary",
-                        Value3 = ReadString(row, "summary", "-"),
-                        ChartValue = compressedLength
+                        Value3 = "Hourly Count",
+                        ChartValue = savedCount
                     });
                 }
             }
@@ -227,8 +258,8 @@ limit 100;",
                 cmd =>
                 {
                     cmd.Parameters.AddWithValue("@source", source);
-                    cmd.Parameters.AddWithValue("@start_at", StartDate);
-                    cmd.Parameters.AddWithValue("@end_at", EndDate);
+                    cmd.Parameters.AddWithValue("@start_at", QueryStartDate());
+                    cmd.Parameters.AddWithValue("@end_at", QueryEndDate());
                 });
 
             var table = FirstTable(ds);
@@ -239,6 +270,8 @@ limit 100;",
                 var readyValue = ReadString(row, "ready_value", "-");
                 target.Add(new HistoryDataRow
                 {
+                    OccurredAt = ReadDate(row, "collected_at", DateTime.MinValue),
+                    IsPayloadTrendPoint = false,
                     Time = FormatTime(ReadDate(row, "collected_at", DateTime.MinValue)),
                     Source = source,
                     Name = ReadString(row, "ready_name", "Ready"),
@@ -264,8 +297,8 @@ order by occurred_at desc
 limit 300;",
                 cmd =>
                 {
-                    cmd.Parameters.AddWithValue("@start_at", StartDate);
-                    cmd.Parameters.AddWithValue("@end_at", EndDate);
+                    cmd.Parameters.AddWithValue("@start_at", QueryStartDate());
+                    cmd.Parameters.AddWithValue("@end_at", QueryEndDate());
                 });
 
             var table = FirstTable(ds);
@@ -302,8 +335,9 @@ limit 300;",
 
         private void UpdateCharts()
         {
-            PcsTrendSeries = BuildTrendSeries("PCS Trend", PcsRows.Reverse().ToArray());
-            BmsTrendSeries = BuildTrendSeries("BMS Trend", BmsRows.Reverse().ToArray());
+            TrendXAxisTextFormatting = BuildTrendXAxisTextFormatting();
+            PcsTrendSeries = BuildTrendSeries("PCS Trend", PcsRows.Where(x => x.IsPayloadTrendPoint).Reverse().ToArray());
+            BmsTrendSeries = BuildTrendSeries("BMS Trend", BmsRows.Where(x => x.IsPayloadTrendPoint).Reverse().ToArray());
         }
 
         private static XyDataSeries<DateTime, double> CreateTrendSeries(string name)
@@ -319,19 +353,53 @@ limit 300;",
 
             foreach (var row in rows)
             {
-                if (!DateTime.TryParse(row.Time, CultureInfo.CurrentCulture, DateTimeStyles.None, out var time))
+                if (row.OccurredAt == DateTime.MinValue)
                     continue;
 
-                series.Append(time, row.ChartValue);
+                series.Append(row.OccurredAt, row.ChartValue);
             }
 
             return series;
+        }
+
+        private string BuildTrendXAxisTextFormatting()
+        {
+            var days = Math.Max(1, (EndDate.Date - StartDate.Date).Days + 1);
+            return days > 1 ? "MM-dd" : "HH:mm";
         }
 
         private string BuildPeriodText()
         {
             var days = Math.Max(1, (EndDate.Date - StartDate.Date).Days + 1);
             return days == 1 ? "1 Day" : $"{days} Days";
+        }
+
+        private bool ValidateSearchPeriod()
+        {
+            if (StartDate.Date > EndDate.Date)
+            {
+                StatusMessage = "History load failed: Start date must be before end date.";
+                return false;
+            }
+
+            var days = (EndDate.Date - StartDate.Date).Days + 1;
+            if (days > MaxHistoryDays)
+            {
+                StatusMessage = $"History load failed: 조회 기간은 최대 {MaxHistoryDays}일까지 가능합니다.";
+                return false;
+            }
+
+            return true;
+        }
+
+        private DateTime QueryStartDate()
+        {
+            return StartDate.Date;
+        }
+
+        private DateTime QueryEndDate()
+        {
+            return EndDate.Date.AddDays(1).AddTicks(-1);
         }
 
         private bool IsInRangeOrUnknown(DateTime value)
@@ -413,6 +481,8 @@ limit 300;",
 
     public sealed class HistoryDataRow
     {
+        public DateTime OccurredAt { get; set; }
+        public bool IsPayloadTrendPoint { get; set; }
         public string Time { get; set; }
         public string Source { get; set; }
         public string Name { get; set; }

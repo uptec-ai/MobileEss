@@ -13,6 +13,8 @@
              Background="Transparent"
              FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR">
     <UserControl.Resources>
+        <Managers:RelayToBrushConverter x:Key="RelayToBrushConverter"/>
+        <Managers:RelayConverter x:Key="RelayConverter"/>
         <Managers:OperatingModeConverter x:Key="OperatingModeConverter"/>
         <Style x:Key="PanelBorderStyle" TargetType="Border">
             <Setter Property="Background" Value="#D90F151B"/>
@@ -118,7 +120,7 @@
         </Style>
 
         <Style TargetType="{x:Type dx:SimpleButton}" x:Key="QuickActionButtonStyle">
-            <Setter Property="Width" Value="150"/>
+            <Setter Property="Width" Value="145"/>
             <Setter Property="Height" Value="50"/>
             <Setter Property="Margin" Value="10,0,0,0"/>
             <Setter Property="Padding" Value="0"/>
@@ -230,7 +232,7 @@
     <Viewbox Stretch="Uniform" StretchDirection="Both">
         <Grid Width="1200" Height="860" Background="{DynamicResource Main.Background}" Margin="12">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="500"/>
+                <ColumnDefinition Width="480"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
@@ -275,19 +277,10 @@
 
             <UniformGrid Grid.ColumnSpan="2" Grid.Row="1" Columns="5" Margin="0,0,0,12">
                 <Border Style="{StaticResource PanelBorderStyle}" Margin="0,0,10,0">
-                    <Grid Margin="16">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+                    <StackPanel Margin="16">
                         <TextBlock Text="STATUS" Style="{StaticResource CardLabelStyle}"/>
-                        <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="Normal" Foreground="#FF76F7A8" FontSize="22" FontWeight="Bold"/>
-                            <Border Width="42" Height="42" CornerRadius="21" Background="#FF76F7A8" Margin="18,0,0,0">
-                                <TextBlock Text="OK" Foreground="#102017" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </StackPanel>
-                    </Grid>
+                        <TextBlock Text="{Binding PanelData.CommReady, Converter={StaticResource RelayConverter}}" Foreground="{Binding PanelData.CommReady, Converter={StaticResource RelayToBrushConverter}}" FontSize="32" FontWeight="Bold" Margin="0,10,0,0"/>
+                    </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource PanelBorderStyle}" Margin="0,0,10,0">
@@ -301,28 +294,28 @@
                     <StackPanel Margin="16">
                         <TextBlock Text="POWER" Style="{StaticResource CardLabelStyle}"/>
                         <TextBlock Foreground="White" FontSize="22" FontWeight="Bold" Margin="0,10,0,0">
-                                <Run Text="{Binding GridItems[5].Value}" Foreground="White" FontSize="32" FontWeight="Bold"/>
-                                <Run Text=" kW" Foreground="#FFD2D7DC" FontSize="16"/>
+                                <Run Text="{Binding GridItems[3].Value}" Foreground="White" FontSize="32" FontWeight="Bold"/>
+                                <Run Text=" W" Foreground="#FFD2D7DC" FontSize="16"/>
                         </TextBlock>
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource PanelBorderStyle}" Margin="0,0,10,0">
                     <StackPanel Margin="16">
-                        <TextBlock Text="ALARM" Style="{StaticResource CardLabelStyle}"/>
+                        <TextBlock Text="TOTAL EXPORT ENERGY" Style="{StaticResource CardLabelStyle}"/>
                         <TextBlock Foreground="White" FontSize="22" FontWeight="Bold" Margin="0,10,0,0">
-                                <Run Text="{Binding PanelData.AlarmCnt}" Foreground="White" FontSize="32" FontWeight="Bold"/>
-                                <Run Text="cnt" Foreground="#FFD2D7DC" FontSize="16"/>
+                                <Run Text="{Binding PanelData.T_Export_Energy}" Foreground="White" FontSize="32" FontWeight="Bold"/>
+                                <Run Text="kWh" Foreground="#FFD2D7DC" FontSize="16"/>
                         </TextBlock>
                     </StackPanel>
                 </Border>
 
                 <Border Style="{StaticResource PanelBorderStyle}">
                     <StackPanel Margin="16">
-                        <TextBlock Text="TEMPERATURE" Style="{StaticResource CardLabelStyle}"/>
+                        <TextBlock Text="TOTAL IMPORT ENERGY" Style="{StaticResource CardLabelStyle}"/>
                         <TextBlock Foreground="White" FontSize="22" FontWeight="Bold" Margin="0,10,0,0">
-                                <Run Text="{Binding EtcItems[1].Value}" Foreground="White" FontSize="32" FontWeight="Bold"/>
-                                <Run Text="℃" Foreground="#FFD2D7DC" FontSize="16"/>
+                                <Run Text="{Binding PanelData.T_Import_Energy}" Foreground="White" FontSize="32" FontWeight="Bold"/>
+                                <Run Text="kWh" Foreground="#FFD2D7DC" FontSize="16"/>
                         </TextBlock>
                     </StackPanel>
                 </Border>
@@ -340,15 +333,15 @@
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                                 <ToggleButton Content="Grid" Command="{Binding Cmd_SelectPcsSection}" CommandParameter="Grid" IsChecked="{Binding IsGridSectionSelected, Mode=OneWay}" Style="{StaticResource SectionToggleStyle}"/>
                                 <ToggleButton Content="Inverter" Command="{Binding Cmd_SelectPcsSection}" CommandParameter="Inverter" IsChecked="{Binding IsInverterSectionSelected, Mode=OneWay}" Style="{StaticResource SectionToggleStyle}"/>
-                                <ToggleButton Content="Battery" Command="{Binding Cmd_SelectPcsSection}" CommandParameter="Battery" IsChecked="{Binding IsBatterySectionSelected, Mode=OneWay}" Style="{StaticResource SectionToggleStyle}"/>
                                 <ToggleButton Content="Load" Command="{Binding Cmd_SelectPcsSection}" CommandParameter="Load" IsChecked="{Binding IsLoadSectionSelected, Mode=OneWay}" Style="{StaticResource SectionToggleStyle}"/>
+                                <ToggleButton Content="Battery" Command="{Binding Cmd_SelectPcsSection}" CommandParameter="Battery" IsChecked="{Binding IsBatterySectionSelected, Mode=OneWay}" Style="{StaticResource SectionToggleStyle}"/>
                                 <ToggleButton Content="Control" Command="{Binding Cmd_SelectPcsSection}" CommandParameter="Control" IsChecked="{Binding IsControlSectionSelected, Mode=OneWay}" Style="{StaticResource SectionToggleStyle}" Margin="0"/>
                             </StackPanel>
                         </StackPanel>
                     </Grid>
 
                     <ListBox Grid.Row="1"
-                                 ItemsSource="{Binding SelectedPcsDetailItems}">
+                             ItemsSource="{Binding SelectedPcsDetailItems}">
                         <ListBox.Style>
                             <Style TargetType="ListBox" BasedOn="{StaticResource DetailListBoxStyle}">
                                 <Setter Property="Visibility" Value="Visible"/>
@@ -369,7 +362,7 @@
                                             <ColumnDefinition Width="54"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Text="{Binding Name}" Foreground="#FFE6E6E6" FontSize="14" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Grid.Column="1" Text="{Binding Value}" Foreground="White" FontSize="17" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding Value}" Foreground="White" FontSize="24" FontWeight="Normal" HorizontalAlignment="Right" VerticalAlignment="Center" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Open 24 Display St"/>
                                         <TextBlock Grid.Column="2" Text="{Binding Factor}" Foreground="#FFC8CDD2" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                     </Grid>
                                 </Border>
@@ -402,6 +395,7 @@
                                 <RowDefinition Height="30"/>
                                 <RowDefinition Height="30"/>
                                 <RowDefinition Height="30"/>
+                                <RowDefinition Height="10"/>
                                 <RowDefinition Height="40"/>
                                 <RowDefinition Height="40"/>
                             </Grid.RowDefinitions>
@@ -497,8 +491,8 @@
                                     </Style>
                                 </ToggleButton.Style>
                             </ToggleButton>
-                            <dx:SimpleButton Grid.ColumnSpan="3" Grid.Row="16" Content="Alarm Reset" Command="{Binding Cmd_FaultReset}" Style="{StaticResource ControlActionButtonStyle}" Glyph="{dx:DXImage 'SvgImages/Outlook Inspired/ResetView.svg'}"/>
-                            <dx:SimpleButton Grid.ColumnSpan="3" Grid.Row="17" Content="PCS Fault Message" Command="{Binding Cmd_OpenFaultMessage}" Style="{StaticResource ControlActionButtonStyle}" Glyph="{dx:DXImage 'SvgImages/Icon Builder/Security_Warning.svg'}"/>
+                            <dx:SimpleButton Grid.ColumnSpan="3" Grid.Row="17" Content="Alarm Reset" Command="{Binding Cmd_FaultReset}" Style="{StaticResource ControlActionButtonStyle}" Glyph="{dx:DXImage 'SvgImages/Outlook Inspired/ResetView.svg'}"/>
+                            <dx:SimpleButton Grid.ColumnSpan="3" Grid.Row="18" Content="PCS Fault Message" Command="{Binding Cmd_OpenFaultMessage}" Style="{StaticResource ControlActionButtonStyle}" Glyph="{dx:DXImage 'SvgImages/Icon Builder/Security_Warning.svg'}"/>
                         </Grid>
                     </ScrollViewer>
                 </Grid>
@@ -513,7 +507,6 @@
                     <Grid>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Power Trend" Foreground="#FF76F7A8" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <TextBlock Text="(kW)" Style="{StaticResource MutedTextStyle}" Margin="8,0,0,0"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <ToggleButton Content="1m" Command="{Binding Cmd_SelectPowerTrendInterval}" CommandParameter="1M" IsChecked="{Binding IsPowerTrendMinuteSelected, Mode=OneWay}" Style="{StaticResource TrendIntervalToggleStyle}"/>
@@ -522,38 +515,61 @@
                         </StackPanel>
                     </Grid>
 
-                    <s:SciChartSurface Grid.Row="1" Background="Transparent">
+                    <s:SciChartSurface x:Name="PowerTrendChart"
+                                       Grid.Row="1"
+                                       Background="Transparent"
+                                       MouseDoubleClick="PowerTrendChart_MouseDoubleClick"
+                                       PreviewMouseWheel="PowerTrendChart_PreviewMouseWheel"
+                                       PreviewMouseLeftButtonDown="PowerTrendChart_PreviewMouseLeftButtonDown">
                         <s:SciChartSurface.RenderableSeries>
                             <s:FastMountainRenderableSeries DataSeries="{Binding DailyPowerTrendSeries}"
                                                             Stroke="#76F7A8"
                                                             StrokeThickness="3"
-                                                            Fill="#3A2C8D54"/>
+                                                            Fill="#3A2C8D54">
+                                <s:FastMountainRenderableSeries.PointMarker>
+                                    <s:EllipsePointMarker Width="5"
+                                                          Height="5"
+                                                          Fill="#76F7A8"
+                                                          Stroke="#76F7A8"/>
+                                </s:FastMountainRenderableSeries.PointMarker>
+                            </s:FastMountainRenderableSeries>
                         </s:SciChartSurface.RenderableSeries>
                         <s:SciChartSurface.XAxis>
-                            <s:DateTimeAxis DrawMajorBands="False"
-                                                DrawMajorTicks="False"
-                                                DrawMinorTicks="False"
-                                                DrawMajorGridLines="False"
-                                                DrawMinorGridLines="False"
-                                                TextFormatting="HH:mm"
-                                                FontSize="13"
-                                                Foreground="#FFE6E6E6"/>
+                            <s:DateTimeAxis x:Name="PowerTrendXAxis"
+                                            DrawMajorBands="False"
+                                            MaxAutoTicks="15"
+                                            AutoRange="Never"
+                                            DrawMajorTicks="False"
+                                            DrawMinorTicks="False"
+                                            DrawMajorGridLines="False"
+                                            DrawMinorGridLines="False"
+                                            TextFormatting="HH:mm"
+                                            FontSize="13"
+                                            AxisTitle="Grid Power"
+                                            Foreground="#FFE6E6E6"/>
                         </s:SciChartSurface.XAxis>
                         <s:SciChartSurface.YAxis>
-                            <s:NumericAxis DrawMajorBands="False"
-                                               DrawMajorTicks="False"
-                                               DrawMinorTicks="False"
-                                               DrawMajorGridLines="True"
-                                               DrawMinorGridLines="False"
-                                               GrowBy="0.05, 0.15"
-                                               MaxAutoTicks="5"
-                                               FontSize="13"
-                                               Foreground="#FFE6E6E6"/>
+                            <s:NumericAxis x:Name="PowerTrendYAxis"
+                                           DrawMajorBands="False"
+                                           AutoRange="Never"
+                                           VisibleRange="0,100"
+                                           DrawMajorTicks="False"
+                                           DrawMinorTicks="False"
+                                           DrawMajorGridLines="True"
+                                           DrawMinorGridLines="False"
+                                           GrowBy="0.05, 0.15"
+                                           MaxAutoTicks="5"
+                                           FontSize="13"
+                                           AxisTitle="kW"
+                                           Foreground="#FFE6E6E6"/>
                         </s:SciChartSurface.YAxis>
                         <s:SciChartSurface.ChartModifier>
                             <s:ModifierGroup>
+                                <s:RolloverModifier DrawVerticalLine="True"
+                                                    ShowTooltipOn="MouseOver"
+                                                    ShowAxisLabels="True"/>
+                                <s:MouseWheelZoomModifier/>
                                 <s:ZoomPanModifier ExecuteOn="MouseLeftButton"/>
-                                <s:ZoomExtentsModifier/>
                             </s:ModifierGroup>
                         </s:SciChartSurface.ChartModifier>
                     </s:SciChartSurface>
@@ -566,11 +582,11 @@
                         <RowDefinition Height="34"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="PCS Module Status" Foreground="Lime" FontSize="18" FontWeight="Bold"/>
+                    <TextBlock Text="PCS Module Status" Foreground="#FF76F7A8" FontSize="18" FontWeight="Bold"/>
                     <UniformGrid Grid.Row="1" Columns="5">
                         <Border Style="{StaticResource PanelBorderStyle}" Margin="0,0,8,0">
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="내부온도(주위)" Foreground="#FFBFFFD2" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="내부온도(주위)" Foreground="#FFB8B8B8" FontWeight="Bold" HorizontalAlignment="Center"/>
                                 <TextBlock Foreground="#FF76F7A8" HorizontalAlignment="Center" Margin="0,8,0,0">
                                     <Run Text="{Binding EtcItems[1].Value}" FontSize="16"/>
                                     <Run Text="℃" Foreground="White" FontSize="12"/>
@@ -579,7 +595,7 @@
                         </Border>
                         <Border Style="{StaticResource PanelBorderStyle}" Margin="0,0,8,0">
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="내부온도(방열판1)" Foreground="#FFBFFFD2" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="내부온도(방열판1)" Foreground="#FFB8B8B8" FontWeight="Bold" HorizontalAlignment="Center"/>
                                 <TextBlock Foreground="#FF76F7A8"  HorizontalAlignment="Center" Margin="0,8,0,0">
                                     <Run Text="{Binding EtcItems[2].Value}" FontSize="16"/>
                                     <Run Text="℃" Foreground="White" FontSize="12"/>
@@ -588,7 +604,7 @@
                         </Border>
                         <Border Style="{StaticResource PanelBorderStyle}" Margin="0,0,8,0">
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="내부온도(방열판2)" Foreground="#FFBFFFD2" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="내부온도(방열판2)" Foreground="#FFB8B8B8" FontWeight="Bold" HorizontalAlignment="Center"/>
                                 <TextBlock Foreground="#FF76F7A8"  HorizontalAlignment="Center" Margin="0,8,0,0">
                                     <Run Text="{Binding EtcItems[3].Value}" FontSize="16"/>
                                     <Run Text="℃" Foreground="White" FontSize="12"/>
@@ -597,7 +613,7 @@
                         </Border>
                         <Border Style="{StaticResource PanelBorderStyle}" Margin="0,0,8,0">
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="내부온도(방열판3)" Foreground="#FFBFFFD2" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="내부온도(방열판3)" Foreground="#FFB8B8B8" FontWeight="Bold" HorizontalAlignment="Center"/>
                                 <TextBlock Foreground="#FF76F7A8"  HorizontalAlignment="Center" Margin="0,8,0,0">
                                     <Run Text="{Binding EtcItems[4].Value}" FontSize="16"/>
                                     <Run Text="℃" Foreground="White" FontSize="12"/>
@@ -606,7 +622,7 @@
                         </Border>
                         <Border Style="{StaticResource PanelBorderStyle}" Margin="0,0,8,0">
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="내부온도(방열판4)" Foreground="#FFBFFFD2" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="내부온도(방열판4)" Foreground="#FFB8B8B8" FontWeight="Bold" HorizontalAlignment="Center"/>
                                 <TextBlock Foreground="#FF76F7A8"  HorizontalAlignment="Center" Margin="0,8,0,0">
                                     <Run Text="{Binding EtcItems[5].Value}" FontSize="16"/>
                                     <Run Text="℃" Foreground="White" FontSize="12"/>
@@ -615,7 +631,7 @@
                         </Border>
                         <Border Style="{StaticResource PanelBorderStyle}" Margin="0,0,8,0">
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="내부온도(방열판5)" Foreground="#FFBFFFD2" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="내부온도(방열판5)" Foreground="#FFB8B8B8" FontWeight="Bold" HorizontalAlignment="Center"/>
                                 <TextBlock Foreground="#FF76F7A8"  HorizontalAlignment="Center" Margin="0,8,0,0">
                                     <Run Text="{Binding EtcItems[6].Value}" FontSize="16"/>
                                     <Run Text="℃" Foreground="White" FontSize="12"/>
@@ -624,7 +640,7 @@
                         </Border>
                         <Border Style="{StaticResource PanelBorderStyle}" Margin="0,0,8,0">
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="내부온도(방열판6)" Foreground="#FFBFFFD2" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="내부온도(방열판6)" Foreground="#FFB8B8B8" FontWeight="Bold" HorizontalAlignment="Center"/>
                                 <TextBlock Foreground="#FF76F7A8"  HorizontalAlignment="Center" Margin="0,8,0,0">
                                     <Run Text="{Binding EtcItems[7].Value}" FontSize="16"/>
                                     <Run Text="℃" Foreground="White" FontSize="12"/>
@@ -633,7 +649,7 @@
                         </Border>
                         <Border Style="{StaticResource PanelBorderStyle}" Margin="0,0,8,0">
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="내부온도(방열판7)" Foreground="#FFBFFFD2" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="내부온도(방열판7)" Foreground="#FFB8B8B8" FontWeight="Bold" HorizontalAlignment="Center"/>
                                 <TextBlock Foreground="#FF76F7A8"  HorizontalAlignment="Center" Margin="0,8,0,0">
                                     <Run Text="{Binding EtcItems[8].Value}" FontSize="16"/>
                                     <Run Text="℃" Foreground="White" FontSize="12"/>
@@ -642,7 +658,7 @@
                         </Border>
                         <Border Style="{StaticResource PanelBorderStyle}" Margin="0,0,8,0">
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="내부온도(방열판8)" Foreground="#FFBFFFD2" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="내부온도(방열판8)" Foreground="#FFB8B8B8" FontWeight="Bold" HorizontalAlignment="Center"/>
                                 <TextBlock Foreground="#FF76F7A8"  HorizontalAlignment="Center" Margin="0,8,0,0">
                                     <Run Text="{Binding EtcItems[9].Value}" FontSize="16"/>
                                     <Run Text="℃" Foreground="White" FontSize="12"/>
@@ -651,7 +667,7 @@
                         </Border>
                         <Border Style="{StaticResource PanelBorderStyle}">
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="Fault" Foreground="#FFBFFFD2" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Fault" Foreground="#FFB8B8B8" FontWeight="Bold" HorizontalAlignment="Center"/>
                                 <TextBlock Text="{Binding PanelData.AlarmCnt}" Foreground="#FF76F7A8" HorizontalAlignment="Center" Margin="0,8,0,0"/>
                                 <TextBlock Text="Count" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,8,0,0"/>
                             </StackPanel>

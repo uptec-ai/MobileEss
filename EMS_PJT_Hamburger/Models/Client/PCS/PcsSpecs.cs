@@ -21,8 +21,8 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
 
         public static readonly IList<ModbusFieldSpec> GridData = new List<ModbusFieldSpec>
         {
-            new ModbusFieldSpec { Address = 5, DataType = ModbusDataType.U32, Name = "GridTotalImportActivePower", Scale = 0.1, Unit = "kWh", },   // Grid 수전 유효전력량
-            new ModbusFieldSpec { Address = 7, DataType = ModbusDataType.U32, Name = "GridTotalExportedActivePower", Scale = 0.1, Unit = "kWh", }, // Grid 송전 유효전력량
+            new ModbusFieldSpec { Address = 5, DataType = ModbusDataType.U32, Name = "GridTotalExportedActivePower", Scale = 0.1, Unit = "kWh", },   // Grid 수전 유효전력량
+            new ModbusFieldSpec { Address = 7, DataType = ModbusDataType.U32, Name = "GridTotalImportActivePower", Scale = 0.1, Unit = "kWh", }, // Grid 송전 유효전력량
             new ModbusFieldSpec { Address = 21, DataType = ModbusDataType.S32, Name = "GridActivePower", Scale = 1, Unit = "W", },                 // Grid 유효전력
 
             new ModbusFieldSpec { Address = 29, DataType = ModbusDataType.U16, Name = "GridVoltageAN", Scale = 0.1, Unit = "V", },                 // Grid 상전압 (AN)

@@ -130,16 +130,18 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private void SaveBmsHistory(uint canId, string messageName, Dictionary<string, object> parsed, byte[] rawFrame)
         {
-            if (app?.DbManager == null || parsed == null) return;
+            if (parsed == null) return;
+
+            if (canId == 0x151)
+                SaveBmsFaultChanges();
+
+            if (app?.DbManager == null) return;
 
             if (canId == 0x150 || canId == 0x152 || canId == 0x153)
                 SaveBmsRawData(canId, messageName, parsed, rawFrame);
 
             if (canId == 0x150 || canId == 0x152)
                 SaveBmsReadyState();
-
-            if (canId == 0x151)
-                SaveBmsFaultChanges();
         }
 
         private void SaveBmsRawData(uint canId, string messageName, Dictionary<string, object> parsed, byte[] rawFrame)
@@ -184,7 +186,16 @@ namespace EMS_PJT_Hamburger.ViewModels
                 if (!_activeBmsFaultCodes.Add(fault.Code))
                     continue;
 
-                app.DbManager.InsertBmsAlarmData((fault.Code, fault.Name), 0);
+                AlarmFileLogger.WriteFault(
+                    "BMS",
+                    "BMS",
+                    fault.Code,
+                    fault.Name,
+                    fault.Name,
+                    string.Empty,
+                    DateTime.Now);
+
+                app?.DbManager?.InsertBmsAlarmData((fault.Code, fault.Name), 0);
             }
 
             _activeBmsFaultCodes.RemoveWhere(code => !activeCodes.Contains(code));
