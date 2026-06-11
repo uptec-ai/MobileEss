@@ -1,7 +1,36 @@
 Set-StrictMode -Version Latest
 
 function Get-HarnessRoot {
+    # 1) Explicit override wins (set HARNESS_ROOT to force a specific project root).
+    if ($env:HARNESS_ROOT -and (Test-Path -LiteralPath $env:HARNESS_ROOT)) {
+        return (Resolve-Path -LiteralPath $env:HARNESS_ROOT).Path
+    }
+
+    # 2) Auto-detect: walk up from this script folder to the nearest ancestor
+    #    that contains a .sln file. This makes the harness portable across
+    #    project copies whose folder depth differs.
+    $dir = $PSScriptRoot
+    while (-not [string]::IsNullOrEmpty($dir)) {
+        $sln = Get-ChildItem -LiteralPath $dir -Filter *.sln -File -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+        if ($sln) {
+            return (Resolve-Path -LiteralPath $dir).Path
+        }
+        $parent = Split-Path -Parent $dir
+        if ($parent -eq $dir) { break }
+        $dir = $parent
+    }
+
+    # 3) Fallback: original two-levels-up behavior.
     return (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+}
+
+function Get-HarnessSolution {
+    $root = Get-HarnessRoot
+    $sln = Get-ChildItem -LiteralPath $root -Filter *.sln -File -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if (!$sln) { throw "No .sln found under harness root: $root" }
+    return $sln.FullName
 }
 
 function Get-HarnessStatePath {

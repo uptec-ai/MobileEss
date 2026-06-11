@@ -202,6 +202,11 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             get => GetProperty(() => DailyPowerTrendSeries);
             set => SetProperty(() => DailyPowerTrendSeries, value);
         }
+        public bool IsPcsFaultAlarmActive
+        {
+            get => GetProperty(() => IsPcsFaultAlarmActive);
+            private set => SetProperty(() => IsPcsFaultAlarmActive, value);
+        }
         public DateRange PowerTrendDefaultVisibleRange
         {
             get => GetProperty(() => PowerTrendDefaultVisibleRange);
@@ -916,8 +921,14 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                         UpdatePcsFaultMessages("Communication", bits, CommunicationFaultMessages);
                     }
                     PanelData.AlarmCnt = alarmCnt.ToString();
+                    IsPcsFaultAlarmActive = alarmCnt > 0;
                 }
-                else { OccurredFault = false; }
+                else
+                {
+                    OccurredFault = false;
+                    IsPcsFaultAlarmActive = false;
+                    PanelData.AlarmCnt = "0";
+                }
             }
 
 

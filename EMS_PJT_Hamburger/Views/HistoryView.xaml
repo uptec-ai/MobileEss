@@ -188,12 +188,38 @@
                             <RowDefinition Height="36"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="PCS Trend" Style="{StaticResource SectionTitleStyle}"/>
-                            <TextBlock Text="Hourly saved data count" Style="{StaticResource MutedTextStyle}" Margin="16,0,0,0"/>
-                        </StackPanel>
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="PCS Trend" Style="{StaticResource SectionTitleStyle}"/>
+                                <TextBlock Text="Hourly max PCS active power" Style="{StaticResource MutedTextStyle}" Margin="16,0,0,0"/>
+                            </StackPanel>
+                            <!-- Y축 범위(Min~Max) 조절용 편집기 -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <TextBlock Text="Y" Style="{StaticResource MutedTextStyle}" Margin="0,0,6,0"/>
+                                <dxe:TextEdit x:Name="PcsYMinEdit"
+                                              Width="58" Height="28"
+                                              VerticalContentAlignment="Center"
+                                              HorizontalContentAlignment="Center"
+                                              MaskType="Numeric" Mask="F0" MaskUseAsDisplayFormat="True"
+                                              EditValue="0"
+                                              EditValueChanged="PcsYRange_EditValueChanged"
+                                              ToolTip="Y축 최소값"/>
+                                <TextBlock Text="~" Style="{StaticResource MutedTextStyle}" Margin="6,0,6,0"/>
+                                <dxe:TextEdit x:Name="PcsYMaxEdit"
+                                              Width="58" Height="28"
+                                              VerticalContentAlignment="Center"
+                                              HorizontalContentAlignment="Center"
+                                              MaskType="Numeric" Mask="F0" MaskUseAsDisplayFormat="True"
+                                              EditValue="100"
+                                              EditValueChanged="PcsYRange_EditValueChanged"
+                                              ToolTip="Y축 최대값"/>
+                            </StackPanel>
+                        </Grid>
 
-                        <s:SciChartSurface Grid.Row="1" Background="Transparent" Padding="0">
+                        <s:SciChartSurface Grid.Row="1"
+                                           Background="Transparent"
+                                           Padding="0"
+                                           MouseDoubleClick="PcsTrendChart_MouseDoubleClick">
                             <s:SciChartSurface.RenderableSeries>
                                 <s:FastMountainRenderableSeries DataSeries="{Binding PcsTrendSeries}"
                                                                 Stroke="#76F7A8"
@@ -202,8 +228,8 @@
                                     <s:FastMountainRenderableSeries.PointMarker>
                                         <s:EllipsePointMarker Width="5"
                                                           Height="5"
-                                                          Fill="#76F7A8"
-                                                          Stroke="#76F7A8"/>
+                                                          Fill="Red"
+                                                          Stroke="Transparent"/>
                                     </s:FastMountainRenderableSeries.PointMarker>
                                 </s:FastMountainRenderableSeries>
                                 
@@ -219,8 +245,10 @@
                                                 Foreground="#FFE6E6E6"/>
                             </s:SciChartSurface.XAxis>
                             <s:SciChartSurface.YAxis>
-                                <s:NumericAxis AxisTitle="Count"
+                                <s:NumericAxis x:Name="PowerTrendYAxis"
                                                DrawMajorBands="False"
+                                               AutoRange="Never"
+                                               VisibleRange="0,100"
                                                DrawMajorTicks="False"
                                                DrawMinorTicks="False"
                                                DrawMajorGridLines="True"
@@ -228,16 +256,23 @@
                                                GrowBy="0.05, 0.15"
                                                MaxAutoTicks="5"
                                                FontSize="13"
+                                               AxisTitle="kW"
                                                Foreground="#FFE6E6E6"/>
                             </s:SciChartSurface.YAxis>
                             <s:SciChartSurface.ChartModifier>
                                 <s:ModifierGroup>
-                                    <s:RolloverModifier DrawVerticalLine="True"
+                                    <!--<s:RolloverModifier DrawVerticalLine="True"
                                                     ShowTooltipOn="MouseOver"
                                                     ShowAxisLabels="True"/>
+                                    <s:MouseWheelZoomModifier/>
+                                    <s:ZoomPanModifier ExecuteOn="MouseLeftButton"/>-->
+                                    <s:RolloverModifier DrawVerticalLine="True"
+                                                        ShowTooltipOn="MouseOver"
+                                                        ShowAxisLabels="True"/>
                                     <s:RubberBandXyZoomModifier ExecuteOn="MouseLeftButton"/>
                                     <s:MouseWheelZoomModifier/>
-                                    <s:ZoomExtentsModifier/>
+                                    <!-- 더블클릭: X축만 데이터 범위로 맞추고 Y축은 편집기 값(기본 0~100)으로 고정 -->
+                                    <s:ZoomExtentsModifier XyDirection="XDirection"/>
                                 </s:ModifierGroup>
                             </s:SciChartSurface.ChartModifier>
                         </s:SciChartSurface>
@@ -252,7 +287,7 @@
                         </Grid.RowDefinitions>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="BMS Trend" Foreground="#FF4EA5FF" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <TextBlock Text="Hourly saved data count" Style="{StaticResource MutedTextStyle}" Margin="16,0,0,0"/>
+                            <TextBlock Text="Hourly max BMS SOC" Style="{StaticResource MutedTextStyle}" Margin="16,0,0,0"/>
                         </StackPanel>
 
                         <s:SciChartSurface Grid.Row="1" Background="Transparent" Padding="0">
@@ -273,7 +308,7 @@
                                                 Foreground="#FFE6E6E6"/>
                             </s:SciChartSurface.XAxis>
                             <s:SciChartSurface.YAxis>
-                                <s:NumericAxis AxisTitle="Count"
+                                <s:NumericAxis AxisTitle="%"
                                                DrawMajorBands="False"
                                                DrawMajorTicks="False"
                                                DrawMinorTicks="False"
@@ -286,12 +321,12 @@
                             </s:SciChartSurface.YAxis>
                             <s:SciChartSurface.ChartModifier>
                                 <s:ModifierGroup>
-                                    <s:RolloverModifier DrawVerticalLine="True"
+                                    <!--<s:RolloverModifier DrawVerticalLine="True"
                                                         ShowTooltipOn="MouseOver"
                                                         ShowAxisLabels="True"/>
                                     <s:RubberBandXyZoomModifier ExecuteOn="MouseLeftButton"/>
                                     <s:MouseWheelZoomModifier/>
-                                    <s:ZoomExtentsModifier/>
+                                    <s:ZoomExtentsModifier/>-->
                                 </s:ModifierGroup>
                             </s:SciChartSurface.ChartModifier>
                         </s:SciChartSurface>

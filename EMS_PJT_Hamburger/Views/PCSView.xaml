@@ -506,7 +506,7 @@
                     </Grid.RowDefinitions>
                     <Grid>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Power Trend" Foreground="#FF76F7A8" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <TextBlock Text="Active Power Trend" Foreground="#FF76F7A8" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <ToggleButton Content="1m" Command="{Binding Cmd_SelectPowerTrendInterval}" CommandParameter="1M" IsChecked="{Binding IsPowerTrendMinuteSelected, Mode=OneWay}" Style="{StaticResource TrendIntervalToggleStyle}"/>
@@ -665,11 +665,20 @@
                                 </TextBlock>
                             </StackPanel>
                         </Border>
-                        <Border Style="{StaticResource PanelBorderStyle}">
+                        <Border>
+                            <Border.Style>
+                                <Style TargetType="Border" BasedOn="{StaticResource PanelBorderStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsPcsFaultAlarmActive}" Value="True">
+                                            <Setter Property="Background" Value="#4A1515"/>
+                                            <Setter Property="BorderBrush" Value="#FFFF5F5F"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="Fault" Foreground="#FFB8B8B8" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding PanelData.AlarmCnt}" Foreground="#FF76F7A8" HorizontalAlignment="Center" Margin="0,8,0,0"/>
-                                <TextBlock Text="Count" Foreground="White" FontSize="16" HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                                <TextBlock Text="{Binding PanelData.AlarmCnt}" Foreground="#FF76F7A8"  HorizontalAlignment="Center" Margin="0,8,0,0" FontSize="16"/>
                             </StackPanel>
                         </Border>
                     </UniformGrid>

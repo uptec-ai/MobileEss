@@ -142,18 +142,19 @@ namespace EMS_PJT_Hamburger.ViewModels
         private void LoadPcsRows(DbManager db)
         {
             var ds = db.GetDataSetByQuery(@"
-select collected_at, saved_count
+select collected_at, max_value
 from
 (
     select
         date_trunc('hour', collected_at) as collected_at,
-        count(*) as saved_count
+        max(pcs_active_power_kw) as max_value
     from public.tb_ems_raw_data
     where source = 'PCS'
       and collected_at >= @start_at
       and collected_at <= @end_at
+      and pcs_active_power_kw is not null
     group by date_trunc('hour', collected_at)
-) hourly_count
+) hourly_metric
 order by collected_at desc
 limit @limit;",
                 cmd =>
@@ -163,31 +164,7 @@ limit @limit;",
                     cmd.Parameters.AddWithValue("@limit", MaxHourlyPayloadRows);
                 });
 
-            var table = FirstTable(ds);
-            if (table != null)
-            {
-                foreach (DataRow row in table.Rows)
-                {
-                    var occurredAt = ReadDate(row, "collected_at", DateTime.MinValue);
-                    var savedCount = ReadDouble(row, "saved_count", 0);
-
-                    PcsRows.Add(new HistoryDataRow
-                    {
-                        OccurredAt = occurredAt,
-                        IsPayloadTrendPoint = true,
-                        Time = FormatTime(occurredAt),
-                        Source = "PCS",
-                        Name = "Hourly Raw Data",
-                        Value1Name = "Saved Count",
-                        Value1 = FormatNumber(savedCount),
-                        Value2Name = "Unit",
-                        Value2 = "건",
-                        Value3Name = "Summary",
-                        Value3 = "Hourly Count",
-                        ChartValue = savedCount
-                    });
-                }
-            }
+            AddHourlyMetricRows(FirstTable(ds), PcsRows, "PCS", "Max Active Power", "kW");
 
             LoadSystemStateRows(db, "PCS", PcsRows);
         }
@@ -195,18 +172,19 @@ limit @limit;",
         private void LoadBmsRows(DbManager db)
         {
             var ds = db.GetDataSetByQuery(@"
-select collected_at, saved_count
+select collected_at, max_value
 from
 (
     select
         date_trunc('hour', collected_at) as collected_at,
-        count(*) as saved_count
+        max(bms_soc) as max_value
     from public.tb_ems_raw_data
     where source = 'BMS'
       and collected_at >= @start_at
       and collected_at <= @end_at
+      and bms_soc is not null
     group by date_trunc('hour', collected_at)
-) hourly_count
+) hourly_metric
 order by collected_at desc
 limit @limit;",
                 cmd =>
@@ -216,33 +194,45 @@ limit @limit;",
                     cmd.Parameters.AddWithValue("@limit", MaxHourlyPayloadRows);
                 });
 
-            var table = FirstTable(ds);
-            if (table != null)
-            {
-                foreach (DataRow row in table.Rows)
-                {
-                    var occurredAt = ReadDate(row, "collected_at", DateTime.MinValue);
-                    var savedCount = ReadDouble(row, "saved_count", 0);
-
-                    BmsRows.Add(new HistoryDataRow
-                    {
-                        OccurredAt = occurredAt,
-                        IsPayloadTrendPoint = true,
-                        Time = FormatTime(occurredAt),
-                        Source = "BMS",
-                        Name = "Hourly Raw Data",
-                        Value1Name = "Saved Count",
-                        Value1 = FormatNumber(savedCount),
-                        Value2Name = "Unit",
-                        Value2 = "건",
-                        Value3Name = "Summary",
-                        Value3 = "Hourly Count",
-                        ChartValue = savedCount
-                    });
-                }
-            }
+            AddHourlyMetricRows(FirstTable(ds), BmsRows, "BMS", "Max SOC", "%");
 
             LoadSystemStateRows(db, "BMS", BmsRows);
+        }
+
+        private void AddHourlyMetricRows(
+            DataTable table,
+            ObservableCollection<HistoryDataRow> target,
+            string source,
+            string metricName,
+            string unit)
+        {
+            if (table == null)
+                return;
+
+            foreach (DataRow row in table.Rows)
+            {
+                var occurredAt = ReadDate(row, "collected_at", DateTime.MinValue);
+                if (occurredAt == DateTime.MinValue)
+                    continue;
+
+                var value = ReadDouble(row, "max_value", 0);
+
+                target.Add(new HistoryDataRow
+                {
+                    OccurredAt = occurredAt,
+                    IsPayloadTrendPoint = true,
+                    Time = FormatTime(occurredAt),
+                    Source = source,
+                    Name = metricName,
+                    Value1Name = "Max",
+                    Value1 = FormatNumber(value),
+                    Value2Name = "Unit",
+                    Value2 = unit,
+                    Value3Name = "Summary",
+                    Value3 = "Hourly Max",
+                    ChartValue = value
+                });
+            }
         }
 
         private void LoadSystemStateRows(DbManager db, string source, ObservableCollection<HistoryDataRow> target)

@@ -219,9 +219,14 @@ create table if not exists public.tb_ems_raw_data
     payload_json bytea not null,
     payload_length integer not null,
     compressed_length integer not null,
+    pcs_active_power_kw double precision null,
+    bms_soc double precision null,
     raw_frame bytea null,
     summary text null
 );
+
+alter table public.tb_ems_raw_data add column if not exists pcs_active_power_kw double precision null;
+alter table public.tb_ems_raw_data add column if not exists bms_soc double precision null;
 
 create index if not exists ix_tb_bms_collected_at on public.tb_bms(collected_at desc);
 create index if not exists ix_tb_pcs_grid_collected_at on public.tb_pcs_grid(collected_at desc);
@@ -441,6 +446,8 @@ values
 
             var payload = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(fields));
             var compressed = Compress(payload);
+            var pcsActivePowerKw = ResolvePcsActivePowerKw(source, fields);
+            var bmsSoc = ResolveBmsSoc(source, fields);
 
             ExecuteNonQuery(@"
 insert into public.tb_ems_raw_data
@@ -452,6 +459,8 @@ insert into public.tb_ems_raw_data
     payload_json,
     payload_length,
     compressed_length,
+    pcs_active_power_kw,
+    bms_soc,
     raw_frame,
     summary
 )
@@ -464,6 +473,8 @@ values
     @payload_json,
     @payload_length,
     @compressed_length,
+    @pcs_active_power_kw,
+    @bms_soc,
     @raw_frame,
     @summary
 );",
@@ -476,9 +487,51 @@ values
                     cmd.Parameters.AddWithValue("@payload_json", compressed);
                     cmd.Parameters.AddWithValue("@payload_length", payload.Length);
                     cmd.Parameters.AddWithValue("@compressed_length", compressed.Length);
+                    cmd.Parameters.AddWithValue("@pcs_active_power_kw", (object)pcsActivePowerKw ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@bms_soc", (object)bmsSoc ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@raw_frame", (object)rawFrame ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@summary", BuildFieldSummary(fields));
                 });
+        }
+
+        private static double? ResolvePcsActivePowerKw(string source, IDictionary<string, object> fields)
+        {
+            if (!string.Equals(source, "PCS", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            return TryReadFieldDouble(fields, "GridActivePower", out var activePower)
+                ? activePower / 1000d
+                : (double?)null;
+        }
+
+        private static double? ResolveBmsSoc(string source, IDictionary<string, object> fields)
+        {
+            if (!string.Equals(source, "BMS", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            if (TryReadFieldDouble(fields, "BMS_SOC", out var soc))
+                return soc;
+
+            return TryReadFieldDouble(fields, "BMS_Disp_SOC", out var displaySoc)
+                ? displaySoc
+                : (double?)null;
+        }
+
+        private static bool TryReadFieldDouble(IDictionary<string, object> fields, string name, out double value)
+        {
+            value = 0;
+            if (fields == null || string.IsNullOrWhiteSpace(name)) return false;
+            if (!fields.TryGetValue(name, out var raw) || raw == null) return false;
+
+            try
+            {
+                value = Convert.ToDouble(raw, CultureInfo.InvariantCulture);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static string BuildFieldSummary(IDictionary<string, object> fields)
