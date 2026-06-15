@@ -191,7 +191,7 @@
                         <Grid>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="PCS Trend" Style="{StaticResource SectionTitleStyle}"/>
-                                <TextBlock Text="Hourly max PCS active power" Style="{StaticResource MutedTextStyle}" Margin="16,0,0,0"/>
+                                <TextBlock Text="Max PCS active power" Style="{StaticResource MutedTextStyle}" Margin="16,0,0,0"/>
                             </StackPanel>
                             <!-- Y축 범위(Min~Max) 조절용 편집기 -->
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -200,6 +200,7 @@
                                               Width="58" Height="28"
                                               VerticalContentAlignment="Center"
                                               HorizontalContentAlignment="Center"
+                                              EditValuePostMode="Delayed" EditValuePostDelay="500"
                                               MaskType="Numeric" Mask="F0" MaskUseAsDisplayFormat="True"
                                               EditValue="0"
                                               EditValueChanged="PcsYRange_EditValueChanged"
@@ -209,6 +210,7 @@
                                               Width="58" Height="28"
                                               VerticalContentAlignment="Center"
                                               HorizontalContentAlignment="Center"
+                                              EditValuePostMode="Delayed" EditValuePostDelay="500"
                                               MaskType="Numeric" Mask="F0" MaskUseAsDisplayFormat="True"
                                               EditValue="100"
                                               EditValueChanged="PcsYRange_EditValueChanged"
@@ -235,7 +237,10 @@
                                 
                             </s:SciChartSurface.RenderableSeries>
                             <s:SciChartSurface.XAxis>
-                                <s:DateTimeAxis DrawMajorBands="False"
+                                <s:DateTimeAxis x:Name="PcsTrendXAxis"
+                                                AutoRange="Never"
+                                                MaxAutoTicks="10"
+                                                DrawMajorBands="False"
                                                 DrawMajorTicks="False"
                                                 DrawMinorTicks="False"
                                                 DrawMajorGridLines="False"
@@ -269,10 +274,8 @@
                                     <s:RolloverModifier DrawVerticalLine="True"
                                                         ShowTooltipOn="MouseOver"
                                                         ShowAxisLabels="True"/>
+                                    <!-- 마우스 좌클릭 드래그로 드래그 영역 확대. 더블클릭 초기화는 code-behind에서 처리 -->
                                     <s:RubberBandXyZoomModifier ExecuteOn="MouseLeftButton"/>
-                                    <s:MouseWheelZoomModifier/>
-                                    <!-- 더블클릭: X축만 데이터 범위로 맞추고 Y축은 편집기 값(기본 0~100)으로 고정 -->
-                                    <s:ZoomExtentsModifier XyDirection="XDirection"/>
                                 </s:ModifierGroup>
                             </s:SciChartSurface.ChartModifier>
                         </s:SciChartSurface>
@@ -285,12 +288,40 @@
                             <RowDefinition Height="36"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="BMS Trend" Foreground="#FF4EA5FF" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
-                            <TextBlock Text="Hourly max BMS SOC" Style="{StaticResource MutedTextStyle}" Margin="16,0,0,0"/>
-                        </StackPanel>
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="BMS Trend" Foreground="#FF4EA5FF" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <TextBlock Text="Max BMS SOC" Style="{StaticResource MutedTextStyle}" Margin="16,0,0,0"/>
+                            </StackPanel>
+                            <!-- Y축 범위(Min~Max) 조절용 편집기 -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <TextBlock Text="Y" Style="{StaticResource MutedTextStyle}" Margin="0,0,6,0"/>
+                                <dxe:TextEdit x:Name="BmsYMinEdit"
+                                              Width="58" Height="28"
+                                              VerticalContentAlignment="Center"
+                                              HorizontalContentAlignment="Center"
+                                              EditValuePostMode="Delayed" EditValuePostDelay="500"
+                                              MaskType="Numeric" Mask="F0" MaskUseAsDisplayFormat="True"
+                                              EditValue="0"
+                                              EditValueChanged="BmsYRange_EditValueChanged"
+                                              ToolTip="Y축 최소값"/>
+                                <TextBlock Text="~" Style="{StaticResource MutedTextStyle}" Margin="6,0,6,0"/>
+                                <dxe:TextEdit x:Name="BmsYMaxEdit"
+                                              Width="58" Height="28"
+                                              VerticalContentAlignment="Center"
+                                              HorizontalContentAlignment="Center"
+                                              EditValuePostMode="Delayed" EditValuePostDelay="500"
+                                              MaskType="Numeric" Mask="F0" MaskUseAsDisplayFormat="True"
+                                              EditValue="100"
+                                              EditValueChanged="BmsYRange_EditValueChanged"
+                                              ToolTip="Y축 최대값"/>
+                            </StackPanel>
+                        </Grid>
 
-                        <s:SciChartSurface Grid.Row="1" Background="Transparent" Padding="0">
+                        <s:SciChartSurface Grid.Row="1"
+                                           Background="Transparent"
+                                           Padding="0"
+                                           MouseDoubleClick="BmsTrendChart_MouseDoubleClick">
                             <s:SciChartSurface.RenderableSeries>
                                 <s:FastMountainRenderableSeries DataSeries="{Binding BmsTrendSeries}"
                                                                 Stroke="#4EA5FF"
@@ -298,7 +329,10 @@
                                                                 Fill="#303A72B8"/>
                             </s:SciChartSurface.RenderableSeries>
                             <s:SciChartSurface.XAxis>
-                                <s:DateTimeAxis DrawMajorBands="False"
+                                <s:DateTimeAxis x:Name="BmsTrendXAxis"
+                                                AutoRange="Never"
+                                                MaxAutoTicks="10"
+                                                DrawMajorBands="False"
                                                 DrawMajorTicks="False"
                                                 DrawMinorTicks="False"
                                                 DrawMajorGridLines="False"
@@ -308,7 +342,10 @@
                                                 Foreground="#FFE6E6E6"/>
                             </s:SciChartSurface.XAxis>
                             <s:SciChartSurface.YAxis>
-                                <s:NumericAxis AxisTitle="%"
+                                <s:NumericAxis x:Name="BmsTrendYAxis"
+                                               AxisTitle="%"
+                                               AutoRange="Never"
+                                               VisibleRange="0,100"
                                                DrawMajorBands="False"
                                                DrawMajorTicks="False"
                                                DrawMinorTicks="False"
@@ -321,12 +358,11 @@
                             </s:SciChartSurface.YAxis>
                             <s:SciChartSurface.ChartModifier>
                                 <s:ModifierGroup>
-                                    <!--<s:RolloverModifier DrawVerticalLine="True"
+                                    <s:RolloverModifier DrawVerticalLine="True"
                                                         ShowTooltipOn="MouseOver"
                                                         ShowAxisLabels="True"/>
+                                    <!-- 마우스 좌클릭 드래그로 드래그 영역 확대. 더블클릭 초기화는 code-behind에서 처리 -->
                                     <s:RubberBandXyZoomModifier ExecuteOn="MouseLeftButton"/>
-                                    <s:MouseWheelZoomModifier/>
-                                    <s:ZoomExtentsModifier/>-->
                                 </s:ModifierGroup>
                             </s:SciChartSurface.ChartModifier>
                         </s:SciChartSurface>

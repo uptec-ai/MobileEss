@@ -151,6 +151,7 @@ namespace EMS_PJT_Hamburger.ViewModels
         private void UpdateLoadTargetUi(bool isActive)
         {
             LoadTarget = isActive ? SelectedLoadTarget : LoadStatus.Waiting;
+            ChargeOnGrid = (isActive && SelectedLoadTarget == LoadStatus.OnGrid) ? Brushes.Orange : Brushes.Gray;
             ChargeOffGrid = (isActive && SelectedLoadTarget == LoadStatus.OffGrid) ? Brushes.Orange : Brushes.Gray;
             ChargeVihicle = (isActive && SelectedLoadTarget == LoadStatus.Vehicle) ? Brushes.Orange : Brushes.Gray;
         }

@@ -2,6 +2,7 @@ using DevExpress.Mvvm;
 using EMS_PJT_Hamburger.Models.Managers;
 using Npgsql;
 using SciChart.Charting.Model.DataSeries;
+using SciChart.Data.Model;
 using System;
 using System.Collections.ObjectModel;
 using System.Data;
@@ -15,7 +16,12 @@ namespace EMS_PJT_Hamburger.ViewModels
     public sealed class HistoryViewModel : ViewModelBase
     {
         private const int MaxHourlyPayloadRows = 720;
+        private const int MaxMinutePayloadRows = 1440;
         private const int MaxHistoryDays = 30;
+
+        // PCS/BMS Trend 버킷 간격(분단위/시간단위). 가시 범위 계산에 사용.
+        private TimeSpan _pcsTrendInterval = TimeSpan.FromHours(1);
+        private TimeSpan _bmsTrendInterval = TimeSpan.FromHours(1);
 
         public ObservableCollection<HistoryDataRow> PcsRows { get; } = new ObservableCollection<HistoryDataRow>();
         public ObservableCollection<HistoryDataRow> BmsRows { get; } = new ObservableCollection<HistoryDataRow>();
@@ -80,6 +86,20 @@ namespace EMS_PJT_Hamburger.ViewModels
             set => SetProperty(() => TrendXAxisTextFormatting, value);
         }
 
+        // PCS Trend X축 기본 가시 범위(마지막 10개 버킷). View가 로드/더블클릭 시 이 값으로 리셋한다.
+        public DateRange PcsTrendDefaultVisibleRange
+        {
+            get => GetProperty(() => PcsTrendDefaultVisibleRange);
+            set => SetProperty(() => PcsTrendDefaultVisibleRange, value);
+        }
+
+        // BMS Trend X축 기본 가시 범위(마지막 10개 버킷).
+        public DateRange BmsTrendDefaultVisibleRange
+        {
+            get => GetProperty(() => BmsTrendDefaultVisibleRange);
+            set => SetProperty(() => BmsTrendDefaultVisibleRange, value);
+        }
+
         public HistoryViewModel()
         {
             StartDate = DateTime.Today;
@@ -87,6 +107,8 @@ namespace EMS_PJT_Hamburger.ViewModels
             TrendXAxisTextFormatting = "HH:mm";
             PcsTrendSeries = CreateTrendSeries("PCS Trend");
             BmsTrendSeries = CreateTrendSeries("BMS Trend");
+            PcsTrendDefaultVisibleRange = new DateRange(StartDate, EndDate);
+            BmsTrendDefaultVisibleRange = new DateRange(StartDate, EndDate);
 
             Cmd_Refresh = new DelegateCommand(LoadHistory);
             Cmd_Today = new DelegateCommand(() =>
@@ -141,27 +163,34 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private void LoadPcsRows(DbManager db)
         {
-            var ds = db.GetDataSetByQuery(@"
+            // Today(단일 일자) 조회는 분단위 최대값, 다중 일자 조회는 시간단위 최대값.
+            // truncUnit은 내부 상수('minute'/'hour')라 SQL 주입 위험이 없다.
+            var isSingleDay = (EndDate.Date - StartDate.Date).Days == 0;
+            var truncUnit = isSingleDay ? "minute" : "hour";
+            _pcsTrendInterval = isSingleDay ? TimeSpan.FromMinutes(1) : TimeSpan.FromHours(1);
+            var limit = isSingleDay ? MaxMinutePayloadRows : MaxHourlyPayloadRows;
+
+            var ds = db.GetDataSetByQuery($@"
 select collected_at, max_value
 from
 (
     select
-        date_trunc('hour', collected_at) as collected_at,
+        date_trunc('{truncUnit}', collected_at) as collected_at,
         max(pcs_active_power_kw) as max_value
     from public.tb_ems_raw_data
     where source = 'PCS'
       and collected_at >= @start_at
       and collected_at <= @end_at
       and pcs_active_power_kw is not null
-    group by date_trunc('hour', collected_at)
-) hourly_metric
+    group by date_trunc('{truncUnit}', collected_at)
+) bucket_metric
 order by collected_at desc
 limit @limit;",
                 cmd =>
                 {
                     cmd.Parameters.AddWithValue("@start_at", QueryStartDate());
                     cmd.Parameters.AddWithValue("@end_at", QueryEndDate());
-                    cmd.Parameters.AddWithValue("@limit", MaxHourlyPayloadRows);
+                    cmd.Parameters.AddWithValue("@limit", limit);
                 });
 
             AddHourlyMetricRows(FirstTable(ds), PcsRows, "PCS", "Max Active Power", "kW");
@@ -171,27 +200,33 @@ limit @limit;",
 
         private void LoadBmsRows(DbManager db)
         {
-            var ds = db.GetDataSetByQuery(@"
+            // PCS Trend와 동일 규칙: 단일 일자(Today)는 분단위, 다중 일자(Week)는 시간단위 SOC 최대값.
+            var isSingleDay = (EndDate.Date - StartDate.Date).Days == 0;
+            var truncUnit = isSingleDay ? "minute" : "hour";
+            _bmsTrendInterval = isSingleDay ? TimeSpan.FromMinutes(1) : TimeSpan.FromHours(1);
+            var limit = isSingleDay ? MaxMinutePayloadRows : MaxHourlyPayloadRows;
+
+            var ds = db.GetDataSetByQuery($@"
 select collected_at, max_value
 from
 (
     select
-        date_trunc('hour', collected_at) as collected_at,
+        date_trunc('{truncUnit}', collected_at) as collected_at,
         max(bms_soc) as max_value
     from public.tb_ems_raw_data
     where source = 'BMS'
       and collected_at >= @start_at
       and collected_at <= @end_at
       and bms_soc is not null
-    group by date_trunc('hour', collected_at)
-) hourly_metric
+    group by date_trunc('{truncUnit}', collected_at)
+) bucket_metric
 order by collected_at desc
 limit @limit;",
                 cmd =>
                 {
                     cmd.Parameters.AddWithValue("@start_at", QueryStartDate());
                     cmd.Parameters.AddWithValue("@end_at", QueryEndDate());
-                    cmd.Parameters.AddWithValue("@limit", MaxHourlyPayloadRows);
+                    cmd.Parameters.AddWithValue("@limit", limit);
                 });
 
             AddHourlyMetricRows(FirstTable(ds), BmsRows, "BMS", "Max SOC", "%");
@@ -328,6 +363,28 @@ limit 300;",
             TrendXAxisTextFormatting = BuildTrendXAxisTextFormatting();
             PcsTrendSeries = BuildTrendSeries("PCS Trend", PcsRows.Where(x => x.IsPayloadTrendPoint).Reverse().ToArray());
             BmsTrendSeries = BuildTrendSeries("BMS Trend", BmsRows.Where(x => x.IsPayloadTrendPoint).Reverse().ToArray());
+            PcsTrendDefaultVisibleRange = BuildTrendDefaultVisibleRange(PcsRows, _pcsTrendInterval);
+            BmsTrendDefaultVisibleRange = BuildTrendDefaultVisibleRange(BmsRows, _bmsTrendInterval);
+        }
+
+        // Trend의 기본(초기화) 가시 범위: 전체 데이터 범위(첫 버킷 ~ 마지막 버킷)를 보여준다.
+        // 세부 구간은 마우스 드래그(RubberBand)로 확대하고, 더블클릭으로 이 전체 범위로 되돌린다.
+        private static DateRange BuildTrendDefaultVisibleRange(
+            ObservableCollection<HistoryDataRow> rows,
+            TimeSpan interval)
+        {
+            var times = rows
+                .Where(x => x.IsPayloadTrendPoint && x.OccurredAt != DateTime.MinValue)
+                .Select(x => x.OccurredAt)
+                .OrderBy(t => t)
+                .ToList();
+
+            if (times.Count == 0)
+                return new DateRange(DateTime.Now - interval, DateTime.Now);
+
+            var start = times[0];
+            var end = times[times.Count - 1].Add(interval);
+            return new DateRange(start, end);
         }
 
         private static XyDataSeries<DateTime, double> CreateTrendSeries(string name)

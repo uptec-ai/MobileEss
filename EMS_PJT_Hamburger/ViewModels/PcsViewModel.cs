@@ -37,6 +37,8 @@ namespace EMS_PJT_Hamburger.ViewModels
         public DelegateCommand<string> Cmd_SelectPowerTrendInterval { get; private set; }
 
         public bool IsControlBusy { get => GetProperty(() => IsControlBusy); set => SetProperty(() => IsControlBusy, value); }
+        // BMS Guard 사용 여부. OFF면 ApplyBmsGuardPolicyAsync 전체가 no-op(PCS 단독 테스트용).
+        public bool IsBmsGuardEnabled { get => GetProperty(() => IsBmsGuardEnabled); set => SetProperty(() => IsBmsGuardEnabled, value); }
         public string SelectedPcsSection { get => GetProperty(() => SelectedPcsSection); set => SetProperty(() => SelectedPcsSection, value); }
         public ObservableCollection<DataItem> SelectedPcsDetailItems { get => GetProperty(() => SelectedPcsDetailItems); set => SetProperty(() => SelectedPcsDetailItems, value); }
         public bool IsGridSectionSelected => string.Equals(SelectedPcsSection, "Grid", StringComparison.OrdinalIgnoreCase);
@@ -86,6 +88,7 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         public PcsViewModel()
         {
+            IsBmsGuardEnabled = true; // 기본 ON(안전). PCS 단독 테스트 시 토글로 OFF.
             InitControlDefaults();
             InitControlCommands();
 
@@ -287,7 +290,7 @@ namespace EMS_PJT_Hamburger.ViewModels
             if (IsControlSectionSelected)
                 SelectedPcsDetailItems = BuildControlDetailItems();
 
-            // PCS-only communication test: comment this call to disable BMS/SOC stop policy.
+            // BMS/SOC 모니터 가드. 토글(IsBmsGuardEnabled)로 ON/OFF 제어.
             _ = ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.Monitor);
 
             if (_controlInputsInitializedFromRead) return;
@@ -466,7 +469,7 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private async Task StartChargeSequenceAsync()
         {
-            // PCS-only communication test: comment this call to bypass BMS command guard.
+            // 충전 명령 사전 가드. 토글(IsBmsGuardEnabled)로 ON/OFF 제어.
             await ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeCharge);
             await CheckControlReadyAsync(); // 1005 Read -> 1004 Read
             await CheckChargeCommandConflictAsync(); // 1003 bit2 high -> keep current command
@@ -478,7 +481,7 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private async Task StartDischargeSequenceAsync()
         {
-            // PCS-only communication test: comment this call to bypass BMS command guard.
+            // 방전 명령 사전 가드. 토글(IsBmsGuardEnabled)로 ON/OFF 제어.
             await ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode.BeforeDischarge);
             await CheckControlReadyAsync(); // 1005 Read -> 1004 Read
             await CheckDischargeCommandConflictAsync(); // 1003 bit1 high -> keep current command
@@ -510,6 +513,9 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private async Task ApplyBmsGuardPolicyAsync(PcsBmsPolicyMode mode)
         {
+            // 토글 OFF면 가드 전체 비활성(PCS 단독 테스트). 모든 모드 즉시 통과.
+            if (!IsBmsGuardEnabled) return;
+
             if (_bmsGuardPolicyRunning)
             {
                 if (mode == PcsBmsPolicyMode.Monitor) return;

@@ -21,9 +21,12 @@ namespace EMS_PJT_Hamburger.ViewModels
     public class BMSViewModel : BmsDataModel, IDisposable
     {
         private static readonly TimeSpan BmsFrameTimeout = TimeSpan.FromSeconds(3);
+        // 초기화 실패 시 자동 재시도 간격
+        private static readonly TimeSpan BmsReconnectInterval = TimeSpan.FromSeconds(5);
         private bool _disposed;
         private bool _isPcanStarted;
         private DateTime _lastFrameReceivedUtc = DateTime.MinValue;
+        private DateTime _lastStartAttemptUtc = DateTime.MinValue;
         private StatusManager.BMSStatus _lastPublishedBmsStatus = StatusManager.BMSStatus.None;
         private DispatcherTimer _bmsStatusTimer;
         private string _lastBmsReadyStateKey;
@@ -71,6 +74,10 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private void StartBmsReceiver()
         {
+            if (_disposed || _rx == null) return;
+
+            // 재시도 간격 계산 기준이 되는 마지막 시도 시각 기록
+            _lastStartAttemptUtc = DateTime.UtcNow;
             UpdateBmsConnectionStatus(StatusManager.BMSStatus.TryConnect);
 
             try
@@ -79,14 +86,14 @@ namespace EMS_PJT_Hamburger.ViewModels
                 if (!_isPcanStarted)
                 {
                     UpdateBmsConnectionStatus(StatusManager.BMSStatus.Disconnected);
-                    app?.nlog?.Warn("PCAN initialize failed. Check channel, bitrate, driver, and platform.");
+                    app?.nlog?.Warn($"PCAN initialize failed. Will retry in {BmsReconnectInterval.TotalSeconds:0}s. Check channel, bitrate, driver, and platform.");
                 }
             }
             catch (Exception ex)
             {
                 _isPcanStarted = false;
                 UpdateBmsConnectionStatus(StatusManager.BMSStatus.Error);
-                app?.nlog?.Warn(ex, "BMS receiver start failed.");
+                app?.nlog?.Warn(ex, $"BMS receiver start failed. Will retry in {BmsReconnectInterval.TotalSeconds:0}s.");
             }
         }
         
@@ -230,8 +237,21 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private void BmsStatusTimer_Tick(object sender, EventArgs e)
         {
-            if (_disposed || !_isPcanStarted) return;
+            if (_disposed) return;
 
+            // 초기화 실패(미시작) 상태면 일정 간격으로 PCAN 초기화를 자동 재시도한다.
+            // 모든 상태 전이는 UpdateBmsConnectionStatus를 거쳐 StatusManager에 연동된다.
+            if (!_isPcanStarted)
+            {
+                if (DateTime.UtcNow - _lastStartAttemptUtc >= BmsReconnectInterval)
+                {
+                    app?.nlog?.Info("Retrying BMS PCAN initialization...");
+                    StartBmsReceiver();
+                }
+                return;
+            }
+
+            // 시작 후에는 프레임 타임아웃으로 연결 끊김을 감지한다.
             if (_lastFrameReceivedUtc == DateTime.MinValue ||
                 DateTime.UtcNow - _lastFrameReceivedUtc > BmsFrameTimeout)
             {
@@ -252,6 +272,10 @@ namespace EMS_PJT_Hamburger.ViewModels
 
                 currentApp.StatusManager.CurrentBMS_Status = status;
                 _lastPublishedBmsStatus = status;
+
+                // 상단 헤더(System Connect 상태 패널) 표시값 반영
+                IsBmsConnected = status == StatusManager.BMSStatus.Connected;
+                BmsConnectionStatus = BmsStatusText(status);
             };
 
             var dispatcher = Application.Current?.Dispatcher;
@@ -259,6 +283,18 @@ namespace EMS_PJT_Hamburger.ViewModels
                 update();
             else if (dispatcher != null)
                 dispatcher.BeginInvoke(update);
+        }
+
+        private static string BmsStatusText(StatusManager.BMSStatus status)
+        {
+            switch (status)
+            {
+                case StatusManager.BMSStatus.Connected: return "Connected";
+                case StatusManager.BMSStatus.TryConnect: return "Connecting";
+                case StatusManager.BMSStatus.Disconnected: return "Disconnected";
+                case StatusManager.BMSStatus.Error: return "Error";
+                default: return "N/A";
+            }
         }
 
         private void Snapshot_Tick(object sender, EventArgs e)

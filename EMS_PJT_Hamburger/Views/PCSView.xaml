@@ -259,6 +259,7 @@
                     <dx:SimpleButton Content="Discharge" Command="{Binding Cmd_StartDischarge}" Style="{StaticResource DischargeButtonStyle}"/>
                     <dx:SimpleButton Content="Stop" Command="{Binding Cmd_StopPcs}" Style="{StaticResource StopButtonStyle}"/>
                     <dx:SimpleButton Content="Emergency Stop" Command="{Binding Cmd_EmergencyStop}" Style="{StaticResource EmergencyStopButtonStyle}"/>
+                    <!-- BMS Guard 토글: ON=가드 활성, OFF=PCS 단독 테스트(가드 무시) -->
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">

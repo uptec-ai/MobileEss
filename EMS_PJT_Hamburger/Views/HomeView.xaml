@@ -463,7 +463,7 @@
 
         <Style TargetType="{x:Type RadioButton}" x:Key="LoadTargetToggleStyle">
             <Setter Property="Width" Value="70"/>
-            <Setter Property="Height" Value="26"/>
+            <Setter Property="Height" Value="30"/>
             <Setter Property="Margin" Value="0,0,6,0"/>
             <Setter Property="Foreground" Value="#FFC3C3C3"/>
             <Setter Property="FontSize" Value="11"/>
@@ -499,12 +499,12 @@
 
     <Viewbox>
         <Canvas Height="705" Width="1000" Margin="0" Background="{DynamicResource Main.Background}">
-            <StackPanel Orientation="Horizontal">
-                <Border Canvas.Left="22" Canvas.Top="14" Width="185" Height="46"
+            <StackPanel Orientation="Horizontal" Height="55" Margin="0,5,0,0">
+                <Border Canvas.Left="22" Canvas.Top="14" Width="185"
                         CornerRadius="5"
                         BorderThickness="1"
                         BorderBrush="#334F5E"
-                        Background="#CC15181C" Margin="20,0,0,0">
+                        Background="#CC15181C" Margin="20,0,0,0" Height="55">
                     <Grid Margin="0" Width="169" HorizontalAlignment="Left" >
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="160" Margin="10,0,0,0">
                             <TextBlock Grid.Column="0" Text="운전 모드"
@@ -581,7 +581,7 @@
                     </Grid>
                 </Border>
 
-                <Border Canvas.Left="22" Canvas.Top="14" Width="526" Height="46"
+                <Border Canvas.Left="22" Canvas.Top="14" Width="526" Height="55"
                         CornerRadius="5"
                         BorderThickness="1"
                         BorderBrush="#334F5E"
@@ -668,31 +668,38 @@
                     </Grid>
                 </Border>
 
-                <Border Canvas.Left="22" Canvas.Top="14" Width="220" Height="46"
+                <Border Canvas.Left="22" Canvas.Top="14" Width="220" Height="55"
                         CornerRadius="5"
                         BorderThickness="1"
                         BorderBrush="#334F5E"
                         Background="#CC15181C" Margin="10,0,0,0">
-                    <Grid Margin="0" >
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="200" Margin="10,0,0,0">
-                            <TextBlock Text="Touch Keyboard"
-                                   Foreground="#FFC3C3C3"
-                                   FontSize="13"
-                                   FontWeight="Bold"
-                                   VerticalAlignment="Center"
-                                   Margin="10,0"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <!-- Touch Keyboard 스위치 -->
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="0,0,16,0" Width="100">
+                            <TextBlock Text="Touch Key Board"
+                                       Foreground="#FFC3C3C3" FontSize="11" FontWeight="Bold"
+                                       HorizontalAlignment="Center" Margin="0,0,0,2"/>
                             <ToggleButton IsChecked="{Binding IsTouchKeyboardEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                          Style="{StaticResource TouchKeyboardToggleStyle}"/>
+                                          Style="{StaticResource TouchKeyboardToggleStyle}" Margin="0" Height="25"/>
                         </StackPanel>
-                    </Grid>
+                        <!-- BMS Guard 스위치 (PcsVm.IsBmsGuardEnabled, 동일 스위치 스타일) -->
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Width="100">
+                            <TextBlock Text="BMS Guard"
+                                       Foreground="#FFC3C3C3" FontSize="11" FontWeight="Bold"
+                                       HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                            <ToggleButton IsChecked="{Binding PcsVm.IsBmsGuardEnabled, Source={x:Static Application.Current}, Mode=TwoWay}"
+                                          Style="{StaticResource TouchKeyboardToggleStyle}"
+                                          ToolTip="BMS Guard ON/OFF (PCS 단독 테스트 시 OFF)" Margin="0" Height="25"/>
+                        </StackPanel>
+                    </StackPanel>
                 </Border>
             </StackPanel>
 
-            <Border Canvas.Left="20" Canvas.Top="55" Width="241" Height="40"
+            <Border Canvas.Left="20" Canvas.Top="55" Width="310" Height="55"
                     CornerRadius="5"
                     BorderThickness="1"
                     BorderBrush="#334F5E"
-                    Background="#CC15181C">
+                    Background="#CC15181C" Margin="0,10,0,0">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
                     <TextBlock Text="목표 Load"
                                Foreground="#FFB0FCFC"
@@ -700,7 +707,13 @@
                                FontWeight="SemiBold"
                                VerticalAlignment="Center"
                                Margin="0,0,12,0"/>
-                    <RadioButton Content="Load"
+                    <RadioButton Content="ON"
+                                 GroupName="HomeLoadTarget"
+                                 Command="{Binding Cmd_SelectLoadTarget}"
+                                 CommandParameter="{x:Static Models:LoadStatus.OnGrid}"
+                                 IsChecked="{Binding SelectedLoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OnGrid, Mode=OneWay}"
+                                 Style="{StaticResource LoadTargetToggleStyle}"/>
+                    <RadioButton Content="OFF"
                                  GroupName="HomeLoadTarget"
                                  Command="{Binding Cmd_SelectLoadTarget}"
                                  CommandParameter="{x:Static Models:LoadStatus.OffGrid}"
@@ -781,6 +794,24 @@
                     <PathGeometry>
                         <PathFigure StartPoint="535,310" IsClosed="False">
                             <LineSegment Point="600,310"/>
+                        </PathFigure>
+                    </PathGeometry>
+                </Path.Data>
+            </Path>
+
+            <Path x:Name="Discharge_OnGrid"
+                  Managers:AnimationManager.IsRunning="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OnGrid}"
+                  Managers:AnimationManager.To="-15"
+                  Managers:AnimationManager.From="0"
+                  Managers:AnimationManager.Speed="1.2"
+                  Managers:AnimationManager.StartDelaySec="1"
+                  Visibility="Visible"
+                  Style="{StaticResource DisChargingPathStyle}" Canvas.Left="-40" Canvas.Top="5">
+                <Path.Data>
+                    <PathGeometry>
+                        <PathFigure StartPoint="670,310" IsClosed="False">
+                            <LineSegment Point="670,150"/>
+                            <LineSegment Point="800,150"/>
                         </PathFigure>
                     </PathGeometry>
                 </Path.Data>
@@ -1177,7 +1208,7 @@
                             <Ellipse Width="5" Height="5" Margin="1,1,0,0" Fill="GreenYellow"/>
                         </StackPanel>
                     </Label>-->
-                    
+
                     <!--<Label Canvas.Left="87" Canvas.Top="46"
                            Style="{StaticResource InfoLableStyle}" Width="35">
                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
@@ -1196,6 +1227,25 @@
 
                 </Canvas>
             </Border>
+            <Border x:Name="ONGrid"
+                    Canvas.Left="752"
+                    Canvas.Top="70"
+                    BorderBrush="{Binding ChargeOnGrid}"
+                    Style="{StaticResource DischargeStoryBorderStyle}">
+                <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <TextBlock Text="On Grid" Padding="0,0,0,0"
+                               Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Left="4" Canvas.Top="3"/>
+
+                    <Label Canvas.Left="142" Canvas.Top="4"
+                           Style="{StaticResource LoadLableStyle}" Width="70" Content="Standalone"/>
+
+                    <Image Canvas.Left="32"
+                           Style="{StaticResource DefaultImageStyle}" Width="150" Height="150" Stretch="Fill" Canvas.Top="16" Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/Ongrid.png"/>
+
+
+                </Canvas>
+            </Border>
+
             <Border x:Name="OFFGrid"
                     Canvas.Left="752" 
                     Canvas.Top="271"
