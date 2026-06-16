@@ -68,10 +68,18 @@ namespace EMS_PJT_Hamburger.ViewModels
             set => SetProperty(() => AlarmCount, value);
         }
 
-        public XyDataSeries<DateTime, double> PcsTrendSeries
+        // PCS Total Export Energy 변화량(Δ) 시리즈 (초록)
+        public XyDataSeries<DateTime, double> PcsExportTrendSeries
         {
-            get => GetProperty(() => PcsTrendSeries);
-            set => SetProperty(() => PcsTrendSeries, value);
+            get => GetProperty(() => PcsExportTrendSeries);
+            set => SetProperty(() => PcsExportTrendSeries, value);
+        }
+
+        // PCS Total Import Energy 변화량(Δ) 시리즈 (파랑)
+        public XyDataSeries<DateTime, double> PcsImportTrendSeries
+        {
+            get => GetProperty(() => PcsImportTrendSeries);
+            set => SetProperty(() => PcsImportTrendSeries, value);
         }
 
         public XyDataSeries<DateTime, double> BmsTrendSeries
@@ -105,7 +113,8 @@ namespace EMS_PJT_Hamburger.ViewModels
             StartDate = DateTime.Today;
             EndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
             TrendXAxisTextFormatting = "HH:mm";
-            PcsTrendSeries = CreateTrendSeries("PCS Trend");
+            PcsExportTrendSeries = CreateTrendSeries("Export Δ");
+            PcsImportTrendSeries = CreateTrendSeries("Import Δ");
             BmsTrendSeries = CreateTrendSeries("BMS Trend");
             PcsTrendDefaultVisibleRange = new DateRange(StartDate, EndDate);
             BmsTrendDefaultVisibleRange = new DateRange(StartDate, EndDate);
@@ -170,18 +179,20 @@ namespace EMS_PJT_Hamburger.ViewModels
             _pcsTrendInterval = isSingleDay ? TimeSpan.FromMinutes(1) : TimeSpan.FromHours(1);
             var limit = isSingleDay ? MaxMinutePayloadRows : MaxHourlyPayloadRows;
 
+            // 버킷별 누적 Total Export/Import Energy(kWh)의 증가분(Δ = max - min)
             var ds = db.GetDataSetByQuery($@"
-select collected_at, max_value
+select collected_at, export_delta, import_delta
 from
 (
     select
         date_trunc('{truncUnit}', collected_at) as collected_at,
-        max(pcs_active_power_kw) as max_value
+        max(pcs_total_export_kwh) - min(pcs_total_export_kwh) as export_delta,
+        max(pcs_total_import_kwh) - min(pcs_total_import_kwh) as import_delta
     from public.tb_ems_raw_data
     where source = 'PCS'
       and collected_at >= @start_at
       and collected_at <= @end_at
-      and pcs_active_power_kw is not null
+      and (pcs_total_export_kwh is not null or pcs_total_import_kwh is not null)
     group by date_trunc('{truncUnit}', collected_at)
 ) bucket_metric
 order by collected_at desc
@@ -193,7 +204,7 @@ limit @limit;",
                     cmd.Parameters.AddWithValue("@limit", limit);
                 });
 
-            AddHourlyMetricRows(FirstTable(ds), PcsRows, "PCS", "Max Active Power", "kW");
+            AddPcsDeltaRows(FirstTable(ds));
 
             LoadSystemStateRows(db, "PCS", PcsRows);
         }
@@ -266,6 +277,41 @@ limit @limit;",
                     Value3Name = "Summary",
                     Value3 = "Hourly Max",
                     ChartValue = value
+                });
+            }
+        }
+
+        // PCS Total Export/Import Energy 버킷별 변화량(Δ) 행 추가. 음수는 0으로 클램프.
+        private void AddPcsDeltaRows(DataTable table)
+        {
+            if (table == null)
+                return;
+
+            foreach (DataRow row in table.Rows)
+            {
+                var occurredAt = ReadDate(row, "collected_at", DateTime.MinValue);
+                if (occurredAt == DateTime.MinValue)
+                    continue;
+
+                var exportDelta = Math.Max(0, ReadDouble(row, "export_delta", 0));
+                var importDelta = Math.Max(0, ReadDouble(row, "import_delta", 0));
+
+                PcsRows.Add(new HistoryDataRow
+                {
+                    OccurredAt = occurredAt,
+                    IsPayloadTrendPoint = true,
+                    Time = FormatTime(occurredAt),
+                    Source = "PCS",
+                    Name = "Energy Δ",
+                    Value1Name = "Export",
+                    Value1 = FormatNumber(exportDelta),
+                    Value2Name = "Import",
+                    Value2 = FormatNumber(importDelta),
+                    Value3Name = "Unit",
+                    Value3 = "kWh",
+                    ExportDelta = exportDelta,
+                    ImportDelta = importDelta,
+                    ChartValue = exportDelta
                 });
             }
         }
@@ -361,8 +407,10 @@ limit 300;",
         private void UpdateCharts()
         {
             TrendXAxisTextFormatting = BuildTrendXAxisTextFormatting();
-            PcsTrendSeries = BuildTrendSeries("PCS Trend", PcsRows.Where(x => x.IsPayloadTrendPoint).Reverse().ToArray());
-            BmsTrendSeries = BuildTrendSeries("BMS Trend", BmsRows.Where(x => x.IsPayloadTrendPoint).Reverse().ToArray());
+            var pcsPoints = PcsRows.Where(x => x.IsPayloadTrendPoint).Reverse().ToArray();
+            PcsExportTrendSeries = BuildTrendSeries("Export Δ", pcsPoints, r => r.ExportDelta);
+            PcsImportTrendSeries = BuildTrendSeries("Import Δ", pcsPoints, r => r.ImportDelta);
+            BmsTrendSeries = BuildTrendSeries("BMS Trend", BmsRows.Where(x => x.IsPayloadTrendPoint).Reverse().ToArray(), r => r.ChartValue);
             PcsTrendDefaultVisibleRange = BuildTrendDefaultVisibleRange(PcsRows, _pcsTrendInterval);
             BmsTrendDefaultVisibleRange = BuildTrendDefaultVisibleRange(BmsRows, _bmsTrendInterval);
         }
@@ -392,7 +440,10 @@ limit 300;",
             return new XyDataSeries<DateTime, double> { SeriesName = name };
         }
 
-        private static XyDataSeries<DateTime, double> BuildTrendSeries(string name, HistoryDataRow[] rows)
+        private static XyDataSeries<DateTime, double> BuildTrendSeries(
+            string name,
+            HistoryDataRow[] rows,
+            Func<HistoryDataRow, double> valueSelector)
         {
             var series = CreateTrendSeries(name);
             if (rows == null || rows.Length == 0)
@@ -403,7 +454,7 @@ limit 300;",
                 if (row.OccurredAt == DateTime.MinValue)
                     continue;
 
-                series.Append(row.OccurredAt, row.ChartValue);
+                series.Append(row.OccurredAt, valueSelector(row));
             }
 
             return series;
@@ -540,6 +591,8 @@ limit 300;",
         public string Value3Name { get; set; }
         public string Value3 { get; set; }
         public double ChartValue { get; set; }
+        public double ExportDelta { get; set; }
+        public double ImportDelta { get; set; }
     }
 
     public sealed class HistoryAlarmRow

@@ -88,7 +88,7 @@ namespace EMS_PJT_Hamburger.Views
             if (DataContext is PcsModel model && model.PowerTrendDefaultVisibleRange != null)
                 PowerTrendXAxis.VisibleRange = model.PowerTrendDefaultVisibleRange;
 
-            PowerTrendYAxis.VisibleRange = new DoubleRange(0, 100);
+            // Y축은 Δ 크기에 맞춰 자동 범위(AutoRange=Always) 사용
         }
     }
 }

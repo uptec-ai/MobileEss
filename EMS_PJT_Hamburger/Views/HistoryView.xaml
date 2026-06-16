@@ -191,7 +191,12 @@
                         <Grid>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="PCS Trend" Style="{StaticResource SectionTitleStyle}"/>
-                                <TextBlock Text="Max PCS active power" Style="{StaticResource MutedTextStyle}" Margin="16,0,0,0"/>
+                                <TextBlock Text="Total Export/Import Energy Δ" Style="{StaticResource MutedTextStyle}" Margin="16,0,0,0"/>
+                                <!-- 범례: Export=초록, Import=파랑 -->
+                                <Ellipse Width="10" Height="10" Fill="#76F7A8" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                <TextBlock Text="Export" Style="{StaticResource MutedTextStyle}" Margin="5,0,12,0"/>
+                                <Ellipse Width="10" Height="10" Fill="#4EA5FF" VerticalAlignment="Center"/>
+                                <TextBlock Text="Import" Style="{StaticResource MutedTextStyle}" Margin="5,0,0,0"/>
                             </StackPanel>
                             <!-- Y축 범위(Min~Max) 조절용 편집기 -->
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
@@ -223,18 +228,22 @@
                                            Padding="0"
                                            MouseDoubleClick="PcsTrendChart_MouseDoubleClick">
                             <s:SciChartSurface.RenderableSeries>
-                                <s:FastMountainRenderableSeries DataSeries="{Binding PcsTrendSeries}"
-                                                                Stroke="#76F7A8"
-                                                                StrokeThickness="3"
-                                                                Fill="#3A2C8D54">
-                                    <s:FastMountainRenderableSeries.PointMarker>
-                                        <s:EllipsePointMarker Width="5"
-                                                          Height="5"
-                                                          Fill="Red"
-                                                          Stroke="Transparent"/>
-                                    </s:FastMountainRenderableSeries.PointMarker>
-                                </s:FastMountainRenderableSeries>
-                                
+                                <!-- Total Export Energy 변화량 (초록) -->
+                                <s:FastLineRenderableSeries DataSeries="{Binding PcsExportTrendSeries}"
+                                                            Stroke="#76F7A8"
+                                                            StrokeThickness="3">
+                                    <s:FastLineRenderableSeries.PointMarker>
+                                        <s:EllipsePointMarker Width="5" Height="5" Fill="#76F7A8" Stroke="Transparent"/>
+                                    </s:FastLineRenderableSeries.PointMarker>
+                                </s:FastLineRenderableSeries>
+                                <!-- Total Import Energy 변화량 (파랑) -->
+                                <s:FastLineRenderableSeries DataSeries="{Binding PcsImportTrendSeries}"
+                                                            Stroke="#4EA5FF"
+                                                            StrokeThickness="3">
+                                    <s:FastLineRenderableSeries.PointMarker>
+                                        <s:EllipsePointMarker Width="5" Height="5" Fill="#4EA5FF" Stroke="Transparent"/>
+                                    </s:FastLineRenderableSeries.PointMarker>
+                                </s:FastLineRenderableSeries>
                             </s:SciChartSurface.RenderableSeries>
                             <s:SciChartSurface.XAxis>
                                 <s:DateTimeAxis x:Name="PcsTrendXAxis"
@@ -261,7 +270,7 @@
                                                GrowBy="0.05, 0.15"
                                                MaxAutoTicks="5"
                                                FontSize="13"
-                                               AxisTitle="kW"
+                                               AxisTitle="kWh"
                                                Foreground="#FFE6E6E6"/>
                             </s:SciChartSurface.YAxis>
                             <s:SciChartSurface.ChartModifier>

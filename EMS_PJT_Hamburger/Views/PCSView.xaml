@@ -507,7 +507,14 @@
                     </Grid.RowDefinitions>
                     <Grid>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Active Power Trend" Foreground="#FF76F7A8" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <TextBlock Text="Energy Δ Trend" Foreground="#FF76F7A8" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+                            <!-- 범례: Export=초록, Import=파랑 -->
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                                <Ellipse Width="10" Height="10" Fill="#76F7A8" VerticalAlignment="Center"/>
+                                <TextBlock Text="Export" Foreground="#FFD2D7DC" FontSize="12" Margin="5,0,12,0" VerticalAlignment="Center"/>
+                                <Ellipse Width="10" Height="10" Fill="#4EA5FF" VerticalAlignment="Center"/>
+                                <TextBlock Text="Import" Foreground="#FFD2D7DC" FontSize="12" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
                         </StackPanel>
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <ToggleButton Content="1m" Command="{Binding Cmd_SelectPowerTrendInterval}" CommandParameter="1M" IsChecked="{Binding IsPowerTrendMinuteSelected, Mode=OneWay}" Style="{StaticResource TrendIntervalToggleStyle}"/>
@@ -523,17 +530,22 @@
                                        PreviewMouseWheel="PowerTrendChart_PreviewMouseWheel"
                                        PreviewMouseLeftButtonDown="PowerTrendChart_PreviewMouseLeftButtonDown">
                         <s:SciChartSurface.RenderableSeries>
-                            <s:FastMountainRenderableSeries DataSeries="{Binding DailyPowerTrendSeries}"
-                                                            Stroke="#76F7A8"
-                                                            StrokeThickness="3"
-                                                            Fill="#3A2C8D54">
-                                <s:FastMountainRenderableSeries.PointMarker>
-                                    <s:EllipsePointMarker Width="5"
-                                                          Height="5"
-                                                          Fill="#76F7A8"
-                                                          Stroke="#76F7A8"/>
-                                </s:FastMountainRenderableSeries.PointMarker>
-                            </s:FastMountainRenderableSeries>
+                            <!-- Total Export Energy 변화량 (초록) -->
+                            <s:FastLineRenderableSeries DataSeries="{Binding DailyExportTrendSeries}"
+                                                        Stroke="#76F7A8"
+                                                        StrokeThickness="3">
+                                <s:FastLineRenderableSeries.PointMarker>
+                                    <s:EllipsePointMarker Width="5" Height="5" Fill="#76F7A8" Stroke="#76F7A8"/>
+                                </s:FastLineRenderableSeries.PointMarker>
+                            </s:FastLineRenderableSeries>
+                            <!-- Total Import Energy 변화량 (파랑) -->
+                            <s:FastLineRenderableSeries DataSeries="{Binding DailyImportTrendSeries}"
+                                                        Stroke="#4EA5FF"
+                                                        StrokeThickness="3">
+                                <s:FastLineRenderableSeries.PointMarker>
+                                    <s:EllipsePointMarker Width="5" Height="5" Fill="#4EA5FF" Stroke="#4EA5FF"/>
+                                </s:FastLineRenderableSeries.PointMarker>
+                            </s:FastLineRenderableSeries>
                         </s:SciChartSurface.RenderableSeries>
                         <s:SciChartSurface.XAxis>
                             <s:DateTimeAxis x:Name="PowerTrendXAxis"
@@ -546,22 +558,21 @@
                                             DrawMinorGridLines="False"
                                             TextFormatting="HH:mm"
                                             FontSize="13"
-                                            AxisTitle="Grid Power"
+                                            AxisTitle="Time"
                                             Foreground="#FFE6E6E6"/>
                         </s:SciChartSurface.XAxis>
                         <s:SciChartSurface.YAxis>
                             <s:NumericAxis x:Name="PowerTrendYAxis"
                                            DrawMajorBands="False"
-                                           AutoRange="Never"
-                                           VisibleRange="0,100"
+                                           AutoRange="Always"
                                            DrawMajorTicks="False"
                                            DrawMinorTicks="False"
                                            DrawMajorGridLines="True"
                                            DrawMinorGridLines="False"
-                                           GrowBy="0.05, 0.15"
+                                           GrowBy="0.1, 0.2"
                                            MaxAutoTicks="5"
                                            FontSize="13"
-                                           AxisTitle="kW"
+                                           AxisTitle="kWh"
                                            Foreground="#FFE6E6E6"/>
                         </s:SciChartSurface.YAxis>
                         <s:SciChartSurface.ChartModifier>

@@ -197,10 +197,17 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         }
         public double InvAveAcVoltage { get; set; } = 0.0d;
         public double InvAveCurrent { get; set; } = 0.0d;
-        public XyDataSeries<DateTime, double> DailyPowerTrendSeries
+        // Total Export Energy 변화량(Δ) 시리즈 (초록)
+        public XyDataSeries<DateTime, double> DailyExportTrendSeries
         {
-            get => GetProperty(() => DailyPowerTrendSeries);
-            set => SetProperty(() => DailyPowerTrendSeries, value);
+            get => GetProperty(() => DailyExportTrendSeries);
+            set => SetProperty(() => DailyExportTrendSeries, value);
+        }
+        // Total Import Energy 변화량(Δ) 시리즈 (파랑)
+        public XyDataSeries<DateTime, double> DailyImportTrendSeries
+        {
+            get => GetProperty(() => DailyImportTrendSeries);
+            set => SetProperty(() => DailyImportTrendSeries, value);
         }
         public bool IsPcsFaultAlarmActive
         {
@@ -1175,7 +1182,10 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         private void UpdateDailyPowerTrend(Dictionary<string, object> parsed)
         {
             if (parsed == null) return;
-            if (!TryGetDouble(parsed, "GridActivePower", out var power)) return;
+            // 누적 Total Export/Import Energy(kWh)를 수집한다. 차트는 버킷 간 증가분(Δ)을 표출.
+            var hasExport = TryGetDouble(parsed, "GridTotalExportedActivePower", out var exportKwh);
+            var hasImport = TryGetDouble(parsed, "GridTotalImportActivePower", out var importKwh);
+            if (!hasExport && !hasImport) return;
 
             var nowUtc = DateTime.UtcNow;
             if (nowUtc - _lastPowerTrendSampleUtc < TimeSpan.FromSeconds(1))
@@ -1184,7 +1194,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             lock (_powerTrendLock)
             {
                 var now = DateTime.Now;
-                _powerTrendSamples.Add(new PowerTrendSample { Time = now, PowerKw = power / 1000d });
+                _powerTrendSamples.Add(new PowerTrendSample { Time = now, ExportKwh = exportKwh, ImportKwh = importKwh });
                 _powerTrendSamples.RemoveAll(sample => sample.Time < now.AddDays(-10));
             }
 
@@ -1221,18 +1231,31 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                     visibleWindow = _powerTrendVisibleWindow;
                 }
 
-                var series = new XyDataSeries<DateTime, double> { SeriesName = "Active Power" };
-                var buckets = new SortedDictionary<DateTime, double>();
-
+                // 버킷별 마지막 누적값(export/import kWh)
+                var buckets = new SortedDictionary<DateTime, PowerTrendSample>();
                 foreach (var sample in samples)
+                    buckets[FloorPowerTrendTime(sample.Time, interval)] = sample;
+
+                var exportSeries = new XyDataSeries<DateTime, double> { SeriesName = "Export Δ" };
+                var importSeries = new XyDataSeries<DateTime, double> { SeriesName = "Import Δ" };
+
+                // 버킷 간 증가분(Δ). 음수(카운터 리셋)는 0으로 클램프.
+                var hasPrev = false;
+                double prevExport = 0, prevImport = 0;
+                foreach (var bucket in buckets)
                 {
-                    buckets[FloorPowerTrendTime(sample.Time, interval)] = sample.PowerKw;
+                    if (hasPrev)
+                    {
+                        exportSeries.Append(bucket.Key, Math.Max(0, bucket.Value.ExportKwh - prevExport));
+                        importSeries.Append(bucket.Key, Math.Max(0, bucket.Value.ImportKwh - prevImport));
+                    }
+                    prevExport = bucket.Value.ExportKwh;
+                    prevImport = bucket.Value.ImportKwh;
+                    hasPrev = true;
                 }
 
-                foreach (var bucket in buckets)
-                    series.Append(bucket.Key, bucket.Value);
-
-                DailyPowerTrendSeries = series;
+                DailyExportTrendSeries = exportSeries;
+                DailyImportTrendSeries = importSeries;
                 PowerTrendDefaultVisibleRange = BuildPowerTrendDefaultVisibleRange(buckets, interval, visibleWindow);
             };
 
@@ -1254,7 +1277,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         }
 
         private static DateRange BuildPowerTrendDefaultVisibleRange(
-            SortedDictionary<DateTime, double> buckets,
+            SortedDictionary<DateTime, PowerTrendSample> buckets,
             TimeSpan interval,
             TimeSpan visibleWindow)
         {
@@ -1266,7 +1289,8 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         private class PowerTrendSample
         {
             public DateTime Time { get; set; }
-            public double PowerKw { get; set; }
+            public double ExportKwh { get; set; }
+            public double ImportKwh { get; set; }
         }
 
         #endregion

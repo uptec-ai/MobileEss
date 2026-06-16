@@ -220,19 +220,35 @@ create table if not exists public.tb_ems_raw_data
     payload_length integer not null,
     compressed_length integer not null,
     pcs_active_power_kw double precision null,
+    pcs_total_export_kwh double precision null,
+    pcs_total_import_kwh double precision null,
     bms_soc double precision null,
     raw_frame bytea null,
     summary text null
 );
 
 alter table public.tb_ems_raw_data add column if not exists pcs_active_power_kw double precision null;
+alter table public.tb_ems_raw_data add column if not exists pcs_total_export_kwh double precision null;
+alter table public.tb_ems_raw_data add column if not exists pcs_total_import_kwh double precision null;
 alter table public.tb_ems_raw_data add column if not exists bms_soc double precision null;
 
 create index if not exists ix_tb_bms_collected_at on public.tb_bms(collected_at desc);
 create index if not exists ix_tb_pcs_grid_collected_at on public.tb_pcs_grid(collected_at desc);
 create index if not exists ix_tb_pcs_status_collected_at on public.tb_pcs_status(collected_at desc);
 create index if not exists ix_tb_ems_system_state_source_time on public.tb_ems_system_state(source, collected_at desc);
-create index if not exists ix_tb_ems_raw_data_source_message_time on public.tb_ems_raw_data(source, message_name, collected_at desc);");
+create index if not exists ix_tb_ems_raw_data_source_message_time on public.tb_ems_raw_data(source, message_name, collected_at desc);
+
+create table if not exists public.tb_ems_control_log
+(
+    log_id bigserial primary key,
+    occurred_at timestamp without time zone not null default now(),
+    source varchar(16) not null,
+    command varchar(64) not null,
+    result varchar(16) not null,
+    message text null
+);
+
+create index if not exists ix_tb_ems_control_log_time on public.tb_ems_control_log(occurred_at desc);");
             _historyTablesEnsured = true;
         }
 
@@ -446,7 +462,8 @@ values
 
             var payload = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(fields));
             var compressed = Compress(payload);
-            var pcsActivePowerKw = ResolvePcsActivePowerKw(source, fields);
+            var pcsTotalExportKwh = ResolvePcsTotalKwh(source, fields, "GridTotalExportedActivePower");
+            var pcsTotalImportKwh = ResolvePcsTotalKwh(source, fields, "GridTotalImportActivePower");
             var bmsSoc = ResolveBmsSoc(source, fields);
 
             ExecuteNonQuery(@"
@@ -459,7 +476,8 @@ insert into public.tb_ems_raw_data
     payload_json,
     payload_length,
     compressed_length,
-    pcs_active_power_kw,
+    pcs_total_export_kwh,
+    pcs_total_import_kwh,
     bms_soc,
     raw_frame,
     summary
@@ -473,7 +491,8 @@ values
     @payload_json,
     @payload_length,
     @compressed_length,
-    @pcs_active_power_kw,
+    @pcs_total_export_kwh,
+    @pcs_total_import_kwh,
     @bms_soc,
     @raw_frame,
     @summary
@@ -487,20 +506,39 @@ values
                     cmd.Parameters.AddWithValue("@payload_json", compressed);
                     cmd.Parameters.AddWithValue("@payload_length", payload.Length);
                     cmd.Parameters.AddWithValue("@compressed_length", compressed.Length);
-                    cmd.Parameters.AddWithValue("@pcs_active_power_kw", (object)pcsActivePowerKw ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@pcs_total_export_kwh", (object)pcsTotalExportKwh ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@pcs_total_import_kwh", (object)pcsTotalImportKwh ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@bms_soc", (object)bmsSoc ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@raw_frame", (object)rawFrame ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@summary", BuildFieldSummary(fields));
                 });
         }
 
-        private static double? ResolvePcsActivePowerKw(string source, IDictionary<string, object> fields)
+        // 제어 명령 감사 로그 1행 적재 (Start/Complete/Canceled/Failed)
+        public void InsertControlLog(string source, string command, string result, string message, DateTime occurredAt)
+        {
+            EnsureEssHistoryTables();
+
+            ExecuteNonQuery(@"
+insert into public.tb_ems_control_log (occurred_at, source, command, result, message)
+values (@occurred_at, @source, @command, @result, @message);",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@occurred_at", occurredAt == default(DateTime) ? DateTime.Now : occurredAt);
+                    cmd.Parameters.AddWithValue("@source", source ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@command", command ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@result", result ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@message", (object)message ?? DBNull.Value);
+                });
+        }
+
+        private static double? ResolvePcsTotalKwh(string source, IDictionary<string, object> fields, string fieldName)
         {
             if (!string.Equals(source, "PCS", StringComparison.OrdinalIgnoreCase))
                 return null;
 
-            return TryReadFieldDouble(fields, "GridActivePower", out var activePower)
-                ? activePower / 1000d
+            return TryReadFieldDouble(fields, fieldName, out var totalKwh)
+                ? totalKwh
                 : (double?)null;
         }
 

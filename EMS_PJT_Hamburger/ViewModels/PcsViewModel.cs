@@ -212,7 +212,8 @@ namespace EMS_PJT_Hamburger.ViewModels
                 new DataItem { Name="Battery 전류", Value=$"0.0", Factor="kWh"},   // 5
             };
 
-            DailyPowerTrendSeries = new SciChart.Charting.Model.DataSeries.XyDataSeries<DateTime, double> { SeriesName = "Active Power" };
+            DailyExportTrendSeries = new SciChart.Charting.Model.DataSeries.XyDataSeries<DateTime, double> { SeriesName = "Export Δ" };
+            DailyImportTrendSeries = new SciChart.Charting.Model.DataSeries.XyDataSeries<DateTime, double> { SeriesName = "Import Δ" };
             SelectPcsSection("Grid");
             SelectPowerTrendInterval("1M");
 
@@ -442,6 +443,7 @@ namespace EMS_PJT_Hamburger.ViewModels
             if (!ControlConfirmationService.Confirm("PCS", name))
             {
                 SystemMsg = $"[PCS] {name} sequence canceled.";
+                LogControlCommand(name, "Canceled", "사용자 취소");
                 return;
             }
 
@@ -450,21 +452,34 @@ namespace EMS_PJT_Hamburger.ViewModels
                 IsControlBusy = true;
                 IsTransmit = true;
                 SystemMsg = $"[PCS] {name} sequence start.";
+                (Application.Current as App)?.nlog?.Info($"[PCS Control] {name} Start.");
 
                 await sequence();
                 var statusMessage = await ReadControlStatusMessageAsync();
 
                 SystemMsg = $"[PCS] {name} sequence complete.";
+                LogControlCommand(name, "Complete", statusMessage);
             }
             catch (Exception ex)
             {
                 SystemMsg = $"[E] {name} failed: {ex.Message}";
+                LogControlCommand(name, "Failed", ex.Message);
             }
             finally
             {
                 IsTransmit = false;
                 IsControlBusy = false;
             }
+        }
+
+        // 제어 명령 감사 기록: 파일 로그(nlog) + DB(tb_ems_control_log). 로깅 실패는 제어 흐름을 막지 않는다.
+        private static void LogControlCommand(string command, string result, string message)
+        {
+            var app = Application.Current as App;
+            try { app?.nlog?.Info($"[PCS Control] {command} -> {result}. {message}"); }
+            catch { }
+            try { app?.DbManager?.InsertControlLog("PCS", command, result, message, DateTime.Now); }
+            catch (Exception ex) { app?.nlog?.Warn(ex, "InsertControlLog failed."); }
         }
 
         private async Task StartChargeSequenceAsync()
