@@ -267,10 +267,34 @@
                     <Border Background="#121922" BorderBrush="#2A3D4A" BorderThickness="1" CornerRadius="4" Padding="16,8" Margin="0,0,10,0">
                         <TextBlock Text="{Binding PanelData.PcsTime}" Foreground="White" FontSize="14"/>
                     </Border>
-                    <Border Background="#15391F" BorderBrush="#2C7F41" BorderThickness="1" CornerRadius="4" Padding="12,8">
+                    <!-- 연결 시 녹색 / 끊김 시 적색으로 전환 (BMS View와 동일 방식) -->
+                    <Border BorderThickness="1" CornerRadius="4" Padding="12,8">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#4A1515"/>
+                                <Setter Property="BorderBrush" Value="#8C3A3A"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Conn_State.Status}" Value="Connected">
+                                        <Setter Property="Background" Value="#15391F"/>
+                                        <Setter Property="BorderBrush" Value="#2C7F41"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
                         <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="10" Height="10" Fill="#76F7A8" VerticalAlignment="Center" Margin="0,0,7,0"/>
-                            <TextBlock Text="{Binding Conn_State.Status}" Foreground="#FFBFFFD2" FontSize="14"/>
+                            <Ellipse Width="10" Height="10" VerticalAlignment="Center" Margin="0,0,7,0">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse">
+                                        <Setter Property="Fill" Value="#FF6B6B"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Conn_State.Status}" Value="Connected">
+                                                <Setter Property="Fill" Value="#76F7A8"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="{Binding Conn_State.Status}" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>

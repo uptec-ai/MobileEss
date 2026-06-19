@@ -1386,7 +1386,10 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             if (nowUtc - _lastPcsRawSavedUtc < TimeSpan.FromSeconds(1))
                 return;
 
-            var excluded = new HashSet<string>(PcsSpecs.StatusData.Select(x => x.Name), StringComparer.OrdinalIgnoreCase);
+            // StatusData(상태/Fault)와 TimeData(PcsTime*)는 payload 저장에서 제외한다.
+            var excluded = new HashSet<string>(
+                PcsSpecs.StatusData.Select(x => x.Name).Concat(PcsSpecs.TimeData.Select(x => x.Name)),
+                StringComparer.OrdinalIgnoreCase);
             var rawFields = parsed
                 .Where(x => !excluded.Contains(x.Key))
                 .ToDictionary(x => x.Key, x => x.Value);

@@ -1,13 +1,20 @@
 using DevExpress.Mvvm;
+using EMS_PJT_Hamburger.Models.Client.PCS;
 using EMS_PJT_Hamburger.Models.Managers;
+using Microsoft.Win32;
 using Npgsql;
 using SciChart.Charting.Model.DataSeries;
 using SciChart.Data.Model;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Data;
 using System.Globalization;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Media;
 
@@ -31,6 +38,7 @@ namespace EMS_PJT_Hamburger.ViewModels
         public DelegateCommand Cmd_Refresh { get; private set; }
         public DelegateCommand Cmd_Today { get; private set; }
         public DelegateCommand Cmd_Week { get; private set; }
+        public DelegateCommand Cmd_ExportRaw { get; private set; }
 
         public DateTime StartDate
         {
@@ -132,6 +140,7 @@ namespace EMS_PJT_Hamburger.ViewModels
                 EndDate = DateTime.Today.AddDays(1).AddSeconds(-1);
                 LoadHistory();
             });
+            Cmd_ExportRaw = new DelegateCommand(ExportRawData);
 
             LoadHistory();
         }
@@ -390,6 +399,275 @@ limit 300;",
                     SeverityBrush = ResolveSeverityBrush(row)
                 });
             }
+        }
+
+        // 조회 기간의 PCS 측정 raw 데이터를 파일로 내보낸다.
+        // tb_ems_raw_data.payload_json(Deflate 압축 JSON)을 해제해 필드별 컬럼의 탭 구분 텍스트로 저장.
+        private void ExportRawData()
+        {
+            try
+            {
+                var app = Application.Current as App;
+                var db = app?.DbManager;
+                if (db == null)
+                {
+                    StatusMessage = "DB manager is not ready.";
+                    return;
+                }
+
+                if (!ValidateSearchPeriod())
+                    return;
+
+                var ds = db.GetDataSetByQuery(@"
+select collected_at, message_name, payload_json
+from public.tb_ems_raw_data
+where source = 'PCS'
+  and collected_at >= @start_at
+  and collected_at <= @end_at
+order by collected_at;",
+                    cmd =>
+                    {
+                        cmd.Parameters.AddWithValue("@start_at", QueryStartDate());
+                        cmd.Parameters.AddWithValue("@end_at", QueryEndDate());
+                    });
+
+                var table = FirstTable(ds);
+                if (table == null || table.Rows.Count == 0)
+                {
+                    StatusMessage = "Export: 해당 기간에 PCS 데이터가 없습니다.";
+                    return;
+                }
+
+                // PcsTime*(연/월일/시분/초밀리초)는 export에서 제외(collected_at로 대체).
+                var excludedCols = new HashSet<string>(PcsSpecs.TimeData.Select(x => x.Name), StringComparer.Ordinal);
+
+                // 각 행의 payload 압축 해제 -> JSON -> 필드. 컬럼은 등장 순서 유지.
+                var records = new List<KeyValuePair<DateTime, Dictionary<string, string>>>();
+                var columns = new List<string>();
+                var seen = new HashSet<string>(StringComparer.Ordinal);
+
+                foreach (DataRow row in table.Rows)
+                {
+                    var time = ReadDate(row, "collected_at", DateTime.MinValue);
+                    var bytes = ReadBytea(row, "payload_json");
+                    if (bytes == null)
+                        continue;
+
+                    var json = Encoding.UTF8.GetString(db.Decompress(bytes));
+                    var fields = ParseJsonToStringDict(json);
+                    foreach (var key in fields.Keys)
+                        if (!excludedCols.Contains(key) && seen.Add(key)) columns.Add(key);
+
+                    records.Add(new KeyValuePair<DateTime, Dictionary<string, string>>(time, fields));
+                }
+
+                var dialog = new SaveFileDialog
+                {
+                    Filter = "Excel files (*.xlsx)|*.xlsx|All files (*.*)|*.*",
+                    FileName = $"PCS_raw_{StartDate:yyyyMMdd}_{EndDate:yyyyMMdd}.xlsx"
+                };
+
+                if (dialog.ShowDialog() != true)
+                    return;
+
+                var sheetDefs = BuildCategorySheets(columns);
+                WriteXlsx(dialog.FileName, sheetDefs, records);
+                StatusMessage = $"Export 완료: {records.Count}행, 시트 {sheetDefs.Count}개 -> {System.IO.Path.GetFileName(dialog.FileName)}";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Export 실패: {ex.Message}";
+            }
+        }
+
+        private static byte[] ReadBytea(DataRow row, string name)
+        {
+            if (!HasColumn(row, name)) return null;
+            var raw = row[name];
+            if (raw == null || raw == DBNull.Value) return null;
+            // Npgsql은 bytea를 byte[]로 반환한다.
+            return raw as byte[];
+        }
+
+        private static Dictionary<string, string> ParseJsonToStringDict(string json)
+        {
+            var result = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (string.IsNullOrWhiteSpace(json)) return result;
+
+            using (var doc = JsonDocument.Parse(json))
+            {
+                if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var prop in doc.RootElement.EnumerateObject())
+                        result[prop.Name] = prop.Value.ToString();
+                }
+            }
+            return result;
+        }
+
+        // 측정 컬럼을 PcsSpecs 카테고리(Grid/Inverter/Load/Battery/Etc)별 시트로 분류한다.
+        // 미분류 컬럼은 Etc로 묶고, 비어있는 카테고리는 생략한다.
+        private static List<KeyValuePair<string, List<string>>> BuildCategorySheets(List<string> columns)
+        {
+            var present = new HashSet<string>(columns, StringComparer.Ordinal);
+            var sheets = new List<KeyValuePair<string, List<string>>>();
+
+            void AddCat(string name, IEnumerable<string> specNames)
+            {
+                var cols = specNames.Where(present.Contains).ToList();
+                if (cols.Count > 0)
+                    sheets.Add(new KeyValuePair<string, List<string>>(name, cols));
+            }
+
+            AddCat("Grid", PcsSpecs.GridData.Select(x => x.Name));
+            AddCat("Inverter", PcsSpecs.InvData.Select(x => x.Name));
+            AddCat("Load", PcsSpecs.LoadData.Select(x => x.Name));
+            AddCat("Battery", PcsSpecs.BatteryData.Select(x => x.Name));
+            AddCat("Etc", PcsSpecs.EtcData.Select(x => x.Name));
+
+            var categorized = new HashSet<string>(sheets.SelectMany(s => s.Value), StringComparer.Ordinal);
+            var leftovers = columns.Where(c => !categorized.Contains(c)).ToList();
+            if (leftovers.Count > 0)
+            {
+                var etc = sheets.FirstOrDefault(s => s.Key == "Etc");
+                if (etc.Value != null) etc.Value.AddRange(leftovers);
+                else sheets.Add(new KeyValuePair<string, List<string>>("Etc", leftovers));
+            }
+
+            if (sheets.Count == 0)
+                sheets.Add(new KeyValuePair<string, List<string>>("PCS", columns));
+
+            return sheets;
+        }
+
+        // 외부 라이브러리 없이 System.IO.Compression으로 최소 OpenXML(.xlsx) 패키지를 직접 생성한다.
+        // sheets: (시트명, 컬럼목록). 각 시트는 collected_at + 해당 컬럼으로 구성된다.
+        private static void WriteXlsx(
+            string path,
+            List<KeyValuePair<string, List<string>>> sheets,
+            List<KeyValuePair<DateTime, Dictionary<string, string>>> records)
+        {
+            const string rootRels =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+                "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" +
+                "<Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/>" +
+                "</Relationships>";
+
+            var ct = new StringBuilder();
+            ct.Append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
+            ct.Append("<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">");
+            ct.Append("<Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/>");
+            ct.Append("<Default Extension=\"xml\" ContentType=\"application/xml\"/>");
+            ct.Append("<Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/>");
+            for (int i = 0; i < sheets.Count; i++)
+                ct.Append("<Override PartName=\"/xl/worksheets/sheet" + (i + 1) + ".xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>");
+            ct.Append("</Types>");
+
+            var wb = new StringBuilder();
+            wb.Append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
+            wb.Append("<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets>");
+            for (int i = 0; i < sheets.Count; i++)
+                wb.Append("<sheet name=\"" + XlsxEscape(sheets[i].Key) + "\" sheetId=\"" + (i + 1) + "\" r:id=\"rId" + (i + 1) + "\"/>");
+            wb.Append("</sheets></workbook>");
+
+            var wbRels = new StringBuilder();
+            wbRels.Append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
+            wbRels.Append("<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">");
+            for (int i = 0; i < sheets.Count; i++)
+                wbRels.Append("<Relationship Id=\"rId" + (i + 1) + "\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet" + (i + 1) + ".xml\"/>");
+            wbRels.Append("</Relationships>");
+
+            var utf8 = new UTF8Encoding(false);
+            using (var fs = new FileStream(path, FileMode.Create, FileAccess.Write))
+            using (var zip = new ZipArchive(fs, ZipArchiveMode.Create))
+            {
+                AddXlsxEntry(zip, "[Content_Types].xml", ct.ToString(), utf8);
+                AddXlsxEntry(zip, "_rels/.rels", rootRels, utf8);
+                AddXlsxEntry(zip, "xl/workbook.xml", wb.ToString(), utf8);
+                AddXlsxEntry(zip, "xl/_rels/workbook.xml.rels", wbRels.ToString(), utf8);
+
+                for (int i = 0; i < sheets.Count; i++)
+                    WriteSheet(zip, "xl/worksheets/sheet" + (i + 1) + ".xml", sheets[i].Value, records, utf8);
+            }
+        }
+
+        private static void WriteSheet(
+            ZipArchive zip,
+            string partName,
+            List<string> columns,
+            List<KeyValuePair<DateTime, Dictionary<string, string>>> records,
+            Encoding utf8)
+        {
+            var entry = zip.CreateEntry(partName);
+            using (var w = new StreamWriter(entry.Open(), utf8))
+            {
+                w.Write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>");
+                w.Write("<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>");
+
+                var rowNum = 1;
+                w.Write("<row r=\"" + rowNum + "\">");
+                WriteCell(w, 0, rowNum, "collected_at");
+                for (int c = 0; c < columns.Count; c++)
+                    WriteCell(w, c + 1, rowNum, columns[c]);
+                w.Write("</row>");
+                rowNum++;
+
+                foreach (var rec in records)
+                {
+                    w.Write("<row r=\"" + rowNum + "\">");
+                    WriteCell(w, 0, rowNum, rec.Key == DateTime.MinValue ? string.Empty : rec.Key.ToString("yyyy-MM-dd HH:mm:ss"));
+                    for (int c = 0; c < columns.Count; c++)
+                    {
+                        var v = rec.Value.TryGetValue(columns[c], out var vv) ? vv : string.Empty;
+                        WriteCell(w, c + 1, rowNum, v);
+                    }
+                    w.Write("</row>");
+                    rowNum++;
+                }
+
+                w.Write("</sheetData></worksheet>");
+            }
+        }
+
+        private static void AddXlsxEntry(ZipArchive zip, string name, string content, Encoding enc)
+        {
+            var entry = zip.CreateEntry(name);
+            using (var w = new StreamWriter(entry.Open(), enc))
+                w.Write(content);
+        }
+
+        // 숫자면 number 셀(<v>), 아니면 inline 문자열 셀로 기록.
+        private static void WriteCell(StreamWriter w, int colIndex, int rowNum, string value)
+        {
+            var cellRef = XlsxColumnLetter(colIndex) + rowNum;
+            if (!string.IsNullOrEmpty(value) &&
+                double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var num))
+            {
+                w.Write("<c r=\"" + cellRef + "\"><v>" + num.ToString(CultureInfo.InvariantCulture) + "</v></c>");
+            }
+            else
+            {
+                w.Write("<c r=\"" + cellRef + "\" t=\"inlineStr\"><is><t xml:space=\"preserve\">" + XlsxEscape(value) + "</t></is></c>");
+            }
+        }
+
+        private static string XlsxColumnLetter(int index)
+        {
+            var sb = new StringBuilder();
+            index++;
+            while (index > 0)
+            {
+                var rem = (index - 1) % 26;
+                sb.Insert(0, (char)('A' + rem));
+                index = (index - 1) / 26;
+            }
+            return sb.ToString();
+        }
+
+        private static string XlsxEscape(string s)
+        {
+            if (string.IsNullOrEmpty(s)) return string.Empty;
+            return s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
         }
 
         private void UpdateSummary()

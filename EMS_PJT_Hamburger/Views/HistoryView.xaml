@@ -116,7 +116,8 @@
                     <dx:SimpleButton Content="Today" Command="{Binding Cmd_Today}" Style="{StaticResource ActionButtonStyle}"/>
                     <dx:SimpleButton Content="Week" Command="{Binding Cmd_Week}" Style="{StaticResource ActionButtonStyle}"/>
                     <dx:SimpleButton Content="Refresh" Command="{Binding Cmd_Refresh}" Style="{StaticResource ActionButtonStyle}"/>
-                    
+                    <dx:SimpleButton Content="Export" Command="{Binding Cmd_ExportRaw}" Style="{StaticResource ActionButtonStyle}"/>
+
                 </StackPanel>
 
                 <TextBlock Grid.Column="2"
@@ -198,29 +199,6 @@
                                 <Ellipse Width="10" Height="10" Fill="#4EA5FF" VerticalAlignment="Center"/>
                                 <TextBlock Text="Import" Style="{StaticResource MutedTextStyle}" Margin="5,0,0,0"/>
                             </StackPanel>
-                            <!-- Y축 범위(Min~Max) 조절용 편집기 -->
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                <TextBlock Text="Y" Style="{StaticResource MutedTextStyle}" Margin="0,0,6,0"/>
-                                <dxe:TextEdit x:Name="PcsYMinEdit"
-                                              Width="58" Height="28"
-                                              VerticalContentAlignment="Center"
-                                              HorizontalContentAlignment="Center"
-                                              EditValuePostMode="Delayed" EditValuePostDelay="500"
-                                              MaskType="Numeric" Mask="F0" MaskUseAsDisplayFormat="True"
-                                              EditValue="0"
-                                              EditValueChanged="PcsYRange_EditValueChanged"
-                                              ToolTip="Y축 최소값"/>
-                                <TextBlock Text="~" Style="{StaticResource MutedTextStyle}" Margin="6,0,6,0"/>
-                                <dxe:TextEdit x:Name="PcsYMaxEdit"
-                                              Width="58" Height="28"
-                                              VerticalContentAlignment="Center"
-                                              HorizontalContentAlignment="Center"
-                                              EditValuePostMode="Delayed" EditValuePostDelay="500"
-                                              MaskType="Numeric" Mask="F0" MaskUseAsDisplayFormat="True"
-                                              EditValue="100"
-                                              EditValueChanged="PcsYRange_EditValueChanged"
-                                              ToolTip="Y축 최대값"/>
-                            </StackPanel>
                         </Grid>
 
                         <s:SciChartSurface Grid.Row="1"
@@ -259,20 +237,19 @@
                                                 Foreground="#FFE6E6E6"/>
                             </s:SciChartSurface.XAxis>
                             <s:SciChartSurface.YAxis>
-                                <s:NumericAxis x:Name="PowerTrendYAxis"
-                                               DrawMajorBands="False"
-                                               AutoRange="Never"
-                                               VisibleRange="0,100"
-                                               DrawMajorTicks="False"
-                                               DrawMinorTicks="False"
-                                               DrawMajorGridLines="True"
-                                               DrawMinorGridLines="False"
-                                               GrowBy="0.05, 0.15"
-                                               MaxAutoTicks="5"
-                                               FontSize="13"
-                                               AxisTitle="kWh"
-                                               Foreground="#FFE6E6E6"/>
-                            </s:SciChartSurface.YAxis>
+                            <s:NumericAxis x:Name="PowerTrendYAxis"
+                                           DrawMajorBands="False"
+                                           AutoRange="Always"
+                                           DrawMajorTicks="False"
+                                           DrawMinorTicks="False"
+                                           DrawMajorGridLines="True"
+                                           DrawMinorGridLines="False"
+                                           GrowBy="0.1, 0.2"
+                                           MaxAutoTicks="5"
+                                           FontSize="13"
+                                           AxisTitle="kWh"
+                                           Foreground="#FFE6E6E6"/>
+                        </s:SciChartSurface.YAxis>
                             <s:SciChartSurface.ChartModifier>
                                 <s:ModifierGroup>
                                     <!--<s:RolloverModifier DrawVerticalLine="True"

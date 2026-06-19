@@ -87,12 +87,7 @@ namespace EMS_PJT_Hamburger.Views
             e.Handled = true;
         }
 
-        // Y Min/Max 편집기 값이 바뀌면 즉시 Y축 범위에 반영한다.
-        private void PcsYRange_EditValueChanged(object sender, EditValueChangedEventArgs e)
-        {
-            ApplyPcsYRange();
-        }
-
+        // Y Min/Max 편집기 값이 바뀌면 즉시 Y축 범위에 반영한다. (BMS 전용)
         private void BmsYRange_EditValueChanged(object sender, EditValueChangedEventArgs e)
         {
             ApplyBmsYRange();
@@ -100,14 +95,13 @@ namespace EMS_PJT_Hamburger.Views
 
         private void ResetPcsTrendRange()
         {
+            // PCS Y축은 AutoRange=Always(데이터에 맞춰 자동). X축만 기본 범위로 리셋.
             if (PcsTrendXAxis != null
                 && DataContext is HistoryViewModel vm
                 && vm.PcsTrendDefaultVisibleRange != null)
             {
                 PcsTrendXAxis.VisibleRange = vm.PcsTrendDefaultVisibleRange;
             }
-
-            ApplyPcsYRange();
         }
 
         private void ResetBmsTrendRange()
@@ -120,21 +114,6 @@ namespace EMS_PJT_Hamburger.Views
             }
 
             ApplyBmsYRange();
-        }
-
-        private void ApplyPcsYRange()
-        {
-            if (PowerTrendYAxis == null)
-                return;
-
-            var min = ToDouble(PcsYMinEdit?.EditValue, DefaultPcsYMin);
-            var max = ToDouble(PcsYMaxEdit?.EditValue, DefaultPcsYMax);
-
-            // 잘못된 범위 방어: max는 항상 min보다 커야 한다.
-            if (max <= min)
-                max = min + 1;
-
-            PowerTrendYAxis.VisibleRange = new DoubleRange(min, max);
         }
 
         private void ApplyBmsYRange()
