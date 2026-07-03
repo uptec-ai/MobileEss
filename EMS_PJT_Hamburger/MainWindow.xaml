@@ -122,9 +122,9 @@
             <dxwui:HamburgerMenuItemSeparator Height="10" Placement="Bottom" Background="#FFBFBFBF"/>
 
             <!--Uptec Info-->
-            <dxwui:HamburgerMenuNavigationButton Content="UPTEC" ToolTip="Uptec Info"
-                                                 GlyphWidth="32" GlyphHeight="32" Placement="Bottom" Glyph="Assets/Uptec_symbol_White4.png" GlyphStretch="UniformToFill"
-                                                 Click="InfoBtn_Click"/>
+            <dxwui:HamburgerMenuNavigationButton Content="Minimize" ToolTip="Minimize App"
+                                                 GlyphWidth="32" GlyphHeight="32" Placement="Bottom" Glyph="{dx:DXImage 'SvgImages/XAF/State_Priority_Low.svg'}" GlyphStretch="UniformToFill"
+                                                 Click="MinimizeBtn_Click"/>
             <!--System Close-->
             <dxwui:HamburgerMenuNavigationButton x:Name="ExitBtn" Content="Exit" ToolTip="Close App" Placement="Bottom"
                                                  GlyphWidth="32" GlyphHeight="32" AllowGlyphTheming="True" Glyph="{dx:DXImage 'SvgImages/Dashboards/Delete.svg'}"
