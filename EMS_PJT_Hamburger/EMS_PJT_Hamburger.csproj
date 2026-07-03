@@ -326,6 +326,10 @@
     <Compile Include="Models\Client\PCS\ModbusService.cs" />
     <Compile Include="Models\Client\PCS\PcsModel.cs" />
     <Compile Include="Models\Client\PCS\PcsSpecs.cs" />
+    <Compile Include="Models\Client\GPS\GpsData.cs" />
+    <Compile Include="Models\Client\GPS\SatelliteInfo.cs" />
+    <Compile Include="Models\Client\GPS\NmeaParser.cs" />
+    <Compile Include="Models\Client\GPS\GpsService.cs" />
     <Compile Include="Models\HomeModel.cs" />
     <Compile Include="Models\Managers\AnimationManager.cs" />
     <Compile Include="Models\Managers\ConvertManager.cs" />
