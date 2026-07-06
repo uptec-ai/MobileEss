@@ -2,7 +2,7 @@
 
 ## Project
 
-- Root: `C:\Project\2. ESS\MobileEss.Db\uptec-ai\MobileEss\EMS_PJT_Hamburger`
+- Root: `C:\Project\01.EMS\0703_gps\EMS_PJT_Hamburger\`
 - IDE: Visual Studio 2019
 - Framework: .NET Framework 4.8
 - Application: WPF

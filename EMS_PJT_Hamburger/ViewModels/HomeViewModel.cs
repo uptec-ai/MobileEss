@@ -22,6 +22,15 @@ namespace EMS_PJT_Hamburger.ViewModels
         // ─── GPS (BU-353N) ────────────────────────────────────────────────
         private GpsService _gpsService;
         private NmeaParser _gpsParser;
+        private readonly object _gpsSyncRoot = new object();
+        private CancellationTokenSource _gpsReconnectCts;
+        private Task _gpsReconnectTask;
+        private string _gpsPort;
+        private int _gpsBaud;
+        private DateTime _lastGpsSentenceUtc = DateTime.MinValue;
+
+        private const int GpsReconnectDelayMs = 3000;
+        private const int GpsReceiveTimeoutSeconds = 10;
 
         // 표시 속성: HomeModel이 PropertyChanged를 재선언(hidden)하므로 OnPropertyChanged로 알림.
         private string _gpsLatitude = "--";
@@ -81,52 +90,156 @@ namespace EMS_PJT_Hamburger.ViewModels
         }
 
         // ─── GPS 연결/수신 ───────────────────────────────────────────────
-        // App.config의 GpsPort가 설정된 경우에만 연결한다(BU-353N 기본 115200 8N1).
+        // App.config의 GpsPort가 설정된 경우에만 연결한다(BU-353N 확인 설정: 4800 8N1).
         private void StartGps()
         {
-            try
-            {
-                var port = ConfigurationManager.AppSettings["GpsPort"];
-                if (string.IsNullOrWhiteSpace(port))
-                    return; // 미설정 시 GPS 미사용('--' 유지)
+            var port = ConfigurationManager.AppSettings["GpsPort"];
+            if (string.IsNullOrWhiteSpace(port))
+                return;
 
-                if (!int.TryParse(ConfigurationManager.AppSettings["GpsBaud"], out var baud) || baud <= 0)
-                    baud = 115200;
+            _gpsPort = port.Trim();
+            if (!int.TryParse(ConfigurationManager.AppSettings["GpsBaud"], out _gpsBaud) || _gpsBaud <= 0)
+                _gpsBaud = 4800;
 
-                _gpsParser = new NmeaParser();
-                _gpsService = new GpsService();
-                _gpsService.SentenceReceived += OnGpsSentenceReceived;
-                _gpsService.ErrorOccurred += OnGpsError;
-                _gpsService.Connect(port.Trim(), baud);
-            }
-            catch (Exception)
+            _gpsReconnectCts = new CancellationTokenSource();
+            _gpsReconnectTask = MonitorGpsConnectionAsync(_gpsReconnectCts.Token);
+        }
+
+        private async Task MonitorGpsConnectionAsync(CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested && !_disposed)
             {
-                // 연결 실패 시 조용히 '--' 유지 (장치 미연결/포트 사용중 등)
+                try
+                {
+                    if (!IsGpsConnectionHealthy())
+                    {
+                        ResetGpsConnection();
+                        ResetGpsDisplay("GPS Reconnecting");
+                        await ConnectGpsAsync(cancellationToken);
+                    }
+
+                    await Task.Delay(GpsReconnectDelayMs, cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch
+                {
+                    ResetGpsConnection();
+                    ResetGpsDisplay("GPS Disconnected");
+
+                    try
+                    {
+                        await Task.Delay(GpsReconnectDelayMs, cancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                }
             }
         }
 
+        private async Task ConnectGpsAsync(CancellationToken cancellationToken)
+        {
+            await Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var service = new GpsService();
+                service.SentenceReceived += OnGpsSentenceReceived;
+                service.ErrorOccurred += OnGpsError;
+
+                try
+                {
+                    service.Connect(_gpsPort, _gpsBaud);
+
+                    lock (_gpsSyncRoot)
+                    {
+                        _gpsParser = new NmeaParser();
+                        _gpsService = service;
+                        _lastGpsSentenceUtc = DateTime.UtcNow;
+                    }
+                }
+                catch
+                {
+                    service.SentenceReceived -= OnGpsSentenceReceived;
+                    service.ErrorOccurred -= OnGpsError;
+                    service.Dispose();
+                    throw;
+                }
+            }, cancellationToken);
+        }
+
+        private bool IsGpsConnectionHealthy()
+        {
+            lock (_gpsSyncRoot)
+            {
+                if (_gpsService?.IsConnected != true)
+                    return false;
+
+                if (_lastGpsSentenceUtc == DateTime.MinValue)
+                    return false;
+
+                return DateTime.UtcNow - _lastGpsSentenceUtc < TimeSpan.FromSeconds(GpsReceiveTimeoutSeconds);
+            }
+        }
+
+        private void ResetGpsConnection()
+        {
+            GpsService service;
+
+            lock (_gpsSyncRoot)
+            {
+                service = _gpsService;
+                _gpsService = null;
+                _gpsParser = null;
+                _lastGpsSentenceUtc = DateTime.MinValue;
+            }
+
+            if (service == null)
+                return;
+
+            service.SentenceReceived -= OnGpsSentenceReceived;
+            service.ErrorOccurred -= OnGpsError;
+            service.Dispose();
+        }
         // 백그라운드 스레드 수신 -> UI 스레드에서 파싱/표시
         private void OnGpsSentenceReceived(string sentence)
         {
+            NmeaParser parser;
+            lock (_gpsSyncRoot)
+            {
+                _lastGpsSentenceUtc = DateTime.UtcNow;
+                parser = _gpsParser;
+            }
+
+            if (parser == null)
+                return;
+
             var dispatcher = Application.Current?.Dispatcher;
             if (dispatcher == null)
             {
-                _gpsParser.Parse(sentence);
+                parser.Parse(sentence);
+                UpdateGpsDisplay(parser.CurrentData);
                 return;
             }
 
             dispatcher.InvokeAsync(() =>
             {
-                _gpsParser.Parse(sentence);
-                UpdateGpsDisplay(_gpsParser.CurrentData);
+                parser.Parse(sentence);
+                if (ReferenceEquals(parser, _gpsParser))
+                    UpdateGpsDisplay(parser.CurrentData);
             });
         }
-
         private void OnGpsError(Exception ex)
         {
-            // 포트 오류 시 무시(연결 유지/해제는 서비스가 관리). 필요 시 로깅 추가 가능.
+            lock (_gpsSyncRoot)
+            {
+                _lastGpsSentenceUtc = DateTime.MinValue;
+            }
         }
-
         private void UpdateGpsDisplay(GpsData data)
         {
             GpsIsValid = data.IsValid;
@@ -140,15 +253,21 @@ namespace EMS_PJT_Hamburger.ViewModels
             }
         }
 
-        private void ResetGpsDisplay()
+        private void ResetGpsDisplay(string fixStatus = "No Fix")
         {
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher != null && !dispatcher.CheckAccess())
+            {
+                dispatcher.InvokeAsync(() => ResetGpsDisplay(fixStatus));
+                return;
+            }
+
             GpsIsValid = false;
-            GpsFixStatus = "No Fix";
+            GpsFixStatus = fixStatus;
             GpsSatelliteCount = "0";
             GpsLatitude = "--";
             GpsLongitude = "--";
-        }
-        public void StartLoop()
+        }        public void StartLoop()
         {
             if (!_isLoopRunning) _isLoopRunning = true;
             if (_loopCts == null) _loopCts = new CancellationTokenSource();
@@ -324,13 +443,13 @@ namespace EMS_PJT_Hamburger.ViewModels
             _disposed = true;
             StopLoop();
 
-            if (_gpsService != null)
-            {
-                _gpsService.SentenceReceived -= OnGpsSentenceReceived;
-                _gpsService.ErrorOccurred -= OnGpsError;
-                _gpsService.Dispose();
-                _gpsService = null;
-            }
+            _gpsReconnectCts?.Cancel();
+            _gpsReconnectCts?.Dispose();
+            _gpsReconnectCts = null;
+            _gpsReconnectTask = null;
+
+            ResetGpsConnection();
         }
     }
 }
+
