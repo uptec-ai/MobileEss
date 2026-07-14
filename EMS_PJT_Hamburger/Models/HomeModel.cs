@@ -18,7 +18,6 @@ namespace EMS_PJT_Hamburger.Models
     }
     public enum LoadStatus
     {
-        OnGrid,
         OffGrid,
         Vehicle,
         Waiting,
@@ -34,7 +33,6 @@ namespace EMS_PJT_Hamburger.Models
         public Brush BDischargeBorderBrush { get; set; } = Brushes.Gray;      // battery status is discharging. (t:orange, f:gray) 
         public Brush DischargeBorderBrush { get; set; } = Brushes.Gray;      // status is discharging. (t:orange, f:gray) 
         
-        public Brush ChargeOnGrid { get; set; } = Brushes.Gray;
         public Brush ChargeOffGrid { get; set; } = Brushes.Gray;
         public Brush ChargeVihicle { get; set; } = Brushes.Gray;
         public Brush PcsBorderBrush { get; set; } = Brushes.Gray;
@@ -47,7 +45,7 @@ namespace EMS_PJT_Hamburger.Models
         public int emsMode { get; set; } = 0;
         public HomeStatus ChargingStatus { get; set; } = HomeStatus.Waiting;  // charge status
         public LoadStatus LoadTarget { get; set; } = LoadStatus.Waiting;  // load charge target
-        public LoadStatus SelectedLoadTarget { get; set; } = LoadStatus.OnGrid;
+        public LoadStatus SelectedLoadTarget { get; set; } = LoadStatus.Vehicle;
         public bool CouplingStatus { get; set; } = false;
 
         //public string ConnectPCS { get; set; } = "Disable";

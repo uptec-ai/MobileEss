@@ -365,3 +365,5 @@ FodyWeavers.xsd
 # Project backup/archive files
 *.zip
 *.bak
+# 오프라인 지도 타일 캐시 (대용량 · 배포 시 exe 옆 Maps\tiles 로 별도 배치 · 버전관리 제외)
+EMS_PJT_Hamburger/Maps/tiles/

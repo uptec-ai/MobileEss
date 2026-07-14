@@ -1,4 +1,11 @@
 ﻿<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- MSBuildMajorVersion은 SDK-style 빌드에서만 채워지는 속성이라 old-style(.NET FW/packages.config)
+       빌드에선 빈 값이다. 모던 NuGet 패키지의 .targets가 '$(MSBuildMajorVersion)'을 숫자 비교(예: < 16)하면
+       빈 문자열 숫자비교로 MSB4086이 발생하므로, 여기서 미리 안전하게 정의한다. -->
+  <PropertyGroup>
+    <MSBuildMajorVersion Condition="'$(MSBuildMajorVersion)' == '' and '$(MSBuildVersion)' != ''">$([System.Version]::Parse($(MSBuildVersion)).Major)</MSBuildMajorVersion>
+    <MSBuildMajorVersion Condition="'$(MSBuildMajorVersion)' == ''">16</MSBuildMajorVersion>
+  </PropertyGroup>
   <Import Project="..\packages\PropertyChanged.Fody.4.1.0\build\PropertyChanged.Fody.props" Condition="Exists('..\packages\PropertyChanged.Fody.4.1.0\build\PropertyChanged.Fody.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -126,7 +133,7 @@
       <HintPath>..\packages\SciChart.8.6.0.28199\lib\net462\SciChart.Drawing.dll</HintPath>
     </Reference>
     <Reference Include="SciChart.Examples.ExternalDependencies, Version=7.0.1.27055, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\SciChart.Examples.ExternalDependencies.dll</HintPath>
+      <HintPath>..\..\..\..\Users\klmon\AppData\Local\Programs\SciChart\SciChart SDK\Lib\net462\SciChart.Examples.ExternalDependencies.dll</HintPath>
     </Reference>
     <Reference Include="SuperSocket.ClientEngine, Version=0.10.0.0, Culture=neutral, PublicKeyToken=ee9af13f57f00acc, processorArchitecture=MSIL">
       <HintPath>..\packages\SuperSocket.ClientEngine.0.10.0\lib\net45\SuperSocket.ClientEngine.dll</HintPath>
@@ -135,6 +142,7 @@
       <HintPath>..\packages\SuperSocket.ProtoBase.1.7.0.17\lib\net45\SuperSocket.ProtoBase.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <!-- 지도: DevExpress.Xpf.Map.v23.1 사용(오프라인 래스터 타일). 별도 GMap/SQLite 참조 불필요. -->
     <Reference Include="System.AppContext, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.AppContext.4.3.0\lib\net463\System.AppContext.dll</HintPath>
       <Private>True</Private>
@@ -332,6 +340,10 @@
     <Compile Include="Models\Client\GPS\SatelliteInfo.cs" />
     <Compile Include="Models\Client\GPS\NmeaParser.cs" />
     <Compile Include="Models\Client\GPS\GpsService.cs" />
+    <Compile Include="Models\Client\GPS\IReverseGeocoder.cs" />
+    <Compile Include="Models\Client\GPS\KoreaRegionLookup.cs" />
+    <Compile Include="Converters\LatLngToGeoConverter.cs" />
+    <Compile Include="Converters\ScaleNegConverter.cs" />
     <Compile Include="Models\HomeModel.cs" />
     <Compile Include="Models\Managers\AnimationManager.cs" />
     <Compile Include="Models\Managers\ConvertManager.cs" />
@@ -465,6 +477,10 @@
     <Content Include="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!-- 시/도/군 한글명 GeoJSON (lat/lng → 시/도/군 오프라인 point-in-polygon). 출력폴더로 복사. -->
+    <Content Include="Maps\skorea_muni.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Resource Include="Fonts\Jalnan2.otf" />
     <Resource Include="Fonts\NanumSquareRoundB.ttf" />
     <Resource Include="Fonts\NanumSquareRoundEB.ttf" />
@@ -527,7 +543,9 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

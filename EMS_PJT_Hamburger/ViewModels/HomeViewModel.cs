@@ -32,6 +32,14 @@ namespace EMS_PJT_Hamburger.ViewModels
         private const int GpsReconnectDelayMs = 3000;
         private const int GpsReceiveTimeoutSeconds = 10;
 
+        // 좌표 → 시/도/군(한글) 오프라인 조회 (KOSTAT GeoJSON point-in-polygon). 미로드/미매칭 시 "--" 유지.
+        private readonly IReverseGeocoder _geocoder = new KoreaRegionLookup();
+        private double _lastGeocodedLat, _lastGeocodedLng;
+        private volatile bool _hasGeocodeAnchor;
+        private volatile bool _geocodeInFlight;
+        // 이 거리(m) 이상 이동했을 때만 역지오코딩 재조회(불필요한 조회 억제)
+        private const double GeocodeMoveThresholdM = 60.0;
+
         // 표시 속성: HomeModel이 PropertyChanged를 재선언(hidden)하므로 OnPropertyChanged로 알림.
         private string _gpsLatitude = "--";
         public string GpsLatitude
@@ -61,12 +69,51 @@ namespace EMS_PJT_Hamburger.ViewModels
             set { _gpsSatelliteCount = value; OnPropertyChanged(nameof(GpsSatelliteCount)); }
         }
 
+        // GPS 패널/지도 중앙 마커에 표시할 시/도/군(한글). 유효 fix + 조회 성공 시 갱신, 실패 시 "--".
+        private string _gpsRegion = "--";
+        public string GpsRegion
+        {
+            get => _gpsRegion;
+            set { _gpsRegion = value; OnPropertyChanged(nameof(GpsRegion)); GpsRegionChanged?.Invoke(value); }
+        }
+
         private bool _gpsIsValid;
         public bool GpsIsValid
         {
             get => _gpsIsValid;
             set { _gpsIsValid = value; OnPropertyChanged(nameof(GpsIsValid)); }
         }
+
+        // ─── 지도(DevExpress MapControl) follow ───────────────────────────
+        // GPS 미수신 시 초기 중심(익산 근방). 유효 fix가 오면 해당 좌표로 follow.
+        // (설치 사이트 위치에 맞게 아래 상수를 바꾸면 첫 fix 전 표시 위치가 바뀐다.)
+        public const double SeoulLat = 37.566611, SeoulLng = 126.978211;
+        public const double DongtanLat = 37.207580, DongtanLng = 127.097743;
+        public const double GongjuLat = 36.467618, GongjuLng = 127.130815;
+        public const double DefaultCenterLat = DongtanLat;
+        public const double DefaultCenterLng = DongtanLng;
+
+        // 지도 중심(위/경도). XAML MapControl.CenterPoint 가 이 값에 바인딩되어 follow 한다.
+        // HomeModel 이 PropertyChanged 를 재선언(hidden)하므로 OnPropertyChanged 로 알림.
+        private double _mapCenterLatitude = DefaultCenterLat;
+        public double MapCenterLatitude
+        {
+            get => _mapCenterLatitude;
+            set { _mapCenterLatitude = value; OnPropertyChanged(nameof(MapCenterLatitude)); }
+        }
+
+        private double _mapCenterLongitude = DefaultCenterLng;
+        public double MapCenterLongitude
+        {
+            get => _mapCenterLongitude;
+            set { _mapCenterLongitude = value; OnPropertyChanged(nameof(MapCenterLongitude)); }
+        }
+
+        /// <summary>유효 GPS fix 갱신 시 (위도, 경도)를 UI 스레드에서 통지(지도 마커 위치 갱신용).</summary>
+        public event Action<double, double> GpsPositionChanged;
+
+        /// <summary>시/도/군(GpsRegion) 변경 시 통지(지도 중앙 마커 라벨 갱신용). UI 스레드에서 발생.</summary>
+        public event Action<string> GpsRegionChanged;
 
         public DelegateCommand<LoadStatus> Cmd_SelectLoadTarget { get; private set; }
         public bool IsTouchKeyboardEnabled
@@ -87,6 +134,9 @@ namespace EMS_PJT_Hamburger.ViewModels
             StartLoop();
             ResetGpsDisplay();
             StartGps();
+
+            // 기본 중심(첫 fix 전)의 시/도/군을 미리 조회 → 마커/패널에 즉시 표시.
+            UpdateRegionLabel(MapCenterLatitude, MapCenterLongitude);
         }
 
         // ─── GPS 연결/수신 ───────────────────────────────────────────────
@@ -250,8 +300,79 @@ namespace EMS_PJT_Hamburger.ViewModels
             {
                 GpsLatitude = $"{Math.Abs(data.Latitude):F6}° {(data.Latitude >= 0 ? "N" : "S")}";
                 GpsLongitude = $"{Math.Abs(data.Longitude):F6}° {(data.Longitude >= 0 ? "E" : "W")}";
+
+                // 지도 follow: 중심 이동(XAML CenterPoint 바인딩) + 마커 갱신(GpsPositionChanged).
+                // UpdateGpsDisplay 는 UI 디스패처에서 호출되므로 UI 요소 접근 안전.
+                MapCenterLatitude = data.Latitude;
+                MapCenterLongitude = data.Longitude;
+                GpsPositionChanged?.Invoke(data.Latitude, data.Longitude);
+
+                // 시/도/군 이름 갱신(오프라인 역지오코딩, 백그라운드). 충분히 이동했을 때만 재조회.
+                UpdateRegionLabel(data.Latitude, data.Longitude);
             }
         }
+
+        // ─── 시/도/군 라벨(GpsRegion) 갱신 ────────────────────────────────
+        private void UpdateRegionLabel(double lat, double lng)
+        {
+            // 이미 조회에 성공한 지점에서 충분히 이동하지 않았으면 스킵
+            if (_hasGeocodeAnchor &&
+                Haversine(lat, lng, _lastGeocodedLat, _lastGeocodedLng) < GeocodeMoveThresholdM)
+                return;
+
+            // 조회 진행 중이면 중복 실행 방지(다음 fix 때 다시 시도)
+            if (_geocodeInFlight) return;
+            _geocodeInFlight = true;
+
+            _ = GeocodeAsync(lat, lng);
+        }
+
+        private async Task GeocodeAsync(double lat, double lng)
+        {
+            try
+            {
+                // GeoJSON 로드가 진행 중이면 완료될 때까지 대기 후 결과 반환(첫 조회가 '--' 로 빠지지 않도록).
+                string name = await _geocoder
+                    .GetRegionNameAsync(lat, lng, CancellationToken.None)
+                    .ConfigureAwait(false);
+
+                if (!string.IsNullOrEmpty(name))
+                {
+                    // 성공했을 때만 앵커 확정 → 정지 상태에서 실패하면 다음 fix 때 재시도.
+                    _lastGeocodedLat = lat;
+                    _lastGeocodedLng = lng;
+                    _hasGeocodeAnchor = true;
+
+                    string label = name;
+                    var dispatcher = Application.Current?.Dispatcher;
+                    if (dispatcher != null && !dispatcher.CheckAccess())
+                        await dispatcher.InvokeAsync(() => GpsRegion = label);
+                    else
+                        GpsRegion = label;
+                }
+                // name 이 비면 GpsRegion 유지("--"), 앵커도 잡지 않음 → 다음 fix 때 재시도.
+            }
+            catch { /* 역지오코딩 실패는 무시(직전 값 유지, 다음 fix 때 재시도) */
+    }
+            finally
+            {
+                _geocodeInFlight = false;
+            }
+        }
+
+        /// <summary>두 좌표 간 거리(m) — Haversine</summary>
+        private static double Haversine(double lat1, double lng1, double lat2, double lng2)
+        {
+            const double R = 6371000.0;
+            double dLat = ToRad(lat2 - lat1);
+            double dLng = ToRad(lng2 - lng1);
+            double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+                     + Math.Cos(ToRad(lat1)) * Math.Cos(ToRad(lat2))
+                     * Math.Sin(dLng / 2) * Math.Sin(dLng / 2);
+            return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        }
+
+        private static double ToRad(double deg) => deg * Math.PI / 180.0;
 
         private void ResetGpsDisplay(string fixStatus = "No Fix")
         {
@@ -384,7 +505,6 @@ namespace EMS_PJT_Hamburger.ViewModels
         private void UpdateLoadTargetUi(bool isActive)
         {
             LoadTarget = isActive ? SelectedLoadTarget : LoadStatus.Waiting;
-            ChargeOnGrid = (isActive && SelectedLoadTarget == LoadStatus.OnGrid) ? Brushes.Orange : Brushes.Gray;
             ChargeOffGrid = (isActive && SelectedLoadTarget == LoadStatus.OffGrid) ? Brushes.Orange : Brushes.Gray;
             ChargeVihicle = (isActive && SelectedLoadTarget == LoadStatus.Vehicle) ? Brushes.Orange : Brushes.Gray;
         }
