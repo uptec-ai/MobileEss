@@ -7,7 +7,9 @@
              xmlns:ViewModels="clr-namespace:EMS_PJT_Hamburger.ViewModels"
              xmlns:Models="clr-namespace:EMS_PJT_Hamburger.Models"
              xmlns:Managers="clr-namespace:EMS_PJT_Hamburger.Models.Managers"
+             xmlns:conv="clr-namespace:EMS_PJT_Hamburger.Converters"
              xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
+             xmlns:dxm="http://schemas.devexpress.com/winfx/2008/xaml/map"
              mc:Ignorable="d" d:DesignHeight="704" d:DesignWidth="1000" Background="Transparent" 
              FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR">
     <UserControl.Resources>
@@ -16,6 +18,35 @@
         <Managers:HomeStatusMatchConverter x:Key="HomeStatusMatchConverter"/>
         <Managers:ChargeToBrushConverter x:Key="ChargeToBrushConverter"/>
         <Managers:FaultConverter x:Key="FaultConverter"/>
+
+        <!-- GPS 지도(DevExpress MapControl) 마커/중심 바인딩용 컨버터 -->
+        <conv:ScaleNegConverter x:Key="ScaleNeg"/>
+        <conv:LatLngToGeoConverter x:Key="LatLngToGeo"/>
+
+        <!-- 현재 GPS 위치 마커: 좌표 라벨(흰 배경/검은 글자) + 위치 점.
+             콘텐츠 하단중앙이 좌표에 오도록 RenderTransform 으로 앵커 보정. -->
+        <DataTemplate x:Key="MarkerLabelTemplate">
+            <Grid x:Name="MarkerRoot">
+                <Grid.RenderTransform>
+                    <TranslateTransform
+                        X="{Binding ActualWidth,  ElementName=MarkerRoot, Converter={StaticResource ScaleNeg}, ConverterParameter=0.5}"
+                        Y="{Binding ActualHeight, ElementName=MarkerRoot, Converter={StaticResource ScaleNeg}, ConverterParameter=1}"/>
+                </Grid.RenderTransform>
+                <StackPanel HorizontalAlignment="Center">
+                    <Border CornerRadius="7" Padding="7,2" HorizontalAlignment="Center"
+                            Background="#F2FFFFFF" BorderBrush="#59000000" BorderThickness="1">
+                        <Border.Effect>
+                            <DropShadowEffect Color="Black" BlurRadius="6" ShadowDepth="0" Opacity="0.4"/>
+                        </Border.Effect>
+                        <TextBlock Text="{Binding}" Foreground="Black" FontWeight="Bold" FontSize="11"
+                                   FontFamily="Malgun Gothic, Segoe UI"/>
+                    </Border>
+                    <Border Height="2"/>
+                    <Ellipse Width="13" Height="13" Fill="#76F7A8" Stroke="White" StrokeThickness="2.5"
+                             HorizontalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
 
         <Style TargetType="Border" x:Key="ChargeStoryBorderStyle">
             <Setter Property="CornerRadius" Value="5"/>
@@ -460,16 +491,51 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style TargetType="{x:Type RadioButton}" x:Key="LoadTargetToggleStyle">
+            <Setter Property="Width" Value="70"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="Foreground" Value="#FFC3C3C3"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RadioButton}">
+                        <Border x:Name="ToggleBox"
+                                Background="#273642"
+                                BorderBrush="#FFB0FCFC"
+                                BorderThickness="1"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ToggleBox" Property="Background" Value="#8A5A1E"/>
+                                <Setter TargetName="ToggleBox" Property="BorderBrush" Value="#FFE2A6"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ToggleBox" Property="BorderBrush" Value="#C9FFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Viewbox>
-        <Canvas Height="704" Width="1000" Margin="0" Background="{DynamicResource Main.Background}">
-            <StackPanel Orientation="Horizontal">
-                <Border Canvas.Left="22" Canvas.Top="14" Width="185" Height="46"
+        <Canvas Height="705" Width="1000" Margin="0" Background="{DynamicResource Main.Background}">
+            <StackPanel Orientation="Horizontal" Height="55" Margin="0,5,0,0">
+                <Border Canvas.Left="22" Canvas.Top="14" Width="185"
                         CornerRadius="5"
                         BorderThickness="1"
                         BorderBrush="#334F5E"
-                        Background="#CC15181C" Margin="20,0,0,0">
+                        Background="#CC15181C" Margin="20,0,0,0" Height="55">
                     <Grid Margin="0" Width="169" HorizontalAlignment="Left" >
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="160" Margin="10,0,0,0">
                             <TextBlock Grid.Column="0" Text="운전 모드"
@@ -546,7 +612,7 @@
                     </Grid>
                 </Border>
 
-                <Border Canvas.Left="22" Canvas.Top="14" Width="526" Height="46"
+                <Border Canvas.Left="22" Canvas.Top="14" Width="526" Height="55"
                         CornerRadius="5"
                         BorderThickness="1"
                         BorderBrush="#334F5E"
@@ -633,25 +699,59 @@
                     </Grid>
                 </Border>
 
-                <Border Canvas.Left="22" Canvas.Top="14" Width="220" Height="46"
+                <Border Canvas.Left="22" Canvas.Top="14" Width="220" Height="55"
                         CornerRadius="5"
                         BorderThickness="1"
                         BorderBrush="#334F5E"
                         Background="#CC15181C" Margin="10,0,0,0">
-                    <Grid Margin="0" >
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Width="200" Margin="10,0,0,0">
-                            <TextBlock Text="Touch Keyboard"
-                                   Foreground="#FFC3C3C3"
-                                   FontSize="13"
-                                   FontWeight="Bold"
-                                   VerticalAlignment="Center"
-                                   Margin="10,0"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <!-- Touch Keyboard 스위치 -->
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Margin="0,0,16,0" Width="100">
+                            <TextBlock Text="Touch Key Board"
+                                       Foreground="#FFC3C3C3" FontSize="11" FontWeight="Bold"
+                                       HorizontalAlignment="Center" Margin="0,0,0,2"/>
                             <ToggleButton IsChecked="{Binding IsTouchKeyboardEnabled, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                          Style="{StaticResource TouchKeyboardToggleStyle}"/>
+                                          Style="{StaticResource TouchKeyboardToggleStyle}" Margin="0" Height="25"/>
                         </StackPanel>
-                    </Grid>
+                        <!-- BMS Guard 스위치 (PcsVm.IsBmsGuardEnabled, 동일 스위치 스타일) -->
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" Width="100">
+                            <TextBlock Text="BMS Guard"
+                                       Foreground="#FFC3C3C3" FontSize="11" FontWeight="Bold"
+                                       HorizontalAlignment="Center" Margin="0,0,0,2"/>
+                            <ToggleButton IsChecked="{Binding PcsVm.IsBmsGuardEnabled, Source={x:Static Application.Current}, Mode=TwoWay}"
+                                          Style="{StaticResource TouchKeyboardToggleStyle}"
+                                          ToolTip="BMS Guard ON/OFF (PCS 단독 테스트 시 OFF)" Margin="0" Height="25"/>
+                        </StackPanel>
+                    </StackPanel>
                 </Border>
             </StackPanel>
+
+            <Border Canvas.Left="20" Canvas.Top="65" Width="245" Height="55"
+                    CornerRadius="5"
+                    BorderThickness="1"
+                    BorderBrush="#334F5E"
+                    Background="#CC15181C">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                    <TextBlock Text="목표 Load"
+                               Foreground="#FFB0FCFC"
+                               FontSize="13"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"
+                               Margin="0,0,12,0"/>
+                    <RadioButton Content="Load"
+                                 GroupName="HomeLoadTarget"
+                                 Command="{Binding Cmd_SelectLoadTarget}"
+                                 CommandParameter="{x:Static Models:LoadStatus.OffGrid}"
+                                 IsChecked="{Binding SelectedLoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OffGrid, Mode=OneWay}"
+                                 Style="{StaticResource LoadTargetToggleStyle}"/>
+                    <RadioButton Content="Vehicle"
+                                 GroupName="HomeLoadTarget"
+                                 Command="{Binding Cmd_SelectLoadTarget}"
+                                 CommandParameter="{x:Static Models:LoadStatus.Vehicle}"
+                                 IsChecked="{Binding SelectedLoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Vehicle, Mode=OneWay}"
+                                 Style="{StaticResource LoadTargetToggleStyle}"/>
+                </StackPanel>
+            </Border>
             <!--#region 충전 Path -->
             <Path x:Name="Charge_PCS"
                   Managers:AnimationManager.IsRunning="False"
@@ -660,12 +760,12 @@
                   Managers:AnimationManager.Speed="1.2"
                   Managers:AnimationManager.StartDelaySec="1"
                   Visibility="Visible"
-                  Style="{StaticResource NotusedPathStyle}" Canvas.Top="45.639">
+                  Style="{StaticResource NotusedPathStyle}" Canvas.Top="94">
                 <Path.Data>
                     <PathGeometry>
-                        <PathFigure StartPoint="131,190" IsClosed="False">
+                        <PathFigure StartPoint="131,430" IsClosed="False">
                             <LineSegment Point="131,310"/>
-                            <LineSegment Point="320,310"/>
+                            <LineSegment Point="280,310"/>
                         </PathFigure>
                     </PathGeometry>
                 </Path.Data>
@@ -678,7 +778,7 @@
                   Managers:AnimationManager.Speed="1.2"
                   Managers:AnimationManager.StartDelaySec="1"
                   Visibility="Visible"
-                  Style="{StaticResource ChargingPathStyle}" Canvas.Left="-6" Canvas.Top="47">
+                  Style="{StaticResource ChargingPathStyle}" Canvas.Left="-47" Canvas.Top="95">
                 <Path.Data>
                     <PathGeometry>
                         <PathFigure StartPoint="435,390" IsClosed="False">
@@ -697,7 +797,7 @@
                   Managers:AnimationManager.Speed="1.2"
                   Managers:AnimationManager.StartDelaySec="1"
                   Visibility="Visible"
-                  Style="{StaticResource DisChargingPathStyle}" Canvas.Left="18" Canvas.Top="47">
+                  Style="{StaticResource DisChargingPathStyle}" Canvas.Top="95" Canvas.Left="-23">
                 <Path.Data>
                     <PathGeometry>
                         <PathFigure StartPoint="435,430" IsClosed="False">
@@ -714,33 +814,109 @@
                   Managers:AnimationManager.Speed="1.2"
                   Managers:AnimationManager.StartDelaySec="1"
                   Visibility="Visible"
-                  Style="{StaticResource DisChargingPathStyle}" Canvas.Top="44">
+                  Style="{StaticResource DisChargingPathStyle}" Canvas.Top="93">
                 <Path.Data>
                     <PathGeometry>
-                        <PathFigure StartPoint="535,310" IsClosed="False">
+                        <PathFigure StartPoint="490,310" IsClosed="False">
                             <LineSegment Point="600,310"/>
                         </PathFigure>
                     </PathGeometry>
                 </Path.Data>
             </Path>
 
-            <Path x:Name="Discharge_OnGrid"
-                  Managers:AnimationManager.IsRunning="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OnGrid}"
-                  Managers:AnimationManager.To="-15"
-                  Managers:AnimationManager.From="0"
-                  Managers:AnimationManager.Speed="1.2"
-                  Managers:AnimationManager.StartDelaySec="1"
-                  Visibility="Visible"
-                  Style="{StaticResource DisChargingPathStyle}" Canvas.Left="-40" Canvas.Top="5">
-                <Path.Data>
-                    <PathGeometry>
-                        <PathFigure StartPoint="670,310" IsClosed="False">
-                            <LineSegment Point="670,150"/>
-                            <LineSegment Point="800,150"/>
-                        </PathFigure>
-                    </PathGeometry>
-                </Path.Data>
-            </Path>
+            <!-- Discharge_OnGrid Path 자리 → GPS(BU-353N) 값 표시 패널 -->
+            <Border Canvas.Left="276" Canvas.Top="65" Width="695" Height="246"
+                    CornerRadius="6" BorderThickness="1" BorderBrush="#334F5E" Background="#CC15181C">
+                <!-- line 799: 1열 Grid — Row0 GPS 상태/좌표(컴팩트), Row1 DevExpress 오프라인 지도(follow, 배율선택, 중앙 마커) -->
+                <Grid Margin="12,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Row 0: GPS 상태 + 좌표 + 위성수 (한 줄, 터치 PC 가독성) -->
+                    <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="GPS" Foreground="#FFB0FCFC" FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <Ellipse Width="9" Height="9" Margin="8,0,0,0" VerticalAlignment="Center">
+                            <Ellipse.Style>
+                                <Style TargetType="Ellipse">
+                                    <Setter Property="Fill" Value="#FF6B6B"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding GpsIsValid}" Value="True">
+                                            <Setter Property="Fill" Value="#76F7A8"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Ellipse.Style>
+                        </Ellipse>
+                        <!-- 시/도/군 (오프라인 역지오코딩 결과) -->
+                        <TextBlock Text="{Binding GpsRegion}" Foreground="White" FontSize="13" FontWeight="SemiBold"
+                                   Margin="12,0,0,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding GpsFixStatus}" Foreground="#FFD5D8DC" FontSize="11" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        <TextBlock Margin="16,0,0,0" Foreground="White" FontSize="13" VerticalAlignment="Center">
+                            <Run Text="Lat " Foreground="#FF87FFFF"/><Run Text="{Binding GpsLatitude}"/>
+                        </TextBlock>
+                        <TextBlock Margin="12,0,0,0" Foreground="White" FontSize="13" VerticalAlignment="Center">
+                            <Run Text="Lon " Foreground="#FF87FFFF"/><Run Text="{Binding GpsLongitude}"/>
+                        </TextBlock>
+                        <TextBlock Margin="12,0,0,0" Foreground="#FFD5D8DC" FontSize="11" VerticalAlignment="Center">
+                            <Run Text="Sat "/><Run Text="{Binding GpsSatelliteCount}"/>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- Row 1: DevExpress 오프라인 지도 호스트.
+                         · 래스터 타일(OSM ImageLayer)은 code-behind(ConfigureMap)에서 file:// 로 부착
+                           → 디자이너 네트워크 접근 방지 + 완전 오프라인.
+                         · 중심(CenterPoint)은 VM(MapCenterLatitude/Longitude)에 바인딩 → 초기값이 렌더 전에
+                           적용되어 (0,0)→목표 팬 애니메이션이 없고, GPS 갱신 시 follow 도 자동 반영.
+                         · 마커(현재 위치)는 MarkerStorage 에 code-behind 에서 1개 추가/갱신. -->
+                    <Border Grid.Row="1" Grid.Column="0" x:Name="MapHost" Margin="0,6,0,0"
+                            CornerRadius="4" BorderThickness="1" BorderBrush="#334F5E"
+                            ClipToBounds="True">
+                        <Grid>
+                            <dxm:MapControl x:Name="Map" ZoomLevel="12" EnableRotation="False"
+                                            PreviewMouseLeftButtonDown="Map_PreviewMouseLeftButtonDown">
+                                <!-- 마우스 포인터 위/경도 표시 패널(좌하단) 숨김 -->
+                                <dxm:MapControl.CoordinatesPanelOptions>
+                                    <dxm:CoordinatesPanelOptions Visible="False"/>
+                                </dxm:MapControl.CoordinatesPanelOptions>
+                                <dxm:MapControl.CenterPoint>
+                                    <MultiBinding Converter="{StaticResource LatLngToGeo}">
+                                        <Binding Path="MapCenterLatitude"/>
+                                        <Binding Path="MapCenterLongitude"/>
+                                    </MultiBinding>
+                                </dxm:MapControl.CenterPoint>
+                                <dxm:VectorLayer>
+                                    <dxm:VectorLayer.Data>
+                                        <dxm:MapItemStorage x:Name="MarkerStorage"/>
+                                    </dxm:VectorLayer.Data>
+                                </dxm:VectorLayer>
+                            </dxm:MapControl>
+
+                            <!-- 배율 선택 / 오프라인 상태 (우하단). 준비된 타일 레벨: 8/10/12/15 -->
+                            <Border HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                    Margin="6" Padding="7,3"
+                                    CornerRadius="5" Background="#E6202429" BorderBrush="#334F5E" BorderThickness="1">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="배율" Foreground="#CCFFFFFF" FontSize="11"
+                                               VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                    <ComboBox x:Name="ZoomCombo" Width="52" VerticalAlignment="Center"
+                                              SelectionChanged="ZoomCombo_SelectionChanged">
+                                        <ComboBoxItem Content="12"/>
+                                        <ComboBoxItem Content="10"/>
+                                        <ComboBoxItem Content="8"/>
+                                    </ComboBox>
+                                    <TextBlock x:Name="ZoomLabel" Foreground="#CCFFFFFF" FontSize="11"
+                                               VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
 
             <Path x:Name="Discharge_OffGrid"
                   Managers:AnimationManager.IsRunning="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OffGrid}"
@@ -749,10 +925,10 @@
                   Managers:AnimationManager.Speed="1.2"
                   Managers:AnimationManager.StartDelaySec="1"
                   Visibility="Visible"
-                  Style="{StaticResource DisChargingPathStyle}" Canvas.Top="44.666" Canvas.Left="-40">
+                  Style="{StaticResource DisChargingPathStyle}" Canvas.Top="93" Canvas.Left="-40">
                 <Path.Data>
                     <PathGeometry>
-                        <PathFigure StartPoint="700,310" IsClosed="False">
+                        <PathFigure StartPoint="690,310" IsClosed="False">
                             <LineSegment Point="800,310"/>
                         </PathFigure>
                     </PathGeometry>
@@ -766,7 +942,7 @@
                   Managers:AnimationManager.Speed="1.2"
                   Managers:AnimationManager.StartDelaySec="1"
                   Visibility="Visible"
-                  Style="{StaticResource DisChargingPathStyle}" Canvas.Left="-40" Canvas.Top="46">
+                  Style="{StaticResource DisChargingPathStyle}" Canvas.Left="-52" Canvas.Top="94">
                 <Path.Data>
                     <PathGeometry>
                         <PathFigure StartPoint="670,345" IsClosed="False">
@@ -780,19 +956,17 @@
 
             <!-- 자연 에너지 -->
 
-            <Border Canvas.Left="90" Canvas.Top="307"
+            <!--<Border Canvas.Left="90" Canvas.Top="355"
                     Height="98" Width="82"
                     BorderBrush="Gray"
                     Style="{StaticResource ChargeStoryBorderStyle}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
                     <TextBlock Text="PV Inverter"
                                Canvas.Left="4"
-                               Style="{StaticResource DefaultTextBlockStyle}" FontSize="12" Width="70">
-
-                    </TextBlock>
+                               Style="{StaticResource DefaultTextBlockStyle}" FontSize="12" Width="70"/>
 
                     <Label Canvas.Left="17" Canvas.Top="68"
-                           Content="Stop" Foreground="White"
+                           Content="Disable" Foreground="#FFA6A6A6"
                            Style="{StaticResource ConnLableStyle}" Width="55"/>
 
                     <Image Source="/EMS_PJT_Hamburger;component/Assets/인버터02.png" 
@@ -800,21 +974,19 @@
                            Style="{StaticResource DefaultImageStyle}" Width="50" Height="50" Stretch="Fill"/>
 
                 </Canvas>
-            </Border>
+            </Border>-->
 
-            <Border Canvas.Left="193" Canvas.Top="307"
+            <Border Canvas.Left="90" Canvas.Top="355"
                     Height="98" Width="82"
                     BorderBrush="Gray" 
                     Style="{StaticResource ChargeStoryBorderStyle}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
                     <TextBlock Text="Transformer"
                                Canvas.Left="4"
-                               Style="{StaticResource DefaultTextBlockStyle}" FontSize="12" Width="70">
-
-                    </TextBlock>
+                               Style="{StaticResource DefaultTextBlockStyle}" FontSize="12" Width="70"/>
 
                     <Label Canvas.Left="17" Canvas.Top="68"
-                           Content="Stop" Foreground="White"
+                           Content="Disable" Foreground="#FFA6A6A6"
                            Style="{StaticResource ConnLableStyle}" Width="55"/>
 
                     <Image Source="/EMS_PJT_Hamburger;component/Assets/Transformer.png" 
@@ -824,7 +996,7 @@
                 </Canvas>
             </Border>
 
-            <Border Canvas.Left="589" Canvas.Top="307"
+            <Border Canvas.Left="577" Canvas.Top="355"
                     Height="98" Width="82"
                     Style="{StaticResource DischargeStoryBorderStyle}"
                     BorderBrush="{Binding DischargeBorderBrush}">
@@ -858,7 +1030,7 @@
             <!-- Charge -->
             <Border x:Name="ENERGY"
                     Canvas.Left="20"
-                    Canvas.Top="70"
+                    Canvas.Top="518"
                     BorderBrush="Gray"
                     Style="{StaticResource ChargeStoryBorderStyle}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -868,7 +1040,7 @@
                     </TextBlock>
 
                     <Label Canvas.Left="157" Canvas.Top="4"
-                           Content="Stop" Foreground="White"
+                           Content="Disable" Foreground="#FFA6A6A6"
                            Style="{StaticResource ConnLableStyle}" Width="55"/>
 
                     <Label Canvas.Left="172" Canvas.Top="28"
@@ -946,8 +1118,8 @@
             </Border>
 
             <Border x:Name="PCS"
-                    Canvas.Left="318" 
-                    Canvas.Top="271"                   
+                    Canvas.Left="277" 
+                    Canvas.Top="319"                   
                     Style="{StaticResource ChargeStoryBorderStyle}"
                     BorderBrush="{Binding PcsBorderBrush}" MouseLeftButtonDown="PCS_MouseLeftButtonDown" TouchDown="PCS_TouchDown">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -1026,8 +1198,8 @@
             </Border>
 
             <Border x:Name="BMS"
-                    Canvas.Left="318"
-                    Canvas.Top="470"
+                    Canvas.Left="277"
+                    Canvas.Top="518"
                     BorderBrush="{Binding BmsBorderBrush}"
                     Style="{StaticResource ChargeStoryBorderStyle}" MouseLeftButtonDown="BMS_MouseLeftButtonDown" TouchDown="BMS_TouchDown">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -1108,7 +1280,7 @@
 
             <!-- Discharge -->
 
-            <Border Canvas.Left="565" Canvas.Top="485" Height="140" Width="130"
+            <Border Canvas.Left="553" Canvas.Top="533" Height="140" Width="130"
                     Style="{StaticResource DischargeStoryBorderStyle}" 
                     BorderBrush="{Binding ChargeVihicle}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -1118,7 +1290,7 @@
 
                     </TextBlock>
 
-                    <Label Canvas.Left="87" Canvas.Top="8"
+                    <!--<Label Canvas.Left="87" Canvas.Top="8"
                            Style="{StaticResource InfoLableStyle}" Width="35">
                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                             <TextBlock Text="전압"/>
@@ -1132,16 +1304,15 @@
                             <TextBlock Text="전류"/>
                             <Ellipse Width="5" Height="5" Margin="1,1,0,0" Fill="GreenYellow"/>
                         </StackPanel>
+                    </Label>-->
 
-                    </Label>
-
-                    <Label Canvas.Left="87" Canvas.Top="46"
+                    <!--<Label Canvas.Left="87" Canvas.Top="46"
                            Style="{StaticResource InfoLableStyle}" Width="35">
                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                             <TextBlock Text="전력"/>
                             <Ellipse Width="5" Height="5" Margin="1,1,0,0" Fill="GreenYellow"/>
                         </StackPanel>
-                    </Label>
+                    </Label>-->
 
                     <Label Canvas.Left="36" Canvas.Top="106"
                            Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Vehicle}"
@@ -1153,104 +1324,21 @@
 
                 </Canvas>
             </Border>
-            <Border x:Name="ONGrid"
-                    Canvas.Left="752"
-                    Canvas.Top="70"
-                    BorderBrush="{Binding ChargeOnGrid}"
-                    Style="{StaticResource DischargeStoryBorderStyle}">
-                <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
-                    <TextBlock Text="On Grid" Padding="0,0,0,0"
-                               Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Left="4" Canvas.Top="3"/>
 
-                    <Label Canvas.Left="147" Canvas.Top="4"
-                          Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OnGrid}"
-                           Style="{StaticResource LoadLableStyle}"/>
-
-                    <Label Canvas.Left="172" Canvas.Top="28"
-                           Style="{StaticResource InfoLableStyle}">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Va"/>
-                        </StackPanel>
-                    </Label>
-
-                    <Label Canvas.Left="172" Canvas.Top="47"
-                           Style="{StaticResource InfoLableStyle}">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Vb"/>
-                        </StackPanel>
-
-                    </Label>
-
-                    <Label Canvas.Left="172" Canvas.Top="66"
-                           Style="{StaticResource InfoLableStyle}">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Vc"/>
-                        </StackPanel>
-                    </Label>
-
-                    <Image 
-                           Canvas.Left="54"
-                           Style="{StaticResource DefaultImageStyle}" Width="110" Height="133" Stretch="Fill" Source="/EMS_PJT_Hamburger;component/Assets/Home/Unified/Ongrid.png" Canvas.Top="1"/>
-
-                    <Border Canvas.Top="112" Canvas.Left="4"
-                            Style="{StaticResource ContentBorderStyle}">
-                        <StackPanel Orientation="Vertical">
-                            <Label Content="Volt" 
-                                   Style="{StaticResource HeaderLableStyle}"/>
-                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
-                                <Run Text="{Binding PcsVm.InvAveAcVoltage, Source={x:Static Application.Current}, StringFormat=F1}"/>
-                                <Run Text="V"/>
-                            </TextBlock>
-                        </StackPanel>
-                    </Border>
-                    <Border Canvas.Left="57" Canvas.Top="112"
-                            Style="{StaticResource ContentBorderStyle}">
-                        <StackPanel Orientation="Vertical">
-                            <Label Content="Curr" 
-                                   Style="{StaticResource HeaderLableStyle}"/>
-                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
-                                <Run Text="{Binding PcsVm.InvAveCurrent, Source={x:Static Application.Current}, StringFormat=F1}"/>
-                                <Run Text="A"/>
-                            </TextBlock>
-                        </StackPanel>
-                    </Border>
-                    <Border Canvas.Left="109" Canvas.Top="112"
-                            Style="{StaticResource ContentBorderStyle}">
-                        <StackPanel Orientation="Vertical">
-                            <Label Content="Freq" 
-                                   Style="{StaticResource HeaderLableStyle}"/>
-                            <TextBlock Style="{StaticResource ContentTextBlockStyle}">
-                                <Run Text="{Binding PcsVm.InvItems[15].Value, StringFormat=F1, Source={x:Static Application.Current}}"/>
-                                <Run Text="Hz"/>
-                            </TextBlock>
-                        </StackPanel>
-                    </Border>
-                    <Border Canvas.Left="162" Canvas.Top="112"
-                            Style="{StaticResource ContentBorderStyle}">
-                        <StackPanel Orientation="Vertical">
-                            <Image Source="{dx:DXImage 'SvgImages/Status/Warning.svg'}" Style="{StaticResource DefaultImageStyle}" Margin="9,5,9,0"
-                                   Height="25" Width="20"/>
-                            <TextBlock Text="Normal" 
-                                       Style="{StaticResource ContentTextBlockStyle}"/>
-                        </StackPanel>
-                    </Border>
-
-                </Canvas>
-            </Border>
             <Border x:Name="OFFGrid"
                     Canvas.Left="752" 
-                    Canvas.Top="271"
+                    Canvas.Top="319"
                     Style="{StaticResource DischargeStoryBorderStyle}"
                     BorderBrush="{Binding ChargeOffGrid}">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
-                    <TextBlock Text="Off Grid" Canvas.Left="4"
+                    <TextBlock Text="Load" Canvas.Left="4"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Top="3"/>
 
-                    <Label Canvas.Left="147" Canvas.Top="4"
-                           Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OffGrid}"
-                           Style="{StaticResource LoadLableStyle}"/>
+                    <Label Canvas.Left="142" Canvas.Top="4"
+                           Style="{StaticResource LoadLableStyle}" Width="70" Content="Standalone"/>
+                    <!--Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=OffGrid}"-->
 
-                    <Label Canvas.Left="172" Canvas.Top="28"
+                    <!--<Label Canvas.Left="172" Canvas.Top="28"
                            Style="{StaticResource InfoLableStyle}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Va"/>
@@ -1270,13 +1358,13 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Vc"/>
                         </StackPanel>
-                    </Label>
+                    </Label>-->
 
                     <Image 
-                           Canvas.Left="22"
-                           Style="{StaticResource DefaultImageStyle}" Width="154" Height="122" Stretch="Fill" Canvas.Top="1" Source="/EMS_PJT_Hamburger;component/Assets/Home1.png"/>
+                           Canvas.Left="32"
+                           Style="{StaticResource DefaultImageStyle}" Width="150" Height="150" Stretch="Fill" Canvas.Top="16" Source="/EMS_PJT_Hamburger;component/Assets/Home1.png"/>
 
-                    <Border Canvas.Top="112" Canvas.Left="4"
+                    <!--<Border Canvas.Top="112" Canvas.Left="4"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
                             <Label Content="Volt" 
@@ -1317,7 +1405,7 @@
                             <TextBlock Text="Normal" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
-                    </Border>
+                    </Border>-->
 
                 </Canvas>
             </Border>
@@ -1325,16 +1413,17 @@
                     Canvas.Left="752" 
                     Canvas.Bottom="20"
                     Style="{StaticResource DischargeStoryBorderStyle}"
-                    BorderBrush="{Binding ChargeVihicle}" Canvas.Top="470">
+                    BorderBrush="{Binding ChargeVihicle}" Canvas.Top="518">
                 <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
                     <TextBlock Text="Vehicle" Padding="0,0,0,0"
                                Style="{StaticResource DefaultTextBlockStyle}" Width="120" Canvas.Left="4" Canvas.Top="3"/>
 
-                    <Label Canvas.Left="147" Canvas.Top="4"
-                           Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Vehicle}"
-                           Style="{StaticResource LoadLableStyle}"/>
+                    <Label Canvas.Left="142" Canvas.Top="4"
+                           Content="Standalone" 
+                           Style="{StaticResource LoadLableStyle}" Width="70"/>
+                    <!--Tag="{Binding LoadTarget, Converter={StaticResource HomeStatusMatchConverter}, ConverterParameter=Vehicle}"-->
 
-                    <Label Canvas.Left="172" Canvas.Top="28"
+                    <!--<Label Canvas.Left="172" Canvas.Top="28"
                            Style="{StaticResource InfoLableStyle}">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Va"/>
@@ -1354,13 +1443,13 @@
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Vc"/>
                         </StackPanel>
-                    </Label>
+                    </Label>-->
 
                     <Image Source="/EMS_PJT_Hamburger;component/Assets/ESS(자동차).png" 
-                           Canvas.Left="50" Canvas.Top="31"
-                           Style="{StaticResource DefaultImageStyle}" Width="108" Height="76"/>
+                           Canvas.Left="32" Canvas.Top="60"
+                           Style="{StaticResource DefaultImageStyle}" Width="150" Height="90"/>
 
-                    <Border Canvas.Top="112" Canvas.Left="4"
+                    <!--<Border Canvas.Top="112" Canvas.Left="4"
                             Style="{StaticResource ContentBorderStyle}">
                         <StackPanel Orientation="Vertical">
                             <Label Content="Power" 
@@ -1401,7 +1490,7 @@
                             <TextBlock Text="Normal" 
                                        Style="{StaticResource ContentTextBlockStyle}"/>
                         </StackPanel>
-                    </Border>
+                    </Border>-->
 
                 </Canvas>
             </Border>

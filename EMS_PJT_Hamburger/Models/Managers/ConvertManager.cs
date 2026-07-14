@@ -21,6 +21,41 @@ namespace EMS_PJT_Hamburger.Models.Managers
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => throw new NotImplementedException();
     }
+    public class OperatingModeConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null)
+                return "Stop";
+
+            int rawValue;
+
+            try
+            {
+                rawValue = System.Convert.ToInt32(value);
+            }
+            catch
+            {
+                return "Stop";
+            }
+
+            bool bit1 = (rawValue & (1 << 1)) != 0;
+            bool bit3 = (rawValue & (1 << 3)) != 0;
+
+            if (bit1)
+                return "Charge";
+
+            if (bit3)
+                return "Discharge";
+
+            return "Stop";
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
     public class ConvertManager
     {
         public ImageSource GetSvgImage(string imagePath, Size imageSize)
@@ -194,6 +229,36 @@ namespace EMS_PJT_Hamburger.Models.Managers
         {
             throw new NotSupportedException();
         }
+    }
+    public class RelayToBrushConverter : IValueConverter
+    {
+        public Brush TrueBrush { get; set; } = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF76F7A8"));
+        public Brush FalseBrush { get; set; } = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF7C7C"));
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value is bool b && b ? TrueBrush : FalseBrush;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
+    public class StringToBrushConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is string s)
+            {
+                if (s == "Ready")
+                    return Brushes.White;
+            }
+
+            return Brushes.Gray;
+        }
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+                => throw new NotImplementedException();
     }
     public class ValueToBrushConverter : IValueConverter
     {

@@ -36,7 +36,11 @@ namespace EMS_PJT_Hamburger
 
         private void Btn_Home_Click(object sender, RoutedEventArgs e)
         {
-            app.MainWindow = this;
+            NavigateHome();
+        }
+
+        public void NavigateHome()
+        {
             NaviFrame.Content = app.HomeView;
         }
 
@@ -48,14 +52,11 @@ namespace EMS_PJT_Hamburger
 
         private void Btn_PcsStatus_Click(object sender, RoutedEventArgs e)
         {
-
-            app.MainWindow = this;
             NaviFrame.Content = app.PCSView;
         }
 
         private void Btn_BmsStatus_Click(object sender, RoutedEventArgs e)
         {
-            app.MainWindow = this;
             NaviFrame.Content = app.BMSView;
         }
 
@@ -67,10 +68,12 @@ namespace EMS_PJT_Hamburger
 
         private void Btn_History_Click(object sender, RoutedEventArgs e)
         {
-            app.MainWindow = this;
             NaviFrame.Content = app.HistoryView;
         }
-
+        private void MinimizeBtn_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
         private void ExitBtn_Click(object sender, RoutedEventArgs e)
         {
             MessageBoxResult msgResult = WinUIMessageBox.Show(
@@ -87,11 +90,6 @@ namespace EMS_PJT_Hamburger
             {
                 this.Close();
             }
-        }
-
-        private void InfoBtn_Click(object sender, RoutedEventArgs e)
-        {
-
         }
 
         private async void ThemedWindow_Loaded(object sender, RoutedEventArgs e)
@@ -122,5 +120,7 @@ namespace EMS_PJT_Hamburger
 
             WarmupHost.Content = null;
         }
+
+        
     }
 }

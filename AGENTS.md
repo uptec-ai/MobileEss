@@ -2,8 +2,8 @@
 
 ## Project
 
-- Root: `C:\Project\2. ESS\EMS_PJT v1.4\EMS_PJT_Hamburger`
-- IDE: Visual Studio 2019
+- Root: resolve via `scripts\Resolve-ProjectRoot.ps1` (anchor: `EMS_PJT_Hamburger.sln`). 절대경로 하드코딩 금지.
+- IDE: Visual Studio 2022 (MSBuild)
 - Framework: .NET Framework 4.8
 - Application: WPF
 - UI Library: DevExpress v23.1.5

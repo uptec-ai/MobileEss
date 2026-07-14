@@ -62,13 +62,5 @@
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="..\EMS_PJT_Hamburger\bin\DB_EMS.sql">
-      <LogicalName>Payload.DB_EMS.sql</LogicalName>
-    </EmbeddedResource>
-	<EmbeddedResource Include="..\EMS_PJT_Hamburger\bin\Release_260417.zip">
-	  <LogicalName>Payload.Release_260417.zip</LogicalName>
-	</EmbeddedResource>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

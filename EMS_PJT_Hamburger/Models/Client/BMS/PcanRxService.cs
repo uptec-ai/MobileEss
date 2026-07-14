@@ -16,6 +16,7 @@ namespace EMS_PJT_Hamburger.Models.Client.BMS
         private Thread _rxThread; // read용 루프 스레드
         private bool _disposed;
         public event Action<uint, byte[]> FrameReceived; // (canId, data)
+        public event Action<bool> ConnectionStateChanged;
         public bool IsBmsReady { get; set; }
 
         public PcanRxService(PcanChannel channel, Bitrate bitrate)
@@ -32,17 +33,22 @@ namespace EMS_PJT_Hamburger.Models.Client.BMS
             {
                 var st = Api.Initialize(_channel, _bitrate);
                 if (st != PcanStatus.OK)
+                {
+                    RaiseConnection(false);
                     return false;
+                }
 
                 IsBmsReady = true;
                 _rxThread = new Thread(ReadLoop);
                 _rxThread.IsBackground = true;
                 _rxThread.Start();
 
+                RaiseConnection(true);
                 return true;
             }
             catch (Exception)
             {
+                RaiseConnection(false);
                 return false;
             }
         }
@@ -85,6 +91,13 @@ namespace EMS_PJT_Hamburger.Models.Client.BMS
             // PCAN 드라이버 해제
             Api.Uninitialize(_channel);
             _rxThread = null;
+            RaiseConnection(false);
+        }
+
+        private void RaiseConnection(bool connected)
+        {
+            try { ConnectionStateChanged?.Invoke(connected); }
+            catch { }
         }
 
         private void ThrowIfDisposed()
@@ -100,6 +113,7 @@ namespace EMS_PJT_Hamburger.Models.Client.BMS
 
             try { Stop(); } catch { }
             FrameReceived = null; // 구독자 참조를 해제해 누수 위험을 줄이기 위해서
+            ConnectionStateChanged = null;
             GC.SuppressFinalize(this);
         }
     }

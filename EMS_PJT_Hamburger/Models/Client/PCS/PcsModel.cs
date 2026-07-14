@@ -1,6 +1,7 @@
 ﻿using DevExpress.Mvvm;
 using EMS_PJT_Hamburger.Models.Managers;
 using SciChart.Charting.Model.DataSeries;
+using SciChart.Data.Model;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -104,6 +105,14 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
 
         private readonly HashSet<string> _activePcsFaultKeys = new HashSet<string>();
         private string _lastPcsStatusSnapshotKey;
+        private string _lastPcsReadyStateKey;
+        private DateTime _lastPcsRawSavedUtc = DateTime.MinValue;
+        private bool _isRead32BigEndian = true;
+        private readonly object _powerTrendLock = new object();
+        private readonly List<PowerTrendSample> _powerTrendSamples = new List<PowerTrendSample>();
+        private TimeSpan _powerTrendInterval = TimeSpan.FromMinutes(1);
+        private TimeSpan _powerTrendVisibleWindow = TimeSpan.FromMinutes(10);
+        private DateTime _lastPowerTrendSampleUtc = DateTime.MinValue;
         public ModbusService _client = new ModbusService();
         public ConnectionSettings Conn_Settings { get; set; }
         public ConnectionState Conn_State { get; set; }
@@ -119,15 +128,15 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         // UI Data Init
         public PCS_PanelData PanelData { get; set; } = new PCS_PanelData()
         {
-            BattReady = false,
-            InvReady = false,
-            GridReady = false,
-            CommReady = false,
-            BypassReady = false,
-            AlarmCnt = "0",
-            T_Import_Energy = "0.0",
-            T_Export_Energy = "0.0",
-            PcsTime = "--",
+            BattReady = false, // 0
+            InvReady = false, // 1
+            GridReady = false, // 2
+            CommReady = false, // 3
+            BypassReady = false, // 4
+            AlarmCnt = "0", // 5
+            T_Import_Energy = "0.0", // 6
+            T_Export_Energy = "0.0", // 7
+            PcsTime = "--", // 8
         };
         public INV_PcsData InvData { get; set; } = new INV_PcsData()
         {
@@ -188,6 +197,28 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         }
         public double InvAveAcVoltage { get; set; } = 0.0d;
         public double InvAveCurrent { get; set; } = 0.0d;
+        // Total Export Energy 변화량(Δ) 시리즈 (초록)
+        public XyDataSeries<DateTime, double> DailyExportTrendSeries
+        {
+            get => GetProperty(() => DailyExportTrendSeries);
+            set => SetProperty(() => DailyExportTrendSeries, value);
+        }
+        // Total Import Energy 변화량(Δ) 시리즈 (파랑)
+        public XyDataSeries<DateTime, double> DailyImportTrendSeries
+        {
+            get => GetProperty(() => DailyImportTrendSeries);
+            set => SetProperty(() => DailyImportTrendSeries, value);
+        }
+        public bool IsPcsFaultAlarmActive
+        {
+            get => GetProperty(() => IsPcsFaultAlarmActive);
+            private set => SetProperty(() => IsPcsFaultAlarmActive, value);
+        }
+        public DateRange PowerTrendDefaultVisibleRange
+        {
+            get => GetProperty(() => PowerTrendDefaultVisibleRange);
+            set => SetProperty(() => PowerTrendDefaultVisibleRange, value);
+        }
 
         // 상태
         protected IDispatcherService Dispatcher => GetService<IDispatcherService>();
@@ -196,6 +227,18 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         public bool IsTransmit { get => GetProperty(() => IsTransmit); set => SetProperty(() => IsTransmit, value); } // TX(송신)
         public bool IsWrite { get => GetProperty(() => IsWrite); set => SetProperty(() => IsWrite, value); } // Send Write 동작?
         public bool IsRelay { get => GetProperty(() => IsRelay); set => SetProperty(() => IsRelay, value); } // BMS Relay 동작?
+        public bool IsRead32BigEndian
+        {
+            get => _isRead32BigEndian;
+            set
+            {
+                if (_isRead32BigEndian == value) return;
+                _isRead32BigEndian = value;
+                RaisePropertyChanged(nameof(IsRead32BigEndian));
+                RaisePropertyChanged(nameof(Read32WordOrder));
+            }
+        }
+        public ModbusWordOrder Read32WordOrder => IsRead32BigEndian ? ModbusWordOrder.HighLow : ModbusWordOrder.LowHigh;
         public string SystemMsg { get; set; } = string.Empty; // [Log] system msg
 
         // Chart
@@ -524,6 +567,15 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
 
                 CurrentPcsFaultMessages.Insert(0, fault);
 
+                AlarmFileLogger.WriteFault(
+                    "PCS",
+                    fault.Category,
+                    fault.Bit,
+                    fault.Message,
+                    fault.Message,
+                    fault.RawValue.ToString(),
+                    fault.OccurredAt);
+
                 var app = Application.Current as App;
                 app?.DbManager?.InsertEmsAlarmData(
                     "PCS",
@@ -694,7 +746,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 return;
             }
 
-            var parsed = ModbusParser.ParseRegisters(registers, PcsSpecs.All, PollStartAddress);
+            var parsed = ModbusParser.ParseRegisters(registers, PcsSpecs.All, PollStartAddress, Read32WordOrder);
             ChangeInformation(parsed);
         }
 
@@ -790,17 +842,18 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 throw new ArgumentOutOfRangeException(nameof(input), $"[{ctrl}] write value is out of U32 range.");
 
             var value = (uint)Math.Round(raw);
-            // low word
-            //var values = new[]
-            //{
-            //    (ushort)(value & 0xFFFF),
-            //    (ushort)(value >> 16)
-            //};
+            // Little Endian
             var values = new[]
             {
-                (ushort)(value >> 16),
-                (ushort)(value & 0xFFFF)
+                (ushort)(value & 0xFFFF),
+                (ushort)(value >> 16)
             };
+            // Big Endian
+            //var values = new[]
+            //{
+            //    (ushort)(value >> 16),
+            //    (ushort)(value & 0xFFFF)
+            //};
 
             await _client.WriteMultipleRegistersAsync(spec.Address, values);
         }
@@ -875,8 +928,14 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                         UpdatePcsFaultMessages("Communication", bits, CommunicationFaultMessages);
                     }
                     PanelData.AlarmCnt = alarmCnt.ToString();
+                    IsPcsFaultAlarmActive = alarmCnt > 0;
                 }
-                else { OccurredFault = false; }
+                else
+                {
+                    OccurredFault = false;
+                    IsPcsFaultAlarmActive = false;
+                    PanelData.AlarmCnt = "0";
+                }
             }
 
 
@@ -923,7 +982,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             if (TryGetDouble(parsed, "ReadyStatus", out var ready))
             {
                 var readyBits = Convert.ToUInt16(ready);
-                GridItems[1].Value = (readyBits & (1 << 3)) != 0 ? "on" : "off";
+                GridItems[0].Value = (readyBits & (1 << 3)) != 0 ? "on" : "off";
             }
             if (TryGetDouble(parsed, "GridFuseStatus", out var fuse))
             {
@@ -934,7 +993,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 if ((readyBits & (1 << 1)) != 0) faultPhase += "S";
                 if ((readyBits & (1 << 2)) != 0) faultPhase += "T";
 
-                GridItems[2].Value = (fuse == 0) ? "normal" : $"fault";
+                GridItems[1].Value = (fuse == 0) ? "normal" : $"fault";
                 if(fuse != 0) SystemMsg = faultPhase;
             }
             
@@ -954,60 +1013,65 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 if ((readyBits & (1 << 8)) != 0) { alarmCnt++; SystemMsg = "uf grid fault"; } // UF grid
                 if ((readyBits & (1 << 9)) != 0) { alarmCnt++; SystemMsg = "oc grid fault"; }// OC grid
 
-                GridItems[3].Value = alarmCnt.ToString();
+                GridItems[2].Value = alarmCnt.ToString();
             }
             // Grid 유효전력
             if (TryGetDouble(parsed, "GridActivePower", out var power))
             {
-                GridItems[5].Value = power.ToString("0");
+                GridItems[3].Value = power.ToString("0");
             }
 
-            if (TryGetDouble(parsed, "GridVoltageAN", out var vAn)) GridItems[6].Value = vAn.ToString("0.0");
-            if (TryGetDouble(parsed, "GridVoltageBN", out var vBn)) GridItems[7].Value = vBn.ToString("0.0");
-            if (TryGetDouble(parsed, "GridVoltageCN", out var vCn)) GridItems[8].Value = vCn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageAN", out var vAn)) GridItems[4].Value = vAn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageBN", out var vBn)) GridItems[5].Value = vBn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageCN", out var vCn)) GridItems[6].Value = vCn.ToString("0.0");
 
-            if (TryGetDouble(parsed, "GridCurrentAN", out var cAn)) GridItems[9].Value = cAn.ToString("0.0");
-            if (TryGetDouble(parsed, "GridCurrentBN", out var cBn)) GridItems[10].Value = cBn.ToString("0.0");
-            if (TryGetDouble(parsed, "GridCurrentCN", out var cCn)) GridItems[11].Value = cCn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridCurrentAN", out var cAn)) GridItems[7].Value = cAn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridCurrentBN", out var cBn)) GridItems[8].Value = cBn.ToString("0.0");
+            if (TryGetDouble(parsed, "GridCurrentCN", out var cCn)) GridItems[9].Value = cCn.ToString("0.0");
 
-            if (TryGetDouble(parsed, "GridVoltageAB", out var vAb)) GridItems[12].Value = vAb.ToString("0.0");
-            if (TryGetDouble(parsed, "GridVoltageBC", out var vBc)) GridItems[13].Value = vBc.ToString("0.0");
-            if (TryGetDouble(parsed, "GridVoltageCA", out var vCa)) GridItems[14].Value = vCa.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageAB", out var vAb)) GridItems[10].Value = vAb.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageBC", out var vBc)) GridItems[11].Value = vBc.ToString("0.0");
+            if (TryGetDouble(parsed, "GridVoltageCA", out var vCa)) GridItems[12].Value = vCa.ToString("0.0");
 
-            if (TryGetDouble(parsed, "GridFrequency", out var freq)) GridItems[15].Value = freq.ToString("0.00");
-            if (TryGetDouble(parsed, "GridPowerFactor", out var pf)) GridItems[16].Value = pf.ToString("0.00");
-            if (TryGetDouble(parsed, "GridSurgeCounter", out var sc)) GridItems[17].Value = sc.ToString("0");
+            if (TryGetDouble(parsed, "GridFrequency", out var freq)) GridItems[13].Value = freq.ToString("0.00");
+            if (TryGetDouble(parsed, "GridPowerFactor", out var pf)) GridItems[14].Value = pf.ToString("0.00");
+            if (TryGetDouble(parsed, "GridSurgeCounter", out var sc)) GridItems[15].Value = sc.ToString("0");
         }
         void ChangeInverterData(Dictionary<string, object> parsed)
         {
             //if (TryGetDouble(parsed, "Load_Status", out var ready)) LoadItems[1].Value = ready >= 500 ? "on" : "off";
+            if (TryGetDouble(parsed, "ReadyStatus", out var ready))
+            {
+                var readyBits = Convert.ToUInt16(ready);
+                InvItems[0].Value = (readyBits & (1 << 2)) != 0 ? "on" : "off";
+            }
             if (TryGetDouble(parsed, "InvFault", out var fault))
             {
                 var readyBits = Convert.ToUInt16(fault);
 
                 if ((readyBits & (1 << 0)) != 0) { InvItems[1].Value = "fault"; SystemMsg = "over inverter fault"; }// line freq
-                else LoadItems[1].Value = "normal";
+                else InvItems[1].Value = "normal";
             }
 
-            if (TryGetDouble(parsed, "InvTotalImportActivePower", out var tImport)) InvItems[3].Value = tImport.ToString("0.0");
-            if (TryGetDouble(parsed, "InvTotalExportedActivePower", out var tExport)) InvItems[4].Value = tExport.ToString("0.0");
-            if (TryGetDouble(parsed, "InvActivePower", out var p)) InvItems[5].Value = p.ToString("0");
+            if (TryGetDouble(parsed, "InvTotalImportActivePower", out var tImport)) InvItems[2].Value = tImport.ToString("0.0");
+            if (TryGetDouble(parsed, "InvTotalExportedActivePower", out var tExport)) InvItems[3].Value = tExport.ToString("0.0");
+            if (TryGetDouble(parsed, "InvActivePower", out var p)) InvItems[4].Value = p.ToString("0");
 
 
-            if (TryGetDouble(parsed, "InvVoltageAN", out var vAn)) InvItems[6].Value = vAn.ToString("0.0");
-            if (TryGetDouble(parsed, "InvVoltageBN", out var vBn)) InvItems[7].Value = vBn.ToString("0.0");
-            if (TryGetDouble(parsed, "InvVoltageCN", out var vCn)) InvItems[8].Value = vCn.ToString("0.0");
+            if (TryGetDouble(parsed, "InvVoltageAN", out var vAn)) InvItems[5].Value = vAn.ToString("0.0");
+            if (TryGetDouble(parsed, "InvVoltageBN", out var vBn)) InvItems[6].Value = vBn.ToString("0.0");
+            if (TryGetDouble(parsed, "InvVoltageCN", out var vCn)) InvItems[7].Value = vCn.ToString("0.0");
 
-            if (TryGetDouble(parsed, "InvCurrentAN", out var cAn)) InvItems[9].Value = cAn.ToString("0.0");
-            if (TryGetDouble(parsed, "InvCurrentBN", out var cBn)) InvItems[10].Value = cBn.ToString("0.0");
-            if (TryGetDouble(parsed, "InvCurrentCN", out var cCn)) InvItems[11].Value = cCn.ToString("0.0");
+            if (TryGetDouble(parsed, "InvCurrentAN", out var cAn)) InvItems[8].Value = cAn.ToString("0.0");
+            if (TryGetDouble(parsed, "InvCurrentBN", out var cBn)) InvItems[9].Value = cBn.ToString("0.0");
+            if (TryGetDouble(parsed, "InvCurrentCN", out var cCn)) InvItems[10].Value = cCn.ToString("0.0");
 
-            if (TryGetDouble(parsed, "InvVoltageAB", out var vAb)) InvItems[12].Value = vAb.ToString("0");
-            if (TryGetDouble(parsed, "InvVoltageBC", out var vBc)) InvItems[13].Value = vBc.ToString("0");
-            if (TryGetDouble(parsed, "InvVoltageCA", out var vCa)) InvItems[14].Value = vCa.ToString("0");
+            if (TryGetDouble(parsed, "InvVoltageAB", out var vAb)) InvItems[11].Value = vAb.ToString("0");
+            if (TryGetDouble(parsed, "InvVoltageBC", out var vBc)) InvItems[12].Value = vBc.ToString("0");
+            if (TryGetDouble(parsed, "InvVoltageCA", out var vCa)) InvItems[13].Value = vCa.ToString("0");
 
-            if (TryGetDouble(parsed, "InvFrequency", out var freq)) InvItems[15].Value = freq.ToString("0.0");
-            if (TryGetDouble(parsed, "InvPowerFactor", out var pf)) InvItems[16].Value = pf.ToString("0.00");
+            if (TryGetDouble(parsed, "InvFrequency", out var freq)) InvItems[14].Value = freq.ToString("0.0");
+            if (TryGetDouble(parsed, "InvPowerFactor", out var pf)) InvItems[15].Value = pf.ToString("0.00");
 
             InvAveAcVoltage = (vAn + vBn + vCn) / 3;
             InvAveCurrent = (cAn + cBn + cCn) / 3;
@@ -1019,55 +1083,60 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             {
                 var readyBits = Convert.ToUInt16(fault);
 
-                if ((readyBits & (1 << 0)) != 0) { LoadItems[1].Value = "fault"; SystemMsg = "over load fault"; }// line freq
-                else LoadItems[1].Value = "normal";
+                if ((readyBits & (1 << 0)) != 0) { LoadItems[0].Value = "fault"; SystemMsg = "over load fault"; }// line freq
+                else LoadItems[0].Value = "normal";
             }
 
-            if (TryGetDouble(parsed, "LoadTotalExportedActivePower", out var tExport)) LoadItems[3].Value = tExport.ToString("0.0");
-            if (TryGetDouble(parsed, "LoadActivePower", out var p)) LoadItems[4].Value = p.ToString("0");
-            if (TryGetDouble(parsed, "LoadActivePowerRN", out var pRn)) LoadItems[5].Value = pRn.ToString("0");
-            if (TryGetDouble(parsed, "LoadActivePowerSN", out var pSn)) LoadItems[6].Value = pSn.ToString("0");
-            if (TryGetDouble(parsed, "LoadActivePowerTN", out var pTn)) LoadItems[7].Value = pTn.ToString("0");
+            if (TryGetDouble(parsed, "LoadTotalExportedActivePower", out var tExport)) LoadItems[1].Value = tExport.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadActivePower", out var p)) LoadItems[2].Value = p.ToString("0");
+            if (TryGetDouble(parsed, "LoadActivePowerRN", out var pRn)) LoadItems[3].Value = pRn.ToString("0");
+            if (TryGetDouble(parsed, "LoadActivePowerSN", out var pSn)) LoadItems[4].Value = pSn.ToString("0");
+            if (TryGetDouble(parsed, "LoadActivePowerTN", out var pTn)) LoadItems[5].Value = pTn.ToString("0");
 
-            if (TryGetDouble(parsed, "LoadVoltageAN", out var vAn)) LoadItems[8].Value = vAn.ToString("0.0");
-            if (TryGetDouble(parsed, "LoadVoltageBN", out var vBn)) LoadItems[9].Value = vBn.ToString("0.0");
-            if (TryGetDouble(parsed, "LoadVoltageCN", out var vCn)) LoadItems[10].Value = vCn.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadVoltageAN", out var vAn)) LoadItems[6].Value = vAn.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadVoltageBN", out var vBn)) LoadItems[7].Value = vBn.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadVoltageCN", out var vCn)) LoadItems[8].Value = vCn.ToString("0.0");
 
-            if (TryGetDouble(parsed, "LoadCurrentAN", out var cAn)) LoadItems[11].Value = cAn.ToString("0.0");
-            if (TryGetDouble(parsed, "LoadCurrentBN", out var cBn)) LoadItems[12].Value = cBn.ToString("0.0");
-            if (TryGetDouble(parsed, "LoadCurrentCN", out var cCn)) LoadItems[13].Value = cCn.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadCurrentAN", out var cAn)) LoadItems[9].Value = cAn.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadCurrentBN", out var cBn)) LoadItems[10].Value = cBn.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadCurrentCN", out var cCn)) LoadItems[11].Value = cCn.ToString("0.0");
 
-            if (TryGetDouble(parsed, "LoadVoltageAB", out var vAb)) LoadItems[14].Value = vAb.ToString("0.0");
-            if (TryGetDouble(parsed, "LoadVoltageBC", out var vBc)) LoadItems[15].Value = vBc.ToString("0.0");
-            if (TryGetDouble(parsed, "LoadVoltageCA", out var vCa)) LoadItems[16].Value = vCa.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadVoltageAB", out var vAb)) LoadItems[12].Value = vAb.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadVoltageBC", out var vBc)) LoadItems[13].Value = vBc.ToString("0.0");
+            if (TryGetDouble(parsed, "LoadVoltageCA", out var vCa)) LoadItems[14].Value = vCa.ToString("0.0");
 
-            if (TryGetDouble(parsed, "LoadFrequency", out var freq)) LoadItems[17].Value = freq.ToString("0.00");
-            if (TryGetDouble(parsed, "LoadPowerFactor", out var pf)) LoadItems[18].Value = pf.ToString("0.00");
+            if (TryGetDouble(parsed, "LoadFrequency", out var freq)) LoadItems[15].Value = freq.ToString("0.00");
+            if (TryGetDouble(parsed, "LoadPowerFactor", out var pf)) LoadItems[16].Value = pf.ToString("0.00");
         }
         void ChangeBatteryData(Dictionary<string, object> parsed)
         {
-            if (TryGetDouble(parsed, "BatteryTotalChargePower", out var tcPower)) BattItems[0].Value = tcPower.ToString("0.0");
-            if (TryGetDouble(parsed, "BatteryTotalDischargePower", out var tdPower)) BattItems[1].Value = tdPower.ToString("0.0");
-            if (TryGetDouble(parsed, "BatteryPower", out var power)) BattItems[2].Value = power.ToString("0.0");
-            if (TryGetDouble(parsed, "BatteryVoltage", out var volt)) BattItems[3].Value = volt.ToString("0");
-            if (TryGetDouble(parsed, "BatteryCurrent", out var curr)) BattItems[4].Value = curr.ToString("0.0");
+            if (TryGetDouble(parsed, "ReadyStatus", out var ready))
+            {
+                var readyBits = Convert.ToUInt16(ready);
+                BattItems[0].Value = (readyBits & (1 << 1)) != 0 ? "on" : "off";
+            }
+            if (TryGetDouble(parsed, "BatteryTotalChargePower", out var tcPower)) BattItems[1].Value = tcPower.ToString("0.0");
+            if (TryGetDouble(parsed, "BatteryTotalDischargePower", out var tdPower)) BattItems[2].Value = tdPower.ToString("0.0");
+            if (TryGetDouble(parsed, "BatteryPower", out var power)) BattItems[3].Value = power.ToString("0.0");
+            if (TryGetDouble(parsed, "BatteryVoltage", out var volt)) BattItems[4].Value = volt.ToString("0");
+            if (TryGetDouble(parsed, "BatteryCurrent", out var curr)) BattItems[5].Value = curr.ToString("0.0");
         }
 
         void ChangeEtcData(Dictionary<string, object> parsed)
         {
-            if (TryGetDouble(parsed, "InvAmbientTemperature", out var aTemp01)) EtcItems[1].Value = aTemp01.ToString("0.0");
+            if (TryGetDouble(parsed, "InvAmbientTemperature", out var aTemp01)) EtcItems[0].Value = aTemp01.ToString("0.0");
 
-            if (TryGetDouble(parsed, "InvHeatsinkTemperature01", out var hTemp01)) EtcItems[2].Value = hTemp01.ToString("0.0");
-            if (TryGetDouble(parsed, "InvHeatsinkTemperature02", out var hTemp02)) EtcItems[3].Value = hTemp02.ToString("0.0");
-            if (TryGetDouble(parsed, "InvHeatsinkTemperature03", out var hTemp03)) EtcItems[4].Value = hTemp03.ToString("0.0");
-            if (TryGetDouble(parsed, "InvHeatsinkTemperature04", out var hTemp04)) EtcItems[5].Value = hTemp04.ToString("0.0");
-            if (TryGetDouble(parsed, "InvHeatsinkTemperature05", out var hTemp05)) EtcItems[6].Value = hTemp05.ToString("0.0");
-            if (TryGetDouble(parsed, "InvHeatsinkTemperature06", out var hTemp06)) EtcItems[7].Value = hTemp06.ToString("0.0");
-            if (TryGetDouble(parsed, "InvHeatsinkTemperature07", out var hTemp07)) EtcItems[8].Value = hTemp07.ToString("0.0");
-            if (TryGetDouble(parsed, "InvHeatsinkTemperature08", out var hTemp08)) EtcItems[9].Value = hTemp08.ToString("0.0");
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature01", out var hTemp01)) EtcItems[1].Value = hTemp01.ToString("0.0");
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature02", out var hTemp02)) EtcItems[2].Value = hTemp02.ToString("0.0");
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature03", out var hTemp03)) EtcItems[3].Value = hTemp03.ToString("0.0");
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature04", out var hTemp04)) EtcItems[4].Value = hTemp04.ToString("0.0");
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature05", out var hTemp05)) EtcItems[5].Value = hTemp05.ToString("0.0");
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature06", out var hTemp06)) EtcItems[6].Value = hTemp06.ToString("0.0");
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature07", out var hTemp07)) EtcItems[7].Value = hTemp07.ToString("0.0");
+            if (TryGetDouble(parsed, "InvHeatsinkTemperature08", out var hTemp08)) EtcItems[8].Value = hTemp08.ToString("0.0");
 
-            if (TryGetDouble(parsed, "InvLeakageCurrent", out var leak)) EtcItems[10].Value = leak.ToString("0");
-            if (TryGetDouble(parsed, "InvHeartBeat", out var hb)) EtcItems[11].Value = hb.ToString("0");
+            if (TryGetDouble(parsed, "InvLeakageCurrent", out var leak)) EtcItems[9].Value = leak.ToString("0");
+            if (TryGetDouble(parsed, "InvHeartBeat", out var hb)) EtcItems[10].Value = hb.ToString("0");
         }
 
         private int _uiUpdatePending;
@@ -1076,6 +1145,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
         void ChangeInformation(Dictionary<string, object> parsed)
         {
             _latestParsed = parsed;
+            UpdateDailyPowerTrend(parsed);
 
             if (Interlocked.Exchange(ref _uiUpdatePending, 1) == 1)
                 return;
@@ -1106,6 +1176,121 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
 
             SavePcsStatusIfChanged(_latestParsed);
             SavePcsGridDailyTotals(_latestParsed);
+            SavePcsRawData(_latestParsed);
+        }
+
+        private void UpdateDailyPowerTrend(Dictionary<string, object> parsed)
+        {
+            if (parsed == null) return;
+            // 누적 Total Export/Import Energy(kWh)를 수집한다. 차트는 버킷 간 증가분(Δ)을 표출.
+            var hasExport = TryGetDouble(parsed, "GridTotalExportedActivePower", out var exportKwh);
+            var hasImport = TryGetDouble(parsed, "GridTotalImportActivePower", out var importKwh);
+            if (!hasExport && !hasImport) return;
+
+            var nowUtc = DateTime.UtcNow;
+            if (nowUtc - _lastPowerTrendSampleUtc < TimeSpan.FromSeconds(1))
+                return;
+
+            lock (_powerTrendLock)
+            {
+                var now = DateTime.Now;
+                _powerTrendSamples.Add(new PowerTrendSample { Time = now, ExportKwh = exportKwh, ImportKwh = importKwh });
+                _powerTrendSamples.RemoveAll(sample => sample.Time < now.AddDays(-10));
+            }
+
+            _lastPowerTrendSampleUtc = nowUtc;
+            RebuildDailyPowerTrendSeries();
+        }
+
+        protected void SetPowerTrendInterval(TimeSpan interval)
+        {
+            if (interval <= TimeSpan.Zero)
+                interval = TimeSpan.FromMinutes(1);
+
+            lock (_powerTrendLock)
+            {
+                _powerTrendInterval = interval;
+                _powerTrendVisibleWindow = TimeSpan.FromTicks(interval.Ticks * 10);
+            }
+
+            RebuildDailyPowerTrendSeries();
+        }
+
+        private void RebuildDailyPowerTrendSeries()
+        {
+            Action rebuild = () =>
+            {
+                List<PowerTrendSample> samples;
+                TimeSpan interval;
+                TimeSpan visibleWindow;
+
+                lock (_powerTrendLock)
+                {
+                    samples = _powerTrendSamples.ToList();
+                    interval = _powerTrendInterval;
+                    visibleWindow = _powerTrendVisibleWindow;
+                }
+
+                // 버킷별 마지막 누적값(export/import kWh)
+                var buckets = new SortedDictionary<DateTime, PowerTrendSample>();
+                foreach (var sample in samples)
+                    buckets[FloorPowerTrendTime(sample.Time, interval)] = sample;
+
+                var exportSeries = new XyDataSeries<DateTime, double> { SeriesName = "Export Δ" };
+                var importSeries = new XyDataSeries<DateTime, double> { SeriesName = "Import Δ" };
+
+                // 버킷 간 증가분(Δ). 음수(카운터 리셋)는 0으로 클램프.
+                var hasPrev = false;
+                double prevExport = 0, prevImport = 0;
+                foreach (var bucket in buckets)
+                {
+                    if (hasPrev)
+                    {
+                        exportSeries.Append(bucket.Key, Math.Max(0, bucket.Value.ExportKwh - prevExport));
+                        importSeries.Append(bucket.Key, Math.Max(0, bucket.Value.ImportKwh - prevImport));
+                    }
+                    prevExport = bucket.Value.ExportKwh;
+                    prevImport = bucket.Value.ImportKwh;
+                    hasPrev = true;
+                }
+
+                DailyExportTrendSeries = exportSeries;
+                DailyImportTrendSeries = importSeries;
+                PowerTrendDefaultVisibleRange = BuildPowerTrendDefaultVisibleRange(buckets, interval, visibleWindow);
+            };
+
+            var dispatcher = Application.Current?.Dispatcher;
+            if (dispatcher?.CheckAccess() == true)
+                rebuild();
+            else if (dispatcher != null)
+                dispatcher.BeginInvoke(rebuild);
+            else
+                rebuild();
+        }
+
+        private static DateTime FloorPowerTrendTime(DateTime time, TimeSpan interval)
+        {
+            if (interval >= TimeSpan.FromDays(1))
+                return time.Date;
+
+            return new DateTime(time.Ticks - (time.Ticks % interval.Ticks));
+        }
+
+        private static DateRange BuildPowerTrendDefaultVisibleRange(
+            SortedDictionary<DateTime, PowerTrendSample> buckets,
+            TimeSpan interval,
+            TimeSpan visibleWindow)
+        {
+            var end = buckets.Count > 0 ? buckets.Last().Key.Add(interval) : DateTime.Now;
+            var start = end - visibleWindow;
+            return new DateRange(start, end);
+        }
+
+        private class PowerTrendSample
+        {
+            public DateTime Time { get; set; }
+            public double ExportKwh { get; set; }
+            public double ImportKwh { get; set; }
         }
 
         #endregion
@@ -1167,6 +1352,50 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                 DateTime.Now);
 
             _lastPcsStatusSnapshotKey = snapshotKey;
+            SavePcsReadyStates(app.DbManager, ready, statusGrid, statusInv, statusBatt, statusComm, statusBypass);
+        }
+
+        private void SavePcsReadyStates(
+            DbManager db,
+            ushort readyRaw,
+            int statusGrid,
+            int statusInv,
+            int statusBatt,
+            int statusComm,
+            int statusBypass)
+        {
+            var readyKey = $"{statusGrid}|{statusInv}|{statusBatt}|{statusComm}|{statusBypass}|{readyRaw}";
+            if (readyKey == _lastPcsReadyStateKey) return;
+
+            var now = DateTime.Now;
+            db.InsertSystemReadyState("PCS", "GridReady", statusGrid == 1, statusGrid == 1 ? "Ready" : "Not Ready", readyRaw, now);
+            db.InsertSystemReadyState("PCS", "InvReady", statusInv == 1, statusInv == 1 ? "Ready" : "Not Ready", readyRaw, now);
+            db.InsertSystemReadyState("PCS", "BattReady", statusBatt == 1, statusBatt == 1 ? "Ready" : "Not Ready", readyRaw, now);
+            db.InsertSystemReadyState("PCS", "CommReady", statusComm == 1, statusComm == 1 ? "Ready" : "Not Ready", readyRaw, now);
+            db.InsertSystemReadyState("PCS", "BypassReady", statusBypass == 1, statusBypass == 1 ? "Ready" : "Not Ready", readyRaw, now);
+
+            _lastPcsReadyStateKey = readyKey;
+        }
+
+        private void SavePcsRawData(Dictionary<string, object> parsed)
+        {
+            var app = Application.Current as App;
+            if (app?.DbManager == null || parsed == null) return;
+
+            var nowUtc = DateTime.UtcNow;
+            if (nowUtc - _lastPcsRawSavedUtc < TimeSpan.FromSeconds(1))
+                return;
+
+            // StatusData(상태/Fault)와 TimeData(PcsTime*)는 payload 저장에서 제외한다.
+            var excluded = new HashSet<string>(
+                PcsSpecs.StatusData.Select(x => x.Name).Concat(PcsSpecs.TimeData.Select(x => x.Name)),
+                StringComparer.OrdinalIgnoreCase);
+            var rawFields = parsed
+                .Where(x => !excluded.Contains(x.Key))
+                .ToDictionary(x => x.Key, x => x.Value);
+
+            app.DbManager.InsertCompressedRawData("PCS", "PCS_Modbus_Raw", null, rawFields, null, DateTime.Now);
+            _lastPcsRawSavedUtc = nowUtc;
         }
 
         private void SavePcsGridDailyTotals(Dictionary<string, object> parsed)

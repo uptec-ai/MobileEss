@@ -75,6 +75,30 @@ namespace EMS_PJT_Hamburger.Models
         public BMS_Status_Message03 StatusMsg03 { get; } = new BMS_Status_Message03();
         public BMS_Status_Message04 StatusMsg04 { get; } = new BMS_Status_Message04();
 
+        // 상단 헤더 표시용 (PCS의 Conn_State.Status / PanelData.PcsTime 대응).
+        // 이 클래스는 PropertyChanged를 재선언(hidden)하므로 OneWay 표시 바인딩은
+        // 반드시 OnPropertyChanged(hidden 이벤트)로 알려야 갱신된다.
+        private string _bmsConnectionStatus = "N/A";
+        public string BmsConnectionStatus
+        {
+            get => _bmsConnectionStatus;
+            set { _bmsConnectionStatus = value; OnPropertyChanged(nameof(BmsConnectionStatus)); }
+        }
+
+        private bool _isBmsConnected;
+        public bool IsBmsConnected
+        {
+            get => _isBmsConnected;
+            set { _isBmsConnected = value; OnPropertyChanged(nameof(IsBmsConnected)); }
+        }
+
+        private string _bmsTime = "--";
+        public string BmsTime
+        {
+            get => _bmsTime;
+            set { _bmsTime = value; OnPropertyChanged(nameof(BmsTime)); }
+        }
+
         #endregion
 
         #region # BMS Client 관련 변수 정의
@@ -153,6 +177,7 @@ namespace EMS_PJT_Hamburger.Models
                         StatusMsg01.TotalVoltage = (double)parsed["BMS_Total_Voltage"];
                         StatusMsg01.MbmsState = (byte)parsed["MBMS_State"];
                         StatusMsg01.DispSOC = (double)parsed["BMS_Disp_SOC"];
+                        BmsTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                         app.nlog.Debug($"[ID:{canId}] Ready:{StatusMsg01.Ready}  SOC:{StatusMsg01.SOC}  Curr:{StatusMsg01.TotalCurrent}  Volt:{StatusMsg01.TotalVoltage}  State:{StatusMsg01.MbmsState}  DispSOC:{StatusMsg01.DispSOC}");
                     });
                     break;

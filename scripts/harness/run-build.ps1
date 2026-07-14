@@ -10,8 +10,7 @@ try {
     $root = Get-HarnessRoot
     $state = $null
     $state = if ($AllowCompletedTask.IsPresent -or $env:HARNESS_ALLOW_COMPLETED_TASK -eq "1") { Assert-HarnessQualityGateContext } else { Assert-HarnessTaskContext }
-    $solution = Join-Path $root "EMS_PJT_Hamburger.sln"
-    if (!(Test-Path -LiteralPath $solution)) { throw "Solution not found: $solution" }
+    $solution = Get-HarnessSolution
 
     $msbuild = Find-MSBuild
     Invoke-HarnessProcess -FilePath $msbuild -Arguments @(

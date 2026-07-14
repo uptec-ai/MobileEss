@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.Windows;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace EMS_PJT_Hamburger.Models.Managers
 {
@@ -25,10 +26,13 @@ namespace EMS_PJT_Hamburger.Models.Managers
         {
             "tb_bms",
             "tb_bms_alarm",
-            "tb_ems_alarm"
+            "tb_ems_alarm",
+            "tb_ems_system_state",
+            "tb_ems_raw_data"
         };
 
         private readonly string _connectionString;
+        private bool _historyTablesEnsured;
 
         public DbManager()
         {
@@ -119,6 +123,133 @@ namespace EMS_PJT_Hamburger.Models.Managers
             string sql = $"TRUNCATE {tableName} RESTART IDENTITY";
 
             ExecuteNonQuery(sql);
+        }
+
+        public void EnsureEssHistoryTables()
+        {
+            if (_historyTablesEnsured) return;
+
+            EnsureEmsAlarmTable();
+
+            ExecuteNonQuery(@"
+create table if not exists public.tb_bms
+(
+    bms_id bigserial primary key,
+    status integer null,
+    total_curr double precision null,
+    total_volt double precision null,
+    mbms_state integer null,
+    disp_soc double precision null,
+    collected_at timestamp without time zone not null default now()
+);
+
+alter table public.tb_bms add column if not exists collected_at timestamp without time zone not null default now();
+
+create table if not exists public.tb_bms_alarm
+(
+    alarm_id bigserial primary key,
+    alarm_code integer null,
+    alarm_name text null,
+    occurred_at timestamp without time zone not null default now()
+);
+
+create table if not exists public.tb_pcs_grid
+(
+    gridid bigserial primary key,
+    total_imported double precision null,
+    total_exported double precision null,
+    collected_at timestamp without time zone not null default now()
+);
+
+alter table public.tb_pcs_grid add column if not exists total_imported double precision null;
+alter table public.tb_pcs_grid add column if not exists total_exported double precision null;
+alter table public.tb_pcs_grid add column if not exists collected_at timestamp without time zone not null default now();
+
+create table if not exists public.tb_pcs_status
+(
+    pcs_status_id bigserial primary key,
+    status_grid integer null,
+    status_inv integer null,
+    status_batt integer null,
+    status_comm integer null,
+    status_bypass integer null,
+    fault_grid integer null,
+    fault_inv integer null,
+    fault_load integer null,
+    fault_comm integer null,
+    fuse_grid integer null,
+    fuse_batt integer null,
+    fuse_bypass integer null,
+    collected_at timestamp without time zone not null default now()
+);
+
+alter table public.tb_pcs_status add column if not exists status_grid integer null;
+alter table public.tb_pcs_status add column if not exists status_inv integer null;
+alter table public.tb_pcs_status add column if not exists status_batt integer null;
+alter table public.tb_pcs_status add column if not exists status_comm integer null;
+alter table public.tb_pcs_status add column if not exists status_bypass integer null;
+alter table public.tb_pcs_status add column if not exists fault_grid integer null;
+alter table public.tb_pcs_status add column if not exists fault_inv integer null;
+alter table public.tb_pcs_status add column if not exists fault_load integer null;
+alter table public.tb_pcs_status add column if not exists fault_comm integer null;
+alter table public.tb_pcs_status add column if not exists fuse_grid integer null;
+alter table public.tb_pcs_status add column if not exists fuse_batt integer null;
+alter table public.tb_pcs_status add column if not exists fuse_bypass integer null;
+alter table public.tb_pcs_status add column if not exists collected_at timestamp without time zone not null default now();
+
+create table if not exists public.tb_ems_system_state
+(
+    state_id bigserial primary key,
+    collected_at timestamp without time zone not null default now(),
+    source varchar(16) not null,
+    ready_name varchar(64) not null,
+    ready_value boolean null,
+    ready_text varchar(64) null,
+    raw_value integer null
+);
+
+create table if not exists public.tb_ems_raw_data
+(
+    raw_id bigserial primary key,
+    collected_at timestamp without time zone not null default now(),
+    source varchar(16) not null,
+    message_name varchar(64) not null,
+    can_id integer null,
+    compression varchar(16) not null default 'deflate',
+    payload_json bytea not null,
+    payload_length integer not null,
+    compressed_length integer not null,
+    pcs_active_power_kw double precision null,
+    pcs_total_export_kwh double precision null,
+    pcs_total_import_kwh double precision null,
+    bms_soc double precision null,
+    raw_frame bytea null,
+    summary text null
+);
+
+alter table public.tb_ems_raw_data add column if not exists pcs_active_power_kw double precision null;
+alter table public.tb_ems_raw_data add column if not exists pcs_total_export_kwh double precision null;
+alter table public.tb_ems_raw_data add column if not exists pcs_total_import_kwh double precision null;
+alter table public.tb_ems_raw_data add column if not exists bms_soc double precision null;
+
+create index if not exists ix_tb_bms_collected_at on public.tb_bms(collected_at desc);
+create index if not exists ix_tb_pcs_grid_collected_at on public.tb_pcs_grid(collected_at desc);
+create index if not exists ix_tb_pcs_status_collected_at on public.tb_pcs_status(collected_at desc);
+create index if not exists ix_tb_ems_system_state_source_time on public.tb_ems_system_state(source, collected_at desc);
+create index if not exists ix_tb_ems_raw_data_source_message_time on public.tb_ems_raw_data(source, message_name, collected_at desc);
+
+create table if not exists public.tb_ems_control_log
+(
+    log_id bigserial primary key,
+    occurred_at timestamp without time zone not null default now(),
+    source varchar(16) not null,
+    command varchar(64) not null,
+    result varchar(16) not null,
+    message text null
+);
+
+create index if not exists ix_tb_ems_control_log_time on public.tb_ems_control_log(occurred_at desc);");
+            _historyTablesEnsured = true;
         }
 
         private static int ToInt(string value, int defaultValue = 0)
@@ -255,15 +386,195 @@ create table if not exists public.tb_ems_alarm
     alarm_name text null,
     fault_message text null,
     raw_value text null,
+    severity varchar(32) null,
+    device_id varchar(64) null,
+    ack_at timestamp without time zone null,
+    ack_user varchar(64) null,
     reset_at timestamp without time zone null,
     is_reset boolean not null default false
 );
+
+alter table public.tb_ems_alarm add column if not exists severity varchar(32) null;
+alter table public.tb_ems_alarm add column if not exists device_id varchar(64) null;
+alter table public.tb_ems_alarm add column if not exists ack_at timestamp without time zone null;
+alter table public.tb_ems_alarm add column if not exists ack_user varchar(64) null;
+alter table public.tb_ems_alarm add column if not exists reset_at timestamp without time zone null;
+alter table public.tb_ems_alarm add column if not exists is_reset boolean not null default false;
 
 create index if not exists ix_tb_ems_alarm_source_time
     on public.tb_ems_alarm(source, occurred_at desc);
 
 create index if not exists ix_tb_ems_alarm_source_reset
     on public.tb_ems_alarm(source, is_reset, occurred_at desc);");
+        }
+
+        public void InsertSystemReadyState(
+            string source,
+            string readyName,
+            bool? readyValue,
+            string readyText,
+            int? rawValue,
+            DateTime collectedAt)
+        {
+            EnsureEssHistoryTables();
+
+            ExecuteNonQuery(@"
+insert into public.tb_ems_system_state
+(
+    collected_at,
+    source,
+    ready_name,
+    ready_value,
+    ready_text,
+    raw_value
+)
+values
+(
+    @collected_at,
+    @source,
+    @ready_name,
+    @ready_value,
+    @ready_text,
+    @raw_value
+);",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@collected_at", collectedAt == default(DateTime) ? DateTime.Now : collectedAt);
+                    cmd.Parameters.AddWithValue("@source", source ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@ready_name", readyName ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@ready_value", (object)readyValue ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ready_text", (object)readyText ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@raw_value", (object)rawValue ?? DBNull.Value);
+                });
+        }
+
+        public void InsertCompressedRawData(
+            string source,
+            string messageName,
+            int? canId,
+            IDictionary<string, object> fields,
+            byte[] rawFrame,
+            DateTime collectedAt)
+        {
+            if (fields == null || fields.Count == 0) return;
+
+            EnsureEssHistoryTables();
+
+            var payload = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(fields));
+            var compressed = Compress(payload);
+            var pcsTotalExportKwh = ResolvePcsTotalKwh(source, fields, "GridTotalExportedActivePower");
+            var pcsTotalImportKwh = ResolvePcsTotalKwh(source, fields, "GridTotalImportActivePower");
+            var bmsSoc = ResolveBmsSoc(source, fields);
+
+            ExecuteNonQuery(@"
+insert into public.tb_ems_raw_data
+(
+    collected_at,
+    source,
+    message_name,
+    can_id,
+    payload_json,
+    payload_length,
+    compressed_length,
+    pcs_total_export_kwh,
+    pcs_total_import_kwh,
+    bms_soc,
+    raw_frame,
+    summary
+)
+values
+(
+    @collected_at,
+    @source,
+    @message_name,
+    @can_id,
+    @payload_json,
+    @payload_length,
+    @compressed_length,
+    @pcs_total_export_kwh,
+    @pcs_total_import_kwh,
+    @bms_soc,
+    @raw_frame,
+    @summary
+);",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@collected_at", collectedAt == default(DateTime) ? DateTime.Now : collectedAt);
+                    cmd.Parameters.AddWithValue("@source", source ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@message_name", messageName ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@can_id", (object)canId ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@payload_json", compressed);
+                    cmd.Parameters.AddWithValue("@payload_length", payload.Length);
+                    cmd.Parameters.AddWithValue("@compressed_length", compressed.Length);
+                    cmd.Parameters.AddWithValue("@pcs_total_export_kwh", (object)pcsTotalExportKwh ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@pcs_total_import_kwh", (object)pcsTotalImportKwh ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@bms_soc", (object)bmsSoc ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@raw_frame", (object)rawFrame ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@summary", BuildFieldSummary(fields));
+                });
+        }
+
+        // 제어 명령 감사 로그 1행 적재 (Start/Complete/Canceled/Failed)
+        public void InsertControlLog(string source, string command, string result, string message, DateTime occurredAt)
+        {
+            EnsureEssHistoryTables();
+
+            ExecuteNonQuery(@"
+insert into public.tb_ems_control_log (occurred_at, source, command, result, message)
+values (@occurred_at, @source, @command, @result, @message);",
+                cmd =>
+                {
+                    cmd.Parameters.AddWithValue("@occurred_at", occurredAt == default(DateTime) ? DateTime.Now : occurredAt);
+                    cmd.Parameters.AddWithValue("@source", source ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@command", command ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@result", result ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@message", (object)message ?? DBNull.Value);
+                });
+        }
+
+        private static double? ResolvePcsTotalKwh(string source, IDictionary<string, object> fields, string fieldName)
+        {
+            if (!string.Equals(source, "PCS", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            return TryReadFieldDouble(fields, fieldName, out var totalKwh)
+                ? totalKwh
+                : (double?)null;
+        }
+
+        private static double? ResolveBmsSoc(string source, IDictionary<string, object> fields)
+        {
+            if (!string.Equals(source, "BMS", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            if (TryReadFieldDouble(fields, "BMS_SOC", out var soc))
+                return soc;
+
+            return TryReadFieldDouble(fields, "BMS_Disp_SOC", out var displaySoc)
+                ? displaySoc
+                : (double?)null;
+        }
+
+        private static bool TryReadFieldDouble(IDictionary<string, object> fields, string name, out double value)
+        {
+            value = 0;
+            if (fields == null || string.IsNullOrWhiteSpace(name)) return false;
+            if (!fields.TryGetValue(name, out var raw) || raw == null) return false;
+
+            try
+            {
+                value = Convert.ToDouble(raw, CultureInfo.InvariantCulture);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string BuildFieldSummary(IDictionary<string, object> fields)
+        {
+            return string.Join(", ", fields.Take(6).Select(x => $"{x.Key}={x.Value}"));
         }
 
         public void InsertEmsAlarmData(
@@ -844,7 +1155,7 @@ values
             Byte[] compressedByte;
             using (MemoryStream ms = new MemoryStream())
             {
-                using (DeflateStream ds = new DeflateStream(ms, CompressionMode.Compress))
+                using (DeflateStream ds = new DeflateStream(ms, CompressionLevel.Optimal))
                 {
                     ds.Write(buffer, 0, buffer.Length);
                 }

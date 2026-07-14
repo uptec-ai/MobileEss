@@ -38,6 +38,7 @@ namespace EMS_PJT_Hamburger
         //public DashBoardViewModel DashVm { get; private set; }
         public PcsViewModel PcsVm { get; private set; }
         public BMSViewModel BmsVm { get; private set; }
+        public HistoryViewModel HistoryVm { get; private set; }
 
 
         public EMSStatusManager EMSStatusManager { get; private set; } = new EMSStatusManager();
@@ -111,6 +112,14 @@ namespace EMS_PJT_Hamburger
             StatusManager = new StatusManager();
             StatusManager.Init();
             DbManager = new DbManager();
+            try
+            {
+                DbManager.EnsureEssHistoryTables();
+            }
+            catch (Exception ex)
+            {
+                nlog.Warn(ex, "ESS history database schema initialization failed.");
+            }
 
             // Communication Code
             //CommonSetDataModel = new CommonSetDataModel();
@@ -149,7 +158,9 @@ namespace EMS_PJT_Hamburger
             //DashBoardView.DataContext = DashVm;
 
             //SystemView = new SystemView();
+            HistoryVm = new HistoryViewModel();
             HistoryView = new HistoryView();
+            HistoryView.DataContext = HistoryVm;
         }
 
         // 저장
