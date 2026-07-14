@@ -44,6 +44,35 @@
 화면 1개당 `.claude/rules/views/<name>.md` 1개를 `paths:`로 스코프 → 해당 화면 파일 편집 시에만 로드.
 새 화면: `.claude/templates/view-doc-template.md` 복사 → `paths:` 지정 → 채운다. 현재 문서화: Home/PCS/BMS/History.
 
+## Worktree routing (always applies — not just for multi-task)
+4개의 기능 worktree가 이 저장소와 나란히 존재한다. **아래 표에 매칭되는
+파일을 수정하는 요청은, 사소한 단건 요청이든 multi-task를 거치든 상관없이
+항상 해당 worktree 폴더에서 이루어진다** — 메인 저장소 폴더에서는 절대 직접
+수정하지 않는다. 이렇게 해야 메인 워킹 트리가 공유 파일·하네스 설정 전용으로
+깨끗하게 유지된다.
+
+| File area (glob) | Worktree folder (absolute path) | Branch |
+|---|---|---|
+| `**/Models/Client/GPS/**`, `**/Views/HomeView.xaml*`, `**/ViewModels/HomeViewModel.cs`, `**/Maps/**`, `**/Converters/LatLngToGeoConverter.cs` | `C:\Project\2. ESS\EMS_PJT v1.4\EMS_PJT_Hamburger-gps` | `feature/gps` |
+| `**/Models/Client/PCS/**`, `**/Views/PCSView.xaml*`, `**/Views/PcsFaultMessageWindow.xaml*`, `**/ViewModels/PcsViewModel.cs`, `**/ViewModels/ControlConfirmationService.cs` | `C:\Project\2. ESS\EMS_PJT v1.4\EMS_PJT_Hamburger-pcs` | `feature/pcs` |
+| `**/Models/Client/BMS/**`, `**/Views/BMSView.xaml*`, `**/ViewModels/BMSViewModel.cs`, `**/Models/BmsDataModel.cs` | `C:\Project\2. ESS\EMS_PJT v1.4\EMS_PJT_Hamburger-bms` | `feature/bms` |
+| `**/Views/HistoryView.xaml*`, `**/ViewModels/HistoryViewModel.cs` | `C:\Project\2. ESS\EMS_PJT v1.4\EMS_PJT_Hamburger-history` | `feature/history` |
+
+매칭되는 파일을 수정하기 전, `EnterWorktree({ path: "<위 표의 절대경로>" })`를
+호출해 그 worktree로 전환한다 (이미 `git worktree list`에 등록돼 있으므로
+새로 만들지 않고 기존 worktree에 진입한다) — **반드시 절대경로**를 그대로
+써야 한다 (`git worktree list`가 worktree를 절대경로로 등록하므로 `EnterWorktree`도
+그 기준으로 매칭한다; 상대경로는 매칭 실패 위험이 있다). 메인 저장소 아래의
+사본을 직접 수정하지 않는다. 작업이 끝나면 `ExitWorktree({ action: "keep" })`을
+호출한다 — 이 worktree들은 세션에서 만든 임시 worktree가 아니라 장기
+존속하는 기능 worktree이므로 `"remove"`는 절대 쓰지 않는다. 위 표에
+매칭되지 않는 파일(공유 파일: `App.*`, `MainWindow.*`, `StaticResources.xaml`,
+`*.csproj`, `Models/Managers/**`, 그리고 `.claude/**` 하네스 설정)만 이 메인
+저장소 폴더에서 직접 수정한다 — 전용 worktree가 없기 때문이다.
+
+각 worktree의 `packages/`와 `EMS_PJT_Hamburger/Maps/tiles/`는 메인 저장소를
+가리키는 NTFS 정션(gitignore 대상)이다 — 지우거나 커밋하지 않는다.
+
 ## 경계
 - 워크스페이스(= 저장소 루트) 밖 파일은 확인 없이 수정 금지.
 - `.claude/**` 문서 언어: **한국어**.
@@ -58,7 +87,7 @@
 ## 에이전트 팀 (조직 → 실행)
 전문 에이전트 페르소나는 `.claude/agents/*.md`에 정의(GPS·PCS·BMS·이력/차트·WPF·빌드검증). 실행/조율은 **`init-multi-task`의 `multi-task` 워크플로우가 유일한 오케스트레이터**다(에이전트를 `agentType`으로 병렬 호출). 여러 서브시스템에 걸친 큰 작업은 이 워크플로우로 팬아웃한다.
 
-`multi-task`는 `.claude/skills/multi-task/`(SKILL.md + workflow.js)로 구현됨 — **병렬 다기능 작업 전용 opt-in**(단일 소규모 작업엔 쓰지 않는다). 현재 실재 worktree는 메인(`feature/gps`) 1개뿐이라 별도 "항상 worktree 라우팅" 규칙은 두지 않는다. 병렬 개발을 시작하면 `git worktree add ../0706_gps-<feature> -b feature/<feature>` 후 `workflow.js`의 `WORKTREE_MAP`/`FEATURE_AGENT`와 이 문서에 **절대경로**로 등록한다.
+`multi-task`는 `.claude/skills/multi-task/`(SKILL.md + workflow.js)로 구현됨 — **병렬 다기능 작업 전용 opt-in**(단일 소규모 작업엔 쓰지 않는다). 기능 worktree 4개(gps/pcs/bms/history)가 실재하며, multi-task를 거치지 않는 단건 수정도 라우팅 표에 매칭되면 해당 worktree에서 작업한다 — 위 "Worktree routing" 섹션 참조. worktree를 추가/제거하면 그 표와 `workflow.js`의 `WORKTREE_MAP`/`FEATURE_AGENT`를 함께 갱신한다.
 
 **변경 이력:**
 | 날짜 | 변경 내용 | 대상 | 사유 |
@@ -66,3 +95,4 @@
 | 2026-07-13 | harness 컨텍스트 초기 구성 | `.claude/CLAUDE.md`·rules·docs·templates, `scripts/Resolve-ProjectRoot.ps1` | 하네스 체인 1단계 |
 | 2026-07-13 | 에이전트 페르소나 6종 생성 | `.claude/agents/*.md` | 하네스 체인 2단계(harness-team) |
 | 2026-07-13 | multi-task 실행 인프라 생성(worktree 미생성) | `.claude/skills/multi-task/*` | 하네스 체인 3단계(init-multi-task) |
+| 2026-07-14 | 기능 worktree 4개 생성(gps/pcs/bms/history, main 병합 후) + Worktree routing 규칙 삽입, `WORKTREE_MAP` 절대경로 갱신 | worktrees·`.claude/skills/multi-task/*`·CLAUDE.md | 병렬 개발 인프라 가동 |

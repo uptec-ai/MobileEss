@@ -5,16 +5,21 @@ description: 작업 규모를 분석해 순차·병렬·팀토론 중 최적 전
 
 ## 도메인 특화 규칙
 
-- 기능-Worktree 매핑 (현재는 단일 GPS 개발 브랜치 — 실재 worktree는 1개):
+- 기능-Worktree 매핑 (메인 저장소: `C:/Project/2. ESS/EMS_PJT v1.4/EMS_PJT_Hamburger`, main 브랜치 = 공유 파일 전용):
 
   | 기능 | Worktree 경로(절대) | Branch |
   |------|--------------------|--------|
-  | gps | `C:/Project/2. ESS/0706_gps` | feature/gps |
+  | gps | `C:/Project/2. ESS/EMS_PJT v1.4/EMS_PJT_Hamburger-gps` | feature/gps |
+  | pcs | `C:/Project/2. ESS/EMS_PJT v1.4/EMS_PJT_Hamburger-pcs` | feature/pcs |
+  | bms | `C:/Project/2. ESS/EMS_PJT v1.4/EMS_PJT_Hamburger-bms` | feature/bms |
+  | history | `C:/Project/2. ESS/EMS_PJT v1.4/EMS_PJT_Hamburger-history` | feature/history |
 
-  > 병렬 개발이 필요해지면 `git worktree add ../0706_gps-<feature> -b feature/<feature>` 로
-  > worktree를 추가하고, 위 표 + `workflow.js`의 `WORKTREE_MAP`/`FEATURE_AGENT`에 절대경로로 등록한다.
+  > 각 worktree의 `packages/`·`EMS_PJT_Hamburger/Maps/tiles/`는 메인 저장소를 가리키는
+  > NTFS 정션이다(빌드·오프라인 지도용). worktree를 추가하면 정션도 함께 만들고,
+  > 위 표 + `workflow.js`의 `WORKTREE_MAP`/`FEATURE_AGENT`에 절대경로로 등록한다.
 
-- 공유 파일: `App.xaml.cs`, `MainWindow.xaml(.cs)` → 메인(gps) worktree에서만 수정
+- 공유 파일: `App.*`, `MainWindow.xaml(.cs)`, `StaticResources.xaml`, `*.csproj`, `Models/Managers/**` → 메인 저장소(main)에서 직접 수정
+- Merge 순서: gps → pcs → bms → history (공유 인접 영역 우선)
 - 통합 브랜치: `integrate/{작업명}-{YYYYMMDD}`
 - 빌드 명령: `MSBuild "<worktree>\EMS_PJT_Hamburger.sln" /p:Configuration=Debug /p:Platform=AnyCPU` (VS2022 MSBuild.exe 전체 경로 사용; `dotnet build` 아님)
 - Agent Team(.claude/agents/): gps-map-engineer, pcs-modbus-engineer, bms-can-engineer, history-data-engineer, wpf-mvvm-engineer, build-verify-qa

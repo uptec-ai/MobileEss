@@ -9,24 +9,25 @@ export const meta = {
 
 // ── 프로젝트 특화 상수 (init-multi-task가 채움) ──────────────────
 // WORKTREE_MAP은 실재하는 worktree의 절대경로만 등록한다(`git worktree list` 기준).
-// 현재는 단일 GPS 개발 브랜치라 메인 저장소 1개뿐. 병렬 개발용 worktree를
-// `git worktree add` 로 추가하면 여기에 절대경로로 등록하고 FEATURE_AGENT도 채운다.
+// 메인 저장소(C:/Project/2. ESS/EMS_PJT v1.4/EMS_PJT_Hamburger, main)는 공유 파일
+// 전용이라 등록하지 않는다. worktree를 추가/제거하면 여기와 FEATURE_AGENT,
+// .claude/CLAUDE.md의 Worktree routing 표를 함께 갱신한다.
 const WORKTREE_MAP = {
-  gps: 'C:/Project/2. ESS/0706_gps',
-  // pcs:     'C:/Project/2. ESS/0706_gps-pcs',      // 생성 시 주석 해제
-  // bms:     'C:/Project/2. ESS/0706_gps-bms',
-  // history: 'C:/Project/2. ESS/0706_gps-history',
+  gps:     'C:/Project/2. ESS/EMS_PJT v1.4/EMS_PJT_Hamburger-gps',
+  pcs:     'C:/Project/2. ESS/EMS_PJT v1.4/EMS_PJT_Hamburger-pcs',
+  bms:     'C:/Project/2. ESS/EMS_PJT v1.4/EMS_PJT_Hamburger-bms',
+  history: 'C:/Project/2. ESS/EMS_PJT v1.4/EMS_PJT_Hamburger-history',
 }
 
 // 기능 → 도메인 담당 에이전트(.claude/agents/*.md). 없으면 WORKER_AGENT_TYPE로 폴백.
 const FEATURE_AGENT = {
-  gps: 'gps-map-engineer',
-  // pcs:     'pcs-modbus-engineer',
-  // bms:     'bms-can-engineer',
-  // history: 'history-data-engineer',
+  gps:     'gps-map-engineer',
+  pcs:     'pcs-modbus-engineer',
+  bms:     'bms-can-engineer',
+  history: 'history-data-engineer',
 }
 
-const BUILD_CMD = 'MSBuild "<worktree>\\EMS_PJT_Hamburger.sln" /p:Configuration=Debug /p:Platform=AnyCPU (VS2022 MSBuild.exe 전체 경로 사용)'
+const BUILD_CMD = '& "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\MSBuild\\Current\\Bin\\MSBuild.exe" EMS_PJT_Hamburger.sln /p:Configuration=Debug "/p:Platform=Any CPU" (작업 디렉토리에서 실행; dotnet build 아님)'
 
 // complex 티어 설계 토론 패널(4관점). agentType은 harness-team 산출 커스텀 에이전트.
 const TEAM = [
