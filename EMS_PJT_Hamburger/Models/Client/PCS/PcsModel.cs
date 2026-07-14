@@ -577,6 +577,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                     fault.OccurredAt);
 
                 var app = Application.Current as App;
+                app?.nlog?.Warn($"[PCS FAULT] Category={fault.Category}, Bit={fault.Bit}, Message={fault.Message}, RawValue={fault.RawValue}, OccurredAt={fault.OccurredAt:yyyy-MM-dd HH:mm:ss}");
                 app?.DbManager?.InsertEmsAlarmData(
                     "PCS",
                     fault.Category,

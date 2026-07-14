@@ -116,7 +116,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             new ModbusFieldSpec { Address = 142, DataType = ModbusDataType.S16, Name = "BatteryInsulationResistance", Scale = 0.1, Unit = "kΩ", }, // Battery 절연 저항
             new ModbusFieldSpec { Address = 144, DataType = ModbusDataType.S16, Name = "BatteryInsulationVoltage", Scale = 0.1, Unit = "V", },     // Battery 절연 전압
 
-            new ModbusFieldSpec { Address = 145, DataType = ModbusDataType.U16, Name = "InvLeakageCurrent", Scale = 1, Unit = "mA", },             // Inverter 누설 전류
+            new ModbusFieldSpec { Address = 145, DataType = ModbusDataType.S16, Name = "InvLeakageCurrent", Scale = 1, Unit = "mA", },             // Inverter 누설 전류
             new ModbusFieldSpec { Address = 146, DataType = ModbusDataType.U16, Name = "GridSurgeCounter", Scale = 1, Unit = "Cyc", },             // Grid 서지 카운터 횟수
             new ModbusFieldSpec { Address = 147, DataType = ModbusDataType.U16, Name = "InvHeartBeat", Scale = 1, Unit = "Cyc", },                 // Inverter 심박수
             
