@@ -73,6 +73,10 @@
 각 worktree의 `packages/`와 `EMS_PJT_Hamburger/Maps/tiles/`는 메인 저장소를
 가리키는 NTFS 정션(gitignore 대상)이다 — 지우거나 커밋하지 않는다.
 
+worktree는 PC별 로컬 구성이라 clone에 포함되지 않는다. 새 PC에서는 clone 후
+`scripts/setup-worktrees.ps1`을 한 번 실행한다 — worktree 4개 + 정션을 재생성하고,
+위 표와 `workflow.js`의 절대경로를 그 PC 기준으로 자동 패치한다(멱등, 재실행 안전).
+
 ## 경계
 - 워크스페이스(= 저장소 루트) 밖 파일은 확인 없이 수정 금지.
 - `.claude/**` 문서 언어: **한국어**.
@@ -96,3 +100,4 @@
 | 2026-07-13 | 에이전트 페르소나 6종 생성 | `.claude/agents/*.md` | 하네스 체인 2단계(harness-team) |
 | 2026-07-13 | multi-task 실행 인프라 생성(worktree 미생성) | `.claude/skills/multi-task/*` | 하네스 체인 3단계(init-multi-task) |
 | 2026-07-14 | 기능 worktree 4개 생성(gps/pcs/bms/history, main 병합 후) + Worktree routing 규칙 삽입, `WORKTREE_MAP` 절대경로 갱신 | worktrees·`.claude/skills/multi-task/*`·CLAUDE.md | 병렬 개발 인프라 가동 |
+| 2026-07-14 | worktree 재생성 스크립트 추가(정션·절대경로 패치 포함, 멱등) | `scripts/setup-worktrees.ps1`·CLAUDE.md | 새 PC clone 후 1회 실행으로 환경 재현 |
