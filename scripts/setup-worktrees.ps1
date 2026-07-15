@@ -5,7 +5,10 @@
 #   1. git worktree add ..\<repo>-<feature>  (skipped if already registered)
 #   2. NTFS junctions in each worktree: packages\ and EMS_PJT_Hamburger\Maps\tiles\
 #      -> both point into this clone (packages/tiles are not tracked by git)
-#   3. Patches the absolute worktree paths in .claude/skills/multi-task/workflow.js
+#   3. Stub logs under logs\harness\ for every completed plan — the pre-commit
+#      quality gate requires the latest completed plan's log, but logs are
+#      machine-local (untracked), so a fresh clone/worktree cannot commit without them.
+#   4. Patches the absolute worktree paths in .claude/skills/multi-task/workflow.js
 #      and .claude/CLAUDE.md to match THIS clone's location.
 #
 # Prerequisites on a fresh clone (warned about, not fatal):
@@ -26,6 +29,20 @@ $features = @('gps', 'pcs', 'bms', 'history')
 $existing = & git -C $root worktree list --porcelain |
     Where-Object { $_ -like 'worktree *' } |
     ForEach-Object { $_.Substring(9).Replace('/', '\') }
+
+function New-HarnessLogStubs([string]$Base) {
+    $planDir = Join-Path $Base 'plans\completed'
+    if (-not (Test-Path -LiteralPath $planDir)) { return }
+    $logDir = Join-Path $Base 'logs\harness'
+    New-Item -ItemType Directory -Force $logDir | Out-Null
+    foreach ($plan in Get-ChildItem -LiteralPath $planDir -Filter *.md -File) {
+        $log = Join-Path $logDir ($plan.BaseName + '.log')
+        if (-not (Test-Path -LiteralPath $log)) {
+            "[{0}] [INFO] Stub log (machine-local; task completed on another machine)." -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') |
+                Set-Content -LiteralPath $log -Encoding UTF8
+        }
+    }
+}
 
 function New-JunctionIfMissing([string]$Path, [string]$Target, [string]$Hint) {
     if (Test-Path -LiteralPath $Path) { return }
@@ -57,7 +74,10 @@ foreach ($f in $features) {
 
     New-JunctionIfMissing (Join-Path $wt 'packages') (Join-Path $root 'packages') 'restore NuGet packages in the main clone first'
     New-JunctionIfMissing (Join-Path $wt 'EMS_PJT_Hamburger\Maps\tiles') (Join-Path $root 'EMS_PJT_Hamburger\Maps\tiles') 'copy the offline tiles folder from an existing PC'
+    New-HarnessLogStubs $wt
 }
+
+New-HarnessLogStubs $root
 
 # --- Patch absolute paths recorded for multi-task / worktree routing ---------
 # workflow.js uses forward slashes, CLAUDE.md uses backslashes. Any drive-
