@@ -21,6 +21,21 @@
         <Managers:ValueChangeToBrushConverter x:Key="ValueChangeToBrushConverter"/>
         <Managers:RelayConverter x:Key="RelayConverter"/>
 
+        <!-- 헤더 Relay/Fault 버튼 — PCSView QuickAction 톤 + hover 트리거 패턴 대응 -->
+        <Style TargetType="{x:Type dx:SimpleButton}" x:Key="HeaderActionButtonStyle">
+            <Setter Property="Background" Value="#273642"/>
+            <Setter Property="BorderBrush" Value="#FFB0FCFC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#38506B"/>
+                    <Setter Property="BorderBrush" Value="#DCFEFE"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Style TargetType="{x:Type Label}" x:Key="HeatmapLableStyle">
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="1"/>
@@ -149,8 +164,7 @@
                                         <TextBlock Text="Relay 제어" Foreground="#FFD2D7DC" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                         <dx:SimpleButton Width="72" Height="28" Padding="0"
                                                          ButtonKind="Toggle"
-                                                         Background="#273642" BorderBrush="#FFB0FCFC" BorderThickness="1"
-                                                         Foreground="White" CornerRadius="4"
+                                                         Style="{StaticResource HeaderActionButtonStyle}"
                                                          Content="{Binding RelayStatus, Converter={StaticResource RelayConverter}}"
                                                          IsChecked="{Binding RelayStatus}"
                                                          Command="{Binding Cmd_RelayBtn}"/>
@@ -162,8 +176,7 @@
                                         <TextBlock Text="Alarm" Foreground="#FFD2D7DC" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                         <TextBlock Text="{Binding Alarms}" Foreground="White" FontSize="14" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                         <dx:SimpleButton Height="28" Padding="8,0"
-                                                         Background="#273642" BorderBrush="#FFB0FCFC" BorderThickness="1"
-                                                         Foreground="White" CornerRadius="4"
+                                                         Style="{StaticResource HeaderActionButtonStyle}"
                                                          Content="BMS Fault Message"
                                                          IsEnabled="{Binding AlarmWindowOpen}"
                                                          Command="{Binding Cmd_AlarmsPopupBtn}"
