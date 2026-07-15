@@ -393,7 +393,20 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             // 취소 시 소켓을 닫아 ConnectAsync 대기를 해제합니다.
             using (ct.Register(() => { try { client.Close(); } catch { } }))
             {
-                await client.ConnectAsync(_host, _port).ConfigureAwait(false);
+                // ConnectAsync 자체에는 타임아웃이 없어, 도달 불가 호스트(라우팅 안 됨/방화벽 drop)면
+                // OS의 TCP SYN 재시도(~21s)를 매번 그대로 기다리게 된다 — _timeoutMs로 상한을 건다.
+                // (연결 거부(refused)는 즉시 실패하므로 영향 없음. 재시도 간격은 RunLoopAsync 백오프가 담당.)
+                var connectTask = client.ConnectAsync(_host, _port);
+                var completed = await Task.WhenAny(connectTask, Task.Delay(_timeoutMs, ct)).ConfigureAwait(false);
+                if (completed != connectTask)
+                {
+                    try { client.Close(); } catch { }
+                    // 소켓을 닫으면 connectTask가 뒤늦게 fault되므로 예외를 관찰 처리해 둔다.
+                    _ = connectTask.ContinueWith(t => _ = t.Exception, TaskContinuationOptions.OnlyOnFaulted);
+                    throw new TimeoutException($"Connect timeout ({_timeoutMs}ms): {_host}:{_port}");
+                }
+
+                await connectTask.ConfigureAwait(false);
             }
 
             lock (_sync)
