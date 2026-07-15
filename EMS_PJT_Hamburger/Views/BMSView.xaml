@@ -9,7 +9,7 @@
              xmlns:Managers="clr-namespace:EMS_PJT_Hamburger.Models.Managers" 
              xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core" 
              xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors" 
-             xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm" xmlns:dxdo="http://schemas.devexpress.com/winfx/2008/xaml/docking"
+             xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
              mc:Ignorable="d" d:DesignHeight="860" d:DesignWidth="1200"  Background="Transparent" FontFamily="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"
              >
     <UserControl.Resources>
@@ -20,19 +20,6 @@
         <Managers:ValueToBrushConverter x:Key="ValueToBrushConverter"/>
         <Managers:ValueChangeToBrushConverter x:Key="ValueChangeToBrushConverter"/>
         <Managers:RelayConverter x:Key="RelayConverter"/>
-
-        <Style TargetType="{x:Type Label}" x:Key="HeadLableStyle">
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="Margin" Value="0,5,0,0"/>
-            <Setter Property="Foreground" Value="#FFB0FCFC"/>
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="FontFamily" Value="/EMS_PJT_Hamburger;component/Fonts/#Noto Sans KR"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="VerticalAlignment" Value="Stretch"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-        </Style>
 
         <Style TargetType="{x:Type Label}" x:Key="HeatmapLableStyle">
             <Setter Property="Padding" Value="0"/>
@@ -128,10 +115,8 @@
     </UserControl.Resources>
 
     <Viewbox>
-        <dxdo:DockLayoutManager Height="860" Width="1200">
-            <dxdo:LayoutGroup Orientation="Vertical" >
-                <dxdo:LayoutPanel Background="{DynamicResource Main.Background}" ShowCaption="False">
-                    <Grid>
+        <!-- PCSView와 동일하게 도킹 없이 단일 Grid 루트 사용 (구 DockLayoutManager 제거) -->
+        <Grid Height="860" Width="1200" Background="{DynamicResource Main.Background}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="0"/>
                             <ColumnDefinition/>
@@ -152,9 +137,35 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Margin="6,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="BMS DETAIL" Foreground="White" FontWeight="Bold" FontSize="28" VerticalAlignment="Center"/>
-                                <TextBlock Text="Battery Management System" Foreground="#FFD2D7DC" FontSize="13" VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <StackPanel Margin="6,0,0,0" VerticalAlignment="Center">
+                                    <TextBlock Text="BMS DETAIL" Foreground="White" FontWeight="Bold" FontSize="28" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Battery Management System" Foreground="#FFD2D7DC" FontSize="13" VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <!-- Relay 제어 / Alarm — 구 Control 도킹 패널에서 이동 (PCSView 헤더의 제어 버튼 배치 대응) -->
+                                <Border Background="#121922" BorderBrush="#2A3D4A" BorderThickness="1" CornerRadius="4" Padding="12,5" Margin="18,0,0,0" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Relay 제어" Foreground="#FFD2D7DC" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <dx:SimpleButton Width="72" Height="28" Padding="0"
+                                                         ButtonKind="Toggle"
+                                                         Content="{Binding RelayStatus, Converter={StaticResource RelayConverter}}"
+                                                         IsChecked="{Binding RelayStatus}"
+                                                         Command="{Binding Cmd_RelayBtn}"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Background="#121922" BorderBrush="#2A3D4A" BorderThickness="1" CornerRadius="4" Padding="12,5" Margin="10,0,0,0" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Alarm" Foreground="#FFD2D7DC" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <TextBlock Text="{Binding Alarms}" Foreground="White" FontSize="14" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                        <dx:SimpleButton Height="28" Padding="8,0"
+                                                         Content="BMS Fault Message"
+                                                         IsEnabled="{Binding AlarmWindowOpen}"
+                                                         Command="{Binding Cmd_AlarmsPopupBtn}"
+                                                         Glyph="{dx:DXImage 'SvgImages/Icon Builder/Security_Warning.svg'}"/>
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
 
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,6,0">
@@ -532,62 +543,6 @@
                                        Text="Xpack monitoring"
                                        Style="{StaticResource HeadTextBlockStyle}"/>
                         </Grid>
-                    </Grid>
-                </dxdo:LayoutPanel>
-            </dxdo:LayoutGroup>
-
-            <dxdo:DockLayoutManager.AutoHideGroups>
-                <dxdo:AutoHideGroup DockType="Left">
-                    <dxdo:LayoutPanel x:Name="CtrlSetPanel"
-                                      Caption="Control" 
-                                      AllowClose="False" 
-                                      ShowCloseButton="False"
-                                      MinWidth="250" MaxWidth="250"
-                                      Foreground="Red">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="10"/>
-                                <RowDefinition Height="40"/>
-                                <RowDefinition Height="40"/>
-                                <RowDefinition Height="40"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <Label Content="Relay 제어" Grid.Column="0" Grid.Row="1"
-                                   Foreground="Black"
-                                   Style="{StaticResource HeadLableStyle}"/>
-                            <dx:SimpleButton Grid.Column="1" Grid.Row="1"
-                                             Padding="0"
-                                             Margin="5,5,10,5"
-                                             ButtonKind="Toggle"
-                                             Content="{Binding RelayStatus, Converter={StaticResource RelayConverter}}" 
-                                             IsChecked="{Binding RelayStatus}"
-                                             Command="{Binding Cmd_RelayBtn}"/>
-                            <Label Content="Alarm"
-                                   Grid.Column="0"
-                                   Grid.Row="2"
-                                   Foreground="Black"
-                                   Style="{StaticResource HeadLableStyle}"/>
-                            <Label Content="{Binding Alarms}"
-                                   Grid.Column="1"
-                                   Grid.Row="2"
-                                   Foreground="Black"
-                                   Style="{StaticResource HeadLableStyle}"/>
-                            <dx:SimpleButton Grid.Column="0" Grid.ColumnSpan="2"
-                                             Grid.Row="3"
-                                             Padding="0"
-                                             Margin="10,5"
-                                             Content="BMS Fault Message"
-                                             IsEnabled="{Binding AlarmWindowOpen}"
-                                             Command="{Binding Cmd_AlarmsPopupBtn}"
-                                             Glyph="{dx:DXImage 'SvgImages/Icon Builder/Security_Warning.svg'}"/>
-                        </Grid>
-                    </dxdo:LayoutPanel>
-                </dxdo:AutoHideGroup>
-            </dxdo:DockLayoutManager.AutoHideGroups>
-        </dxdo:DockLayoutManager>
+        </Grid>
     </Viewbox>
 </UserControl>
