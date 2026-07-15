@@ -21,6 +21,21 @@
         <Managers:ValueChangeToBrushConverter x:Key="ValueChangeToBrushConverter"/>
         <Managers:RelayConverter x:Key="RelayConverter"/>
 
+        <!-- 헤더 Relay/Fault 버튼 — PCSView QuickAction 톤 + hover 트리거 패턴 대응 -->
+        <Style TargetType="{x:Type dx:SimpleButton}" x:Key="HeaderActionButtonStyle">
+            <Setter Property="Background" Value="#273642"/>
+            <Setter Property="BorderBrush" Value="#FFB0FCFC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#38506B"/>
+                    <Setter Property="BorderBrush" Value="#DCFEFE"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Style TargetType="{x:Type Label}" x:Key="HeatmapLableStyle">
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="1"/>
@@ -144,30 +159,28 @@
                                 </StackPanel>
 
                                 <!-- Relay 제어 / Alarm — 구 Control 도킹 패널에서 이동 (PCSView 헤더의 제어 버튼 배치 대응) -->
-                                <Border Background="#121922" BorderBrush="#2A3D4A" BorderThickness="1" CornerRadius="4" Padding="12,5" Margin="18,0,0,0" VerticalAlignment="Center">
+                                <Border Background="Transparent" BorderBrush="Transparent" BorderThickness="1" CornerRadius="4" Padding="12,5" Margin="18,0,0,0" VerticalAlignment="Center">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="Relay 제어" Foreground="#FFD2D7DC" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                         <dx:SimpleButton Width="72" Height="28" Padding="0"
                                                          ButtonKind="Toggle"
-                                                         Background="#273642" BorderBrush="#FFB0FCFC" BorderThickness="1"
-                                                         Foreground="White" CornerRadius="4"
+                                                         Style="{StaticResource HeaderActionButtonStyle}"
                                                          Content="{Binding RelayStatus, Converter={StaticResource RelayConverter}}"
                                                          IsChecked="{Binding RelayStatus}"
                                                          Command="{Binding Cmd_RelayBtn}"/>
                                     </StackPanel>
                                 </Border>
 
-                                <Border Background="#121922" BorderBrush="#2A3D4A" BorderThickness="1" CornerRadius="4" Padding="12,5" Margin="10,0,0,0" VerticalAlignment="Center">
+                                <Border Background="Transparent" BorderBrush="Transparent" BorderThickness="1" CornerRadius="4" Padding="12,5" Margin="10,0,0,0" VerticalAlignment="Center">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="Alarm" Foreground="#FFD2D7DC" FontSize="13" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <TextBlock Text="{Binding Alarms}" Foreground="White" FontSize="14" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                         <dx:SimpleButton Height="28" Padding="8,0"
-                                                         Background="#273642" BorderBrush="#FFB0FCFC" BorderThickness="1"
-                                                         Foreground="White" CornerRadius="4"
+                                                         Style="{StaticResource HeaderActionButtonStyle}"
                                                          Content="BMS Fault Message"
                                                          IsEnabled="{Binding AlarmWindowOpen}"
                                                          Command="{Binding Cmd_AlarmsPopupBtn}"
                                                          Glyph="{dx:DXImage 'SvgImages/Icon Builder/Security_Warning.svg'}"/>
+                                        <TextBlock Text="Alarm" Foreground="#FFD2D7DC" FontSize="13" VerticalAlignment="Center" Margin="10,0"/>
+                                        <TextBlock Text="{Binding Alarms}" Foreground="White" FontSize="14" VerticalAlignment="Center" Margin="0,0,12,0"/>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
