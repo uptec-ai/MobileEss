@@ -30,6 +30,10 @@ namespace EMS_PJT_Hamburger.ViewModels
         private DateTime _lastGpsSentenceUtc = DateTime.MinValue;
 
         private const int GpsReconnectDelayMs = 3000;
+        // 연결 실패/포트 부재가 반복되면 재시도 간격을 3s→6s→10s(상한)로 늘려
+        // GPS 미장착 PC에서의 상시 예외·폴링 비용을 줄인다. 성공 시 3s로 리셋.
+        private const int GpsReconnectDelayMaxMs = 10000;
+        private int _gpsReconnectCurrentDelayMs = GpsReconnectDelayMs;
         private const int GpsReceiveTimeoutSeconds = 10;
 
         // 좌표 → 시/도/군(한글) 오프라인 조회 (KOSTAT GeoJSON point-in-polygon). 미로드/미매칭 시 "--" 유지.
@@ -164,11 +168,28 @@ namespace EMS_PJT_Hamburger.ViewModels
                     if (!IsGpsConnectionHealthy())
                     {
                         ResetGpsConnection();
-                        ResetGpsDisplay("GPS Reconnecting");
-                        await ConnectGpsAsync(cancellationToken);
+
+                        // 설정된 포트(GpsPort)가 시스템에 존재할 때만 Open을 시도한다.
+                        // 포트 자체가 없는 PC(GPS 미장착)에서는 예외를 만들지 않고
+                        // 백오프 간격으로 포트 출현만 재확인한다.
+                        if (!IsGpsPortPresent())
+                        {
+                            ResetGpsDisplay("GPS Port Not Found");
+                            IncreaseGpsReconnectDelay();
+                        }
+                        else
+                        {
+                            ResetGpsDisplay("GPS Reconnecting");
+                            await ConnectGpsAsync(cancellationToken);
+                            _gpsReconnectCurrentDelayMs = GpsReconnectDelayMs;
+                        }
+                    }
+                    else
+                    {
+                        _gpsReconnectCurrentDelayMs = GpsReconnectDelayMs;
                     }
 
-                    await Task.Delay(GpsReconnectDelayMs, cancellationToken);
+                    await Task.Delay(_gpsReconnectCurrentDelayMs, cancellationToken);
                 }
                 catch (OperationCanceledException)
                 {
@@ -178,10 +199,11 @@ namespace EMS_PJT_Hamburger.ViewModels
                 {
                     ResetGpsConnection();
                     ResetGpsDisplay("GPS Disconnected");
+                    IncreaseGpsReconnectDelay();
 
                     try
                     {
-                        await Task.Delay(GpsReconnectDelayMs, cancellationToken);
+                        await Task.Delay(_gpsReconnectCurrentDelayMs, cancellationToken);
                     }
                     catch (OperationCanceledException)
                     {
@@ -189,6 +211,26 @@ namespace EMS_PJT_Hamburger.ViewModels
                     }
                 }
             }
+        }
+
+        // GetPortNames()는 레지스트리 조회라 장치 I/O 없이 저렴하다.
+        // 조회 자체가 실패하면 기존 동작(Open 시도)으로 폴백한다.
+        private bool IsGpsPortPresent()
+        {
+            try
+            {
+                return System.IO.Ports.SerialPort.GetPortNames()
+                    .Any(p => string.Equals(p, _gpsPort, StringComparison.OrdinalIgnoreCase));
+            }
+            catch
+            {
+                return true;
+            }
+        }
+
+        private void IncreaseGpsReconnectDelay()
+        {
+            _gpsReconnectCurrentDelayMs = Math.Min(_gpsReconnectCurrentDelayMs * 2, GpsReconnectDelayMaxMs);
         }
 
         private async Task ConnectGpsAsync(CancellationToken cancellationToken)
