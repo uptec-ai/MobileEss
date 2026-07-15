@@ -9,6 +9,16 @@ using System.Windows;
 
 namespace EMS_PJT_Hamburger.Models.Client.BMS
 {
+    /// <summary>PCAN 시작 결과 — 실패를 회복 가능 여부로 구분한다.</summary>
+    public enum PcanStartResult
+    {
+        Success,
+        /// <summary>어댑터 미장착·채널 사용 불가 등 — 재시도로 회복 가능</summary>
+        TransientFailure,
+        /// <summary>PCANBasic 네이티브 dll 부재/불일치 — 프로세스 생존 중 재시도로 회복 불가</summary>
+        PermanentFailure,
+    }
+
     public class PcanRxService : IDisposable
     {
         private readonly PcanChannel _channel;
@@ -25,7 +35,7 @@ namespace EMS_PJT_Hamburger.Models.Client.BMS
             _bitrate = bitrate;
         }
 
-        public bool Start()
+        public PcanStartResult Start()
         {
             ThrowIfDisposed();
 
@@ -35,7 +45,7 @@ namespace EMS_PJT_Hamburger.Models.Client.BMS
                 if (st != PcanStatus.OK)
                 {
                     RaiseConnection(false);
-                    return false;
+                    return PcanStartResult.TransientFailure;
                 }
 
                 IsBmsReady = true;
@@ -44,13 +54,33 @@ namespace EMS_PJT_Hamburger.Models.Client.BMS
                 _rxThread.Start();
 
                 RaiseConnection(true);
-                return true;
+                return PcanStartResult.Success;
+            }
+            catch (Exception ex) when (IsPermanentFailure(ex))
+            {
+                RaiseConnection(false);
+                return PcanStartResult.PermanentFailure;
             }
             catch (Exception)
             {
                 RaiseConnection(false);
-                return false;
+                return PcanStartResult.TransientFailure;
             }
+        }
+
+        // PCANBasic.dll 자체가 없거나(x86/x64 불일치 포함) 로드 불가한 경우 —
+        // TypeInitializationException은 원인을 감싸므로 InnerException까지 검사한다.
+        private static bool IsPermanentFailure(Exception ex)
+        {
+            for (var e = ex; e != null; e = e.InnerException)
+            {
+                if (e is DllNotFoundException ||
+                    e is BadImageFormatException ||
+                    e is EntryPointNotFoundException ||
+                    e is TypeInitializationException)
+                    return true;
+            }
+            return false;
         }
         private void ReadLoop()
         {

@@ -25,6 +25,9 @@ namespace EMS_PJT_Hamburger.ViewModels
         private static readonly TimeSpan BmsReconnectInterval = TimeSpan.FromSeconds(5);
         private bool _disposed;
         private bool _isPcanStarted;
+        // PCANBasic.dll 부재/불일치(영구 실패) — true면 자동 재시도를 중단하고
+        // 'PCAN 드라이버 미설치' 상태로 고정한다. 어댑터 미장착(일시 실패)과 구분.
+        private bool _pcanUnavailable;
         private DateTime _lastFrameReceivedUtc = DateTime.MinValue;
         private DateTime _lastStartAttemptUtc = DateTime.MinValue;
         private StatusManager.BMSStatus _lastPublishedBmsStatus = StatusManager.BMSStatus.None;
@@ -74,7 +77,7 @@ namespace EMS_PJT_Hamburger.ViewModels
 
         private void StartBmsReceiver()
         {
-            if (_disposed || _rx == null) return;
+            if (_disposed || _rx == null || _pcanUnavailable) return;
 
             // 재시도 간격 계산 기준이 되는 마지막 시도 시각 기록
             _lastStartAttemptUtc = DateTime.UtcNow;
@@ -82,11 +85,25 @@ namespace EMS_PJT_Hamburger.ViewModels
 
             try
             {
-                _isPcanStarted = _rx.Start();
-                if (!_isPcanStarted)
+                var result = _rx.Start();
+                _isPcanStarted = result == PcanStartResult.Success;
+
+                switch (result)
                 {
-                    UpdateBmsConnectionStatus(StatusManager.BMSStatus.Disconnected);
-                    app?.nlog?.Warn($"PCAN initialize failed. Will retry in {BmsReconnectInterval.TotalSeconds:0}s. Check channel, bitrate, driver, and platform.");
+                    case PcanStartResult.Success:
+                        break;
+
+                    case PcanStartResult.PermanentFailure:
+                        // dll 자체가 없으면 재시도로 회복 불가 → 재시도 중단, 상태 고정.
+                        _pcanUnavailable = true;
+                        UpdateBmsConnectionStatus(StatusManager.BMSStatus.Error, "PCAN 드라이버 미설치");
+                        app?.nlog?.Warn("PCANBasic.dll unavailable (missing or arch mismatch). BMS auto-retry disabled.");
+                        break;
+
+                    default: // TransientFailure — 어댑터 미장착 등, 재시도 유지
+                        UpdateBmsConnectionStatus(StatusManager.BMSStatus.Disconnected);
+                        app?.nlog?.Warn($"PCAN initialize failed. Will retry in {BmsReconnectInterval.TotalSeconds:0}s. Check channel, bitrate, and adapter.");
+                        break;
                 }
             }
             catch (Exception ex)
@@ -240,9 +257,12 @@ namespace EMS_PJT_Hamburger.ViewModels
             if (_disposed) return;
 
             // 초기화 실패(미시작) 상태면 일정 간격으로 PCAN 초기화를 자동 재시도한다.
+            // 단, 영구 실패(드라이버 미설치)는 재시도하지 않는다.
             // 모든 상태 전이는 UpdateBmsConnectionStatus를 거쳐 StatusManager에 연동된다.
             if (!_isPcanStarted)
             {
+                if (_pcanUnavailable) return;
+
                 if (DateTime.UtcNow - _lastStartAttemptUtc >= BmsReconnectInterval)
                 {
                     app?.nlog?.Info("Retrying BMS PCAN initialization...");
@@ -259,7 +279,7 @@ namespace EMS_PJT_Hamburger.ViewModels
             }
         }
 
-        private void UpdateBmsConnectionStatus(StatusManager.BMSStatus status)
+        private void UpdateBmsConnectionStatus(StatusManager.BMSStatus status, string statusTextOverride = null)
         {
             if (_lastPublishedBmsStatus == status) return;
 
@@ -275,7 +295,7 @@ namespace EMS_PJT_Hamburger.ViewModels
 
                 // 상단 헤더(System Connect 상태 패널) 표시값 반영
                 IsBmsConnected = status == StatusManager.BMSStatus.Connected;
-                BmsConnectionStatus = BmsStatusText(status);
+                BmsConnectionStatus = statusTextOverride ?? BmsStatusText(status);
             };
 
             var dispatcher = Application.Current?.Dispatcher;
