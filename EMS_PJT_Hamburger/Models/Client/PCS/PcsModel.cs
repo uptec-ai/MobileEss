@@ -1163,10 +1163,7 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
                     ChangeLoadData(snapshot);
                     ChangeEtcData(snapshot);
                     ChangeBatteryData(snapshot);
-                    //if (TryGetDouble(snapshot, "GridTotalImportActivePower", out var totalImported))
-                    //    UpdateDailyImportedEnergySummary(totalImported);
-                    //if (TryGetDouble(snapshot, "GridTotalExportedActivePower", out var totalExported))
-                    //    UpdateDailyExportedEnergySummary(totalExported);
+                    UpdateDailyEnergyItems(snapshot);
                 }
                 finally
                 {
@@ -1408,6 +1405,81 @@ namespace EMS_PJT_Hamburger.Models.Client.PCS
             if (!TryGetDouble(parsed, "GridTotalExportedActivePower", out var totalExported)) return;
 
             app.DbManager.UpsertPcsGridDailyTotals(totalImported, totalExported, DateTime.Now);
+        }
+
+        // [일일 누적 전력량] 일간 = 현재 총 누적(kWh) − 전일 마감 누적.
+        // 전일 마감값은 tb_pcs_grid(하루 1행)에서 1회/일 로드하고 날짜가 바뀌면 재로드한다.
+        private DateTime _dailyEnergyBaseDate = DateTime.MinValue;
+        private double? _dailyImportBaseline;
+        private double? _dailyExportBaseline;
+        private bool _dailyBaselineLoading;
+
+        private void UpdateDailyEnergyItems(Dictionary<string, object> parsed)
+        {
+            if (parsed == null || LoadItems == null || LoadItems.Count < 19) return;
+            if (!TryGetDouble(parsed, "GridTotalImportActivePower", out var totalImported)) return;
+            if (!TryGetDouble(parsed, "GridTotalExportedActivePower", out var totalExported)) return;
+
+            var today = DateTime.Today;
+            if (_dailyEnergyBaseDate != today)
+            {
+                _dailyEnergyBaseDate = today;
+                _dailyImportBaseline = null;
+                _dailyExportBaseline = null;
+            }
+
+            if (_dailyImportBaseline == null)
+            {
+                if (!_dailyBaselineLoading)
+                    LoadDailyEnergyBaseline(today, totalImported, totalExported);
+                return; // 기준값 로드 전에는 표시 갱신 보류
+            }
+
+            var dailyImport = Math.Max(0d, totalImported - _dailyImportBaseline.Value);
+            var dailyExport = Math.Max(0d, totalExported - _dailyExportBaseline.Value);
+            LoadItems[17].Value = dailyImport.ToString("0.0");
+            LoadItems[18].Value = dailyExport.ToString("0.0");
+        }
+
+        private void LoadDailyEnergyBaseline(DateTime today, double currentImported, double currentExported)
+        {
+            _dailyBaselineLoading = true;
+            Task.Run(() =>
+            {
+                var app = Application.Current as App;
+                try
+                {
+                    double baseImport = currentImported;
+                    double baseExport = currentExported;
+
+                    var ds = app?.DbManager?.GetDataSetByQuery(
+                        "select total_imported, total_exported from public.tb_pcs_grid where collected_at < @today order by collected_at desc limit 1",
+                        cmd => cmd.Parameters.AddWithValue("@today", today));
+
+                    if (ds != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+                    {
+                        var row = ds.Tables[0].Rows[0];
+                        if (row["total_imported"] != DBNull.Value) baseImport = Convert.ToDouble(row["total_imported"]);
+                        if (row["total_exported"] != DBNull.Value) baseExport = Convert.ToDouble(row["total_exported"]);
+                    }
+                    else
+                    {
+                        // 전일 데이터 없음(최초 가동일): 현재 총량 기준으로 0부터 집계
+                        app?.nlog?.Info("Daily energy baseline: no previous-day tb_pcs_grid row. Using current totals.");
+                    }
+
+                    _dailyImportBaseline = baseImport;
+                    _dailyExportBaseline = baseExport;
+                }
+                catch (Exception ex)
+                {
+                    app?.nlog?.Warn(ex, "Daily energy baseline load failed.");
+                }
+                finally
+                {
+                    _dailyBaselineLoading = false;
+                }
+            });
         }
 
         public void SavePcsData(Dictionary<string, object> parsed)

@@ -1,4 +1,4 @@
-using DevExpress.Mvvm;
+﻿using DevExpress.Mvvm;
 using EMS_PJT_Hamburger.Models.Client.PCS;
 using EMS_PJT_Hamburger.Views;
 using System;
@@ -179,8 +179,8 @@ namespace EMS_PJT_Hamburger.ViewModels
 
                 new DataItem { Name="주파수", Value=$"0.0", Factor="Hz"},       // 15
                 new DataItem { Name="역률", Value=$"0.00", Factor="%"},         // 16
-                //new DataItem { Name="수전 누적 전력량(일간)", Value="124.4", Factor="kWh"},
-                //new DataItem { Name="송전 누적 전력량(일간)", Value="5.4", Factor="kWh"},
+                new DataItem { Name="수전 누적 전력량(일간)", Value=$"0.0", Factor="kWh"}, // 17
+                new DataItem { Name="송전 누적 전력량(일간)", Value=$"0.0", Factor="kWh"}, // 18
                 //new DataItem { Name="선간전압 BC", Value="23.0", Factor="V"},
                 //new DataItem { Name="선간전압 CA", Value="31.0", Factor="V"},
                 //new DataItem { Name="선간전류 BC", Value="23.1", Factor="A"},
