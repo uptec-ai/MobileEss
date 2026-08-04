@@ -1,64 +1,167 @@
 ﻿using DevExpress.Mvvm;
+using Npgsql;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 
 namespace EMS_PJT_Hamburger.Models.Client.BMS
 {
+    // tb_ems_alarm 주기 폴링 서비스.
+    // Start() 후 첫 폴링에서 현재 최대 alarm_id를 기준점으로 잡고,
+    // 이후 신규 행(alarm_id > 기준점)만 AlarmsArrived로 발행한다.
+    // DispatcherTimer Tick(UI 스레드)에서 DB 조회는 Task.Run으로 내려 UI 블로킹을 피한다.
     public class AlarmService
     {
-        // 싱글톤 (App 종료까지 사라지지 않음.)
-        //public static AlarmService Instance { get; } = new AlarmService();
+        private const int MaxRowsPerPoll = 200;
 
         private readonly DispatcherTimer _timer;
-        private int lastCnt = 0; // 마지막 조회 횟수
+        private readonly string _source;
+        private long _lastAlarmId = -1; // -1 = 기준점 미설정(첫 폴링에서 max id로 초기화)
+        private bool _isPolling;        // Tick 재진입 방지
 
-        public AlarmService()
+        // 신규 알람 목록(오래된 순). UI 스레드에서 호출된다.
+        public event Action<IReadOnlyList<AlarmItems>> AlarmsArrived;
+
+        public AlarmService(string source = "BMS", double intervalSeconds = 5)
         {
-            //_timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-            //_timer.Tick += (_, __) => Sync();
+            _source = source;
+            _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(intervalSeconds) };
+            _timer.Tick += async (_, __) => await PollAsync();
         }
+
         public void Start()
         {
-            //_timer.Start();
+            _timer.Start();
         }
+
         public void Stop()
         {
-            //_timer.Stop();
+            _timer.Stop();
         }
-        /*
-        private async void Sync()
-        {
-            // 서버/DB 조회 후 Alarms 갱신 (예시)
-            // Alarms.Add / Update ...
-            await Application.Current.MainWindow.Dispatcher.BeginInvoke(new Action(() => SearchAlarmData()));
-        }
-        private void SearchAlarmData()
-        {
-            App app = Application.Current as App;
-            string sql = $"select * from tb_bms_alarm order by occurred_at desc";
-            DataSet ds = app.DbManager.GetDataSetByQuery(sql);
-            if (ds.Tables[0].Rows.Count > lastCnt) lastCnt = ds.Tables[0].Rows.Count - lastCnt;
-            else return;
 
-            // 테스트 데이터
-            for (int i = 0; i < lastCnt; i++)
+        private async Task PollAsync()
+        {
+            if (_isPolling) return;
+            _isPolling = true;
+
+            var app = Application.Current as App;
+            try
             {
-                Alarms.Add(new AlarmItems
+                var db = app?.DbManager;
+                if (db == null) return;
+
+                long lastId = _lastAlarmId;
+
+                if (lastId < 0)
                 {
-                    Code = Convert.ToInt32(ds.Tables[0].Rows[i][1].ToString()),
-                    Alarm = ds.Tables[0].Rows[i][2].ToString(),
-                    Hour = ds.Tables[0].Rows[i][3].ToString(),
+                    // 첫 폴링: 기존 알람은 발행하지 않고 기준점만 잡는다.
+                    _lastAlarmId = await Task.Run(() =>
+                    {
+                        db.EnsureEmsAlarmTable();
+                        var ds = db.GetDataSetByQuery(
+                            "select coalesce(max(alarm_id), 0) as max_id from public.tb_ems_alarm where source = @source",
+                            cmd => cmd.Parameters.AddWithValue("@source", _source));
+                        return ReadMaxId(ds);
+                    });
+                    return;
+                }
+
+                var newAlarms = await Task.Run(() =>
+                {
+                    var ds = db.GetDataSetByQuery(
+                        "select * from public.tb_ems_alarm where source = @source and alarm_id > @last_id order by alarm_id asc limit @limit",
+                        cmd =>
+                        {
+                            cmd.Parameters.AddWithValue("@source", _source);
+                            cmd.Parameters.AddWithValue("@last_id", lastId);
+                            cmd.Parameters.AddWithValue("@limit", MaxRowsPerPoll);
+                        });
+                    return ParseAlarms(ds, ref _lastAlarmId);
                 });
+
+                if (newAlarms.Count > 0)
+                    AlarmsArrived?.Invoke(newAlarms);
+            }
+            catch (Exception ex)
+            {
+                app?.nlog?.Warn(ex, "Alarm polling failed.");
+            }
+            finally
+            {
+                _isPolling = false;
             }
         }
-        */
+
+        private static long ReadMaxId(DataSet ds)
+        {
+            if (ds == null || ds.Tables.Count == 0 || ds.Tables[0].Rows.Count == 0) return 0;
+
+            var raw = ds.Tables[0].Rows[0]["max_id"];
+            return raw == DBNull.Value ? 0 : Convert.ToInt64(raw);
+        }
+
+        private static List<AlarmItems> ParseAlarms(DataSet ds, ref long lastAlarmId)
+        {
+            var items = new List<AlarmItems>();
+            if (ds == null || ds.Tables.Count == 0) return items;
+
+            foreach (DataRow row in ds.Tables[0].Rows)
+            {
+                long alarmId = ReadLong(row, "alarm_id");
+                if (alarmId > lastAlarmId) lastAlarmId = alarmId;
+
+                items.Add(new AlarmItems
+                {
+                    OccurredAt = ReadDate(row, "occurred_at"),
+                    Source = ReadString(row, "source"),
+                    Category = ReadString(row, "category"),
+                    Bit = ReadInt(row, "bit"),
+                    Code = ReadInt(row, "alarm_code"),
+                    Alarm = ReadString(row, "alarm_name"),
+                    FaultMessage = ReadString(row, "fault_message"),
+                    RawValue = ReadString(row, "raw_value"),
+                });
+            }
+
+            return items;
+        }
+
+        private static string ReadString(DataRow row, string columnName)
+        {
+            return row.Table.Columns.Contains(columnName) && row[columnName] != DBNull.Value
+                ? row[columnName].ToString()
+                : string.Empty;
+        }
+
+        private static int ReadInt(DataRow row, string columnName)
+        {
+            if (!row.Table.Columns.Contains(columnName) || row[columnName] == DBNull.Value)
+                return 0;
+
+            int value;
+            return int.TryParse(row[columnName].ToString(), out value) ? value : 0;
+        }
+
+        private static long ReadLong(DataRow row, string columnName)
+        {
+            if (!row.Table.Columns.Contains(columnName) || row[columnName] == DBNull.Value)
+                return 0;
+
+            long value;
+            return long.TryParse(row[columnName].ToString(), out value) ? value : 0;
+        }
+
+        private static DateTime ReadDate(DataRow row, string columnName)
+        {
+            if (!row.Table.Columns.Contains(columnName) || row[columnName] == DBNull.Value)
+                return default(DateTime);
+
+            DateTime value;
+            return DateTime.TryParse(row[columnName].ToString(), out value) ? value : default(DateTime);
+        }
     }
 
     public class AlarmItems : ViewModelBase
