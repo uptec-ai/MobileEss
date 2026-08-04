@@ -381,16 +381,30 @@ namespace EMS_PJT_Hamburger.ViewModels
         {
             if (_alarmWin != null) return;
             AlarmService = new AlarmService();
+            var alarmVm = CreateAlarmDetailVm();
+
+            // DB 폴링으로 감지된 신규 알람을 열린 창 목록 선두에 반영(occurred_at desc 유지).
+            // items는 오래된 순이므로 순서대로 Insert(0)하면 최신이 맨 위로 온다.
+            Action<IReadOnlyList<AlarmItems>> onAlarmsArrived = items =>
+            {
+                foreach (var item in items) alarmVm.Alarms.Insert(0, item);
+            };
+            AlarmService.AlarmsArrived += onAlarmsArrived;
+
             _alarmWin = new AlarmDetailWindow
             {
-                DataContext = CreateAlarmDetailVm(),
+                DataContext = alarmVm,
                 Owner = Application.Current.MainWindow,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner
             };
 
             _alarmWin.Closed += (_, __) =>
             {
-                AlarmService?.Stop();
+                if (AlarmService != null)
+                {
+                    AlarmService.Stop();
+                    AlarmService.AlarmsArrived -= onAlarmsArrived;
+                }
                 _alarmWin = null;
                 AlarmWindowOpen = true;
             };
