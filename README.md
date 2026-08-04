@@ -2,6 +2,7 @@
 
 이동형 ESS(에너지저장장치) HMI — WPF 데스크톱 앱. PCS(전력변환)·BMS(배터리)·GPS를 감시/제어한다.
 빌드·컨벤션 등 상세 지침은 `.claude/CLAUDE.md`, 도메인 문서는 `docs/`와 `.claude/docs/` 참조.
+**인수인계는 `docs/handover.md`** — 시스템 개요·설정·DB·기능 맵·잔여 검증 체크리스트를 한 문서로 정리.
 
 ## scripts/setup-worktrees.ps1 — 클론 후 worktree 환경 재구성
 
