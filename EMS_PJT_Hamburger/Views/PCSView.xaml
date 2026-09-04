@@ -112,7 +112,7 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
-        <Style x:Key="ControlEditStyle" TargetType="{x:Type dxe:TextEdit}">
+        <Style x:Key="ControlEditStyle" TargetType="{x:Type dxe:TextEdit}" BasedOn="{StaticResource {x:Type dxe:TextEdit}}">
             <Setter Property="Height" Value="28"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
