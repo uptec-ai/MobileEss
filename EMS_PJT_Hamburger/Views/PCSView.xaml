@@ -6,6 +6,7 @@
              xmlns:dx="http://schemas.devexpress.com/winfx/2008/xaml/core"
              xmlns:dxe="http://schemas.devexpress.com/winfx/2008/xaml/editors"
              xmlns:s="http://schemas.abtsoftware.co.uk/scichart"
+             xmlns:touch="clr-namespace:EMS_PJT_Hamburger.Behaviors"
              xmlns:Managers="clr-namespace:EMS_PJT_Hamburger.Models.Managers"
              mc:Ignorable="d"
              d:DesignHeight="860"
@@ -117,6 +118,7 @@
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,2"/>
+            <Setter Property="touch:TouchKeyboardService.ShowOnFocus" Value="True"/>
         </Style>
 
         <Style TargetType="{x:Type dx:SimpleButton}" x:Key="QuickActionButtonStyle">
